@@ -5,20 +5,17 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using ChinhDo.Transactions;
+using CKAN.Factorio;
+using CKAN.Factorio.Schema;
+using CKAN.Factorio.Version;
+using CKAN.Installable;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using log4net;
 
 namespace CKAN
 {
-    public delegate void ModuleInstallerReportModInstalled(CkanModule module);
-
-    public struct InstallableFile
-    {
-        public ZipEntry source;
-        public string destination;
-        public bool makedir;
-    }
+    public delegate void ModuleInstallerReportModInstalled(CfanModule module);
 
     public class ModuleInstaller
     {
@@ -103,9 +100,9 @@ namespace CKAN
         /// If no filename is provided, the module's standard name will be used.
         /// Chcecks the CKAN cache first.
         /// </summary>
-        public string CachedOrDownload(CkanModule module, string filename = null)
+        public string CachedOrDownload(CfanModule module, string filename = null)
         {
-            return CachedOrDownload(module.identifier, module.version, module.download, Cache, filename);
+            return CachedOrDownload(module.identifier, module.modVersion, module.download, Cache, filename);
         }
 
         /// <summary>
@@ -115,7 +112,7 @@ namespace CKAN
         /// If no filename is provided, the module's standard name will be used.
         /// Chcecks the CKAN cache first.
         /// </summary>
-        public string CachedOrDownload(string identifier, Version version, Uri url, string filename = null)
+        public string CachedOrDownload(string identifier, AbstractVersion version, Uri url, string filename = null)
         {
             return CachedOrDownload(identifier, version, url, Cache, filename);
         }
@@ -127,11 +124,11 @@ namespace CKAN
         /// If no filename is provided, the module's standard name will be used.
         /// Chcecks provided cache first.
         /// </summary>
-        public static string CachedOrDownload(string identifier, Version version, Uri url, NetFileCache cache, string filename = null)
+        public static string CachedOrDownload(string identifier, AbstractVersion version, Uri url, NetFileCache cache, string filename = null)
         {
             if (filename == null)
             {
-                filename = CkanModule.StandardName(identifier, version);
+                filename = CfanModule.createStandardFileName(identifier, version.ToString());
             }
 
             string full_path = cache.GetCachedZip(url);
@@ -147,13 +144,13 @@ namespace CKAN
 
 
         public void InstallList(
-            List<string> modules,
+            IEnumerable<CfanModuleIdAndVersion> modules,
             RelationshipResolverOptions options,
             IDownloader downloader = null
         )
         {
             var resolver = new RelationshipResolver(modules, options, registry_manager.registry, ksp.Version());
-            List<CkanModule> modsToInstall = resolver.ModList();
+            List<CfanModule> modsToInstall = resolver.ModList();
 
             InstallList(modsToInstall, options, downloader);
         }
@@ -169,30 +166,30 @@ namespace CKAN
         //
         // TODO: Break this up into smaller pieces! It's huge!
         public void InstallList(
-            ICollection<CkanModule> modules,
+            ICollection<CfanModule> modules,
             RelationshipResolverOptions options,
             IDownloader downloader = null
         )
         {
             var resolver = new RelationshipResolver(modules, options, registry_manager.registry, ksp.Version());
-            List<CkanModule> modsToInstall = resolver.ModList();
-            List<CkanModule> downloads = new List<CkanModule> ();
+            List<CfanModule> modsToInstall = resolver.ModList();
+            List<CfanModule> downloads = new List<CfanModule> ();
 
             // TODO: All this user-stuff should be happening in another method!
             // We should just be installing mods as a transaction.
 
             User.RaiseMessage("About to install...\n");
 
-            foreach (CkanModule module in modsToInstall)
+            foreach (CfanModule module in modsToInstall)
             {
                 if (!ksp.Cache.IsCachedZip(module.download))
                 {
-                    User.RaiseMessage(" * {0} {1}", module.name, module.version);
+                    User.RaiseMessage(" * {0} {1}", module.identifier, module.modVersion);
                     downloads.Add(module);
                 }
                 else
                 {
-                    User.RaiseMessage(" * {0} {1}(cached)", module.name, module.version);
+                    User.RaiseMessage(" * {0} {1}(cached)", module.identifier, module.modVersion);
                 }
             }
 
@@ -231,6 +228,7 @@ namespace CKAN
                 User.RaiseProgress("Updating registry", 70);
 
                 registry_manager.Save(!options.without_enforce_consistency);
+                ksp.RebuildFactorioModlist();
 
                 User.RaiseProgress("Commiting filesystem changes", 80);
 
@@ -259,7 +257,7 @@ namespace CKAN
         /// Intended for previews.
         /// </summary>
         // TODO: Return files relative to GameRoot
-        public IEnumerable<string> GetModuleContentsList(CkanModule module)
+        public IEnumerable<string> GetModuleContentsList(CfanModule module)
         {
             string filename = ksp.Cache.GetCachedZip(module.download);
 
@@ -269,7 +267,7 @@ namespace CKAN
             }
 
             return FindInstallableFiles(module, filename, ksp)
-                .Select(x => x.destination);
+                .Select(x => KSPPathUtils.NormalizePath(x.Destination));
         }
 
         /// <summary>
@@ -287,11 +285,11 @@ namespace CKAN
         //
         // TODO: The name of this and InstallModule() need to be made more distinctive.
 
-        private void Install(CkanModule module, string filename = null)
+        private void Install(CfanModule module, string filename = null)
         {
             CheckMetapackageInstallationKraken(module);
 
-            Version version = registry_manager.registry.InstalledVersion(module.identifier);
+            AbstractVersion version = registry_manager.registry.InstalledVersion(module.identifier);
 
             // TODO: This really should be handled by higher-up code.
             if (version != null)
@@ -342,9 +340,9 @@ namespace CKAN
         /// Check if the given module is a metapackage:
         /// if it is, throws a BadCommandKraken.
         /// </summary>
-        private static void CheckMetapackageInstallationKraken(CkanModule module)
+        private static void CheckMetapackageInstallationKraken(CfanModule module)
         {
-            if (module.IsMetapackage)
+            if (module.isMetapackage)
             {
                 throw new BadCommandKraken("Metapackages can not be installed!");
             }
@@ -356,251 +354,30 @@ namespace CKAN
         /// Propagates a BadMetadataKraken if our install metadata is bad.
         /// Propagates a FileExistsKraken if we were going to overwrite a file.
         /// </summary>
-        private IEnumerable<string> InstallModule(CkanModule module, string zip_filename)
+        private IEnumerable<string> InstallModule(CfanModule module, string zip_filename)
         {
             CheckMetapackageInstallationKraken(module);
-
-            using (ZipFile zipfile = new ZipFile(zip_filename))
-            {
-                IEnumerable<InstallableFile> files = FindInstallableFiles(module, zipfile, ksp);
-
-                try
-                {
-                    foreach (InstallableFile file in files)
-                    {
-                        log.InfoFormat("Copying {0}", file.source.Name);
-                        CopyZipEntry(zipfile, file.source, file.destination, file.makedir);
-                    }
-                }
-                catch (FileExistsKraken kraken)
-                {
-                    // Decorate the kraken with our module and re-throw
-                    kraken.filename = ksp.ToRelativeGameDir(kraken.filename);
-                    kraken.installing_module = module;
-                    kraken.owning_module = registry_manager.registry.FileOwner(kraken.filename);
-                    throw;
-                }
-
-                return files.Select(x => x.destination);
-            }
-        }
-
-        /// <summary>
-        /// Given a stanza and an open zipfile, returns all files that would be installed
-        /// for this stanza.
-        ///
-        /// If a KSP instance is provided, it will be used to generate output paths, otherwise these will be null.
-        ///
-        /// Throws a BadInstallLocationKraken if the install stanza targets an
-        /// unknown install location (eg: not GameData, Ships, etc)
-        ///
-        /// Throws a BadMetadataKraken if the stanza resulted in no files being returned.
-        /// </summary>
-        /// <exception cref="BadInstallLocationKraken">Thrown when the installation path is not valid according to the spec.</exception>
-        internal static List<InstallableFile> FindInstallableFiles(ModuleInstallDescriptor stanza, ZipFile zipfile, KSP ksp)
-        {
-            string installDir;
-            bool makeDirs;
-            var files = new List<InstallableFile> ();
-
-            // Normalize the path before doing everything else
-            // TODO: This really should happen in the ModuleInstallDescriptor itself.
-            stanza.install_to = KSPPathUtils.NormalizePath(stanza.install_to);
-
-            // Convert our stanza to a standard `file` type. This is a no-op if it's
-            // already the basic type.
-
-            stanza = stanza.ConvertFindToFile(zipfile);
-
-            if (stanza.install_to == "GameData" || stanza.install_to.StartsWith("GameData/"))
-            {
-                // The installation path can be either "GameData" or a sub-directory of "GameData"
-                // but it cannot contain updirs
-                if (stanza.install_to.Contains("/../") || stanza.install_to.EndsWith("/.."))
-                    throw new BadInstallLocationKraken("Invalid installation path: " + stanza.install_to);
-
-                string subDir = stanza.install_to.Substring("GameData".Length);    // remove "GameData"
-                subDir = subDir.StartsWith("/") ? subDir.Substring(1) : subDir;    // remove a "/" at the beginning, if present
-
-                // Add the extracted subdirectory to the path of KSP's GameData
-                installDir = ksp == null ? null : (KSPPathUtils.NormalizePath(ksp.GameData() + "/" + subDir));
-                makeDirs = true;
-            }
-            else if (stanza.install_to.StartsWith("Ships"))
-            {
-                // Don't allow directory creation in ships directory
-                makeDirs = false;
-
-                switch (stanza.install_to)
-                {
-                    case "Ships":
-                        installDir = ksp == null ? null : ksp.Ships();
-                        break;
-                    case "Ships/VAB":
-                        installDir = ksp == null ? null : ksp.ShipsVab();
-                        break;
-                    case "Ships/SPH":
-                        installDir = ksp == null ? null : ksp.ShipsSph();
-                        break;
-                    case "Ships/@thumbs":
-                        installDir = ksp == null ? null : ksp.ShipsThumbs();
-                        break;
-                    case "Ships/@thumbs/VAB":
-                        installDir = ksp == null ? null : ksp.ShipsThumbsVAB();
-                        break;
-                    case "Ships/@thumbs/SPH":
-                        installDir = ksp == null ? null : ksp.ShipsThumbsSPH();
-                        break;
-                    default:
-                        throw new BadInstallLocationKraken("Unknown install_to " + stanza.install_to);
-                }
-            }
-            else switch (stanza.install_to)
-            {
-                case "Tutorial":
-                    installDir = ksp == null ? null : ksp.Tutorial();
-                    makeDirs = true;
-                    break;
-
-                case "Scenarios":
-                    installDir = ksp == null ? null : ksp.Scenarios();
-                    makeDirs = true;
-                    break;
-
-                case "GameRoot":
-                    installDir = ksp == null ? null : ksp.GameDir();
-                    makeDirs = false;
-                    break;
-
-                default:
-                    throw new BadInstallLocationKraken("Unknown install_to " + stanza.install_to);
-            }
-
-            // O(N^2) solution, as we're walking the zipfile for each stanza.
-            // Surely there's a better way, although this is fast enough we may not care.
-
-            foreach (ZipEntry entry in zipfile)
-            {
-                // Skips things not prescribed by our install stanza.
-                if (! stanza.IsWanted(entry.Name)) {
-                    continue;
-                }
-
-                // Prepare our file info.
-                InstallableFile file_info = new InstallableFile
-                {
-                    source = entry,
-                    makedir = makeDirs,
-                    destination = null
-                };
-
-                // If we have a place to install it, fill that in...
-                if (installDir != null)
-                {
-                    // Get the full name of the file.
-                    string outputName = entry.Name;
-
-                    // Update our file info with the install location
-                    file_info.destination = TransformOutputName(stanza.file, outputName, installDir);
-                }
-
-                files.Add(file_info);
-            }
-
-            // If we have no files, then something is wrong! (KSP-CKAN/CKAN#93)
-            if (files.Count == 0)
-            {
-                // We have null as the first argument here, because we don't know which module we're installing
-                throw new BadMetadataKraken(null, String.Format("No files found in {0} to install!", stanza.file));
-            }
-
-            return files;
-        }
-
-        /// <summary>
-        /// Transforms the name of the output. This will strip the leading directories from the stanza file from
-        /// output name and then combine it with the installDir.
-        /// EX: "kOS-1.1/GameData/kOS", "kOS-1.1/GameData/kOS/Plugins/kOS.dll", "GameData" will be transformed
-        /// to "GameData/kOS/Plugins/kOS.dll"
-        /// </summary>
-        /// <returns>The output name.</returns>
-        /// <param name="file">The file directive of the stanza.</param>
-        /// <param name="outputName">The name of the file to transform.</param>
-        /// <param name="installDir">The installation dir where the file should end up with.</param>
-        internal static string TransformOutputName(string file, string outputName, string installDir)
-        {
-            string leadingPathToRemove = KSPPathUtils.GetLeadingPathElements(file);
-
-            // Special-casing, if stanza.file is just "GameData" or "Ships", strip it.
-            // TODO: Do we need to do anything special for tutorials or GameRoot?
-            if (
-                leadingPathToRemove == string.Empty &&
-                (file == "GameData" || file == "Ships")
-            )
-            {
-                leadingPathToRemove = file;
-            }
-
-            // If there's a leading path to remove, then we have some extra work that
-            // needs doing...
-            if (leadingPathToRemove != string.Empty)
-            {
-                string leadingRegEx = "^" + Regex.Escape(leadingPathToRemove) + "/";
-                if (!Regex.IsMatch(outputName, leadingRegEx))
-                {
-                    throw new BadMetadataKraken(null,
-                        String.Format("Output file name ({0}) not matching leading path of stanza.file ({1})",
-                            outputName, leadingRegEx
-                        )
-                    );
-                }
-                // Strip off leading path name
-                outputName = Regex.Replace(outputName, leadingRegEx, "");
-            }
-
-            // Return our snipped, normalised, and ready to go output filename!
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(installDir, outputName)
-            );
-        }
-
-        /// <summary>
-        /// Given a module and an open zipfile, return all the files that would be installed
-        /// for this module.
-        ///
-        /// If a KSP instance is provided, it will be used to generate output paths, otherwise these will be null.
-        ///
-        /// Throws a BadMetadataKraken if the stanza resulted in no files being returned.
-        /// </summary>
-        public static List<InstallableFile> FindInstallableFiles(CkanModule module, ZipFile zipfile, KSP ksp)
-        {
-            var files = new List<InstallableFile> ();
+            
+            IEnumerable<IInstallable> files = FindInstallableFiles(module, zip_filename, ksp);
 
             try
             {
-                // Use the provided stanzas, or use the default install stanza if they're absent.
-                if (module.install != null && module.install.Length != 0)
+                foreach (IInstallable file in files)
                 {
-                    foreach (ModuleInstallDescriptor stanza in module.install)
-                    {
-                        files.AddRange(FindInstallableFiles(stanza, zipfile, ksp));
-                    }
-                }
-                else
-                {
-                    ModuleInstallDescriptor default_stanza = ModuleInstallDescriptor.DefaultInstallStanza(module.identifier, zipfile);
-                    files.AddRange(FindInstallableFiles(default_stanza, zipfile, ksp));
+                    log.InfoFormat("Copying {0}", file.Name);
+                    CopyZipEntry(ksp.getModTypeRootDirectory(module.kind), file);
                 }
             }
-            catch (BadMetadataKraken kraken)
+            catch (FileExistsKraken kraken)
             {
-                // Decorate our kraken with the current module, as the lower-level
-                // methods won't know it.
-                kraken.module = module;
+                // Decorate the kraken with our module and re-throw
+                kraken.filename = ksp.ToRelativeGameDataDir(kraken.filename);
+                kraken.installing_module = module;
+                kraken.owning_module = registry_manager.registry.FileOwner(kraken.filename);
                 throw;
             }
 
-            return files;
+            return files.Select(x => Path.Combine(ksp.getModTypeRootDirectory(module.kind), x.Destination));
         }
 
         /// <summary>
@@ -614,62 +391,67 @@ namespace CKAN
         /// If a KSP instance is provided, it will be used to generate output paths, otherwise these will be null.
         /// </summary>
         // TODO: Document which exception!
-        public static List<InstallableFile> FindInstallableFiles(CkanModule module, string zip_filename, KSP ksp)
+        public static List<IInstallable> FindInstallableFiles(CfanModule module, string zip_filename, KSP ksp)
         {
-            // `using` makes sure our zipfile gets closed when we exit this block.
-            using (ZipFile zipfile = new ZipFile(zip_filename))
+            if (module.kind == CfanJson.CfanModType.META)
             {
-                log.DebugFormat("Searching {0} using {1} as module", zip_filename, module);
-                return FindInstallableFiles(module, zipfile, ksp);
+                return new List<IInstallable>();
             }
+            if (module.kind != CfanJson.CfanModType.MOD)
+            {
+                throw new NotImplementedException("Only regular mod is implemented.");
+            }
+            return new List<IInstallable>(new IInstallable[] { new InstallableFile(zip_filename, module.standardFileName + ".zip")});
         }
 
         /// <summary>
         /// Copy the entry from the opened zipfile to the path specified.
         /// </summary>
-        internal static void CopyZipEntry(ZipFile zipfile, ZipEntry entry, string fullPath, bool makeDirs)
+        internal static void CopyZipEntry(string absoluteDirectoryRoot, IInstallable file)
         {
-            if (entry.IsDirectory)
+            string absolutePath = Path.Combine(absoluteDirectoryRoot, file.Destination);
+
+            if (file.IsDirectory)
             {
                 // Skip if we're not making directories for this install.
-                if (!makeDirs)
+                if (!file.makeDirs)
                 {
-                    log.DebugFormat ("Skipping {0}, we don't make directories for this path", fullPath);
+                    log.DebugFormat ("Skipping {0}, we don't make directories for this path", absolutePath);
                     return;
                 }
 
-                log.DebugFormat("Making directory {0}", fullPath);
-                file_transaction.CreateDirectory(fullPath);
+                log.DebugFormat("Making directory {0}", absolutePath);
+                file_transaction.CreateDirectory(absolutePath);
             }
             else
             {
-                log.DebugFormat("Writing file {0}", fullPath);
+                log.DebugFormat("Writing file {0}", absolutePath);
 
                 // Sometimes there are zipfiles that don't contain entries for the
                 // directories their files are in. No, I understand either, but
                 // the result is we have to make sure our directories exist, just in case.
-                if (makeDirs)
+                if (file.makeDirs)
                 {
-                    string directory = Path.GetDirectoryName(fullPath);
+                    string directory = Path.GetDirectoryName(absolutePath);
                     file_transaction.CreateDirectory(directory);
                 }
 
                 // We don't allow for the overwriting of files. See #208.
-                if (File.Exists (fullPath))
+                if (File.Exists(absolutePath))
                 {
-                    throw new FileExistsKraken(fullPath, string.Format("Trying to write {0} but it already exists.", fullPath));
+                    throw new FileExistsKraken(absolutePath, string.Format("Trying to write {0} but it already exists.", absolutePath));
                 }
 
                 // Snapshot whatever was there before. If there's nothing, this will just
                 // remove our file on rollback. We still need this even thought we won't
                 // overwite files, as it ensures deletiion on rollback.
-                file_transaction.Snapshot(fullPath);
+                file_transaction.Snapshot(absolutePath);
 
                 try
                 {
                     // It's a file! Prepare the streams
-                    using (Stream zipStream = zipfile.GetInputStream(entry))
-                    using (FileStream writer = File.Create(fullPath))
+                    using (Stream zipStream = file.stream)
+                    using (FileStream writer = File.Create(absolutePath))
                     {
                         // 4k is the block size on practically every disk and OS.
                         byte[] buffer = new byte[4096];
@@ -711,7 +493,7 @@ namespace CKAN
             foreach (string mod in goners)
             {
                 InstalledModule module = registry_manager.registry.InstalledModule(mod);
-                User.RaiseMessage(" * {0} {1}", module.Module.name, module.Module.version);
+                User.RaiseMessage(" * {0} {1}", module.Module.identifier, module.Module.modVersion);
             }
 
             bool ok = User.RaiseYesNoDialog("\nContinue?");
@@ -731,6 +513,7 @@ namespace CKAN
                 }
 
                 registry_manager.Save();
+                ksp.RebuildFactorioModlist();
 
                 transaction.Complete();
             }
@@ -769,7 +552,7 @@ namespace CKAN
 
                 foreach (string file in files)
                 {
-                    string path = ksp.ToAbsoluteGameDir(file);
+                    string path = ksp.ToAbsoluteGameDataDir(file);
 
                     try
                     {
@@ -804,12 +587,9 @@ namespace CKAN
                     {
                         // It is bad if any of this directories get's removed
                         // So we protect them
-                        if (directory == ksp.Tutorial() || directory == ksp.ShipsVab()
-                            || directory == ksp.ShipsSph() || directory == ksp.Ships()
-                            || directory == ksp.Scenarios() || directory == ksp.GameData()
+                        if (directory == ksp.Scenarios() || directory == ksp.GameData()
                             || directory == ksp.GameDir() || directory == ksp.CkanDir()
-                            || directory == ksp.ShipsThumbs() || directory == ksp.ShipsThumbsVAB()
-                            || directory == ksp.ShipsThumbsSPH())
+                            || directory == ksp.Mods())
                         {
                             continue;
                         }
@@ -844,7 +624,7 @@ namespace CKAN
         /// </summary>
         /// <param name="add">Add.</param>
         /// <param name="remove">Remove.</param>
-        public void AddRemove(IEnumerable<CkanModule> add = null, IEnumerable<string> remove = null)
+        public void AddRemove(IEnumerable<CfanModule> add = null, IEnumerable<string> remove = null)
         {
 
             // TODO: We should do a consistency check up-front, rather than relying
@@ -858,12 +638,13 @@ namespace CKAN
                     Uninstall(identifier);
                 }
 
-                foreach (CkanModule module in add)
+                foreach (CfanModule module in add)
                 {
                     Install(module);
                 }
 
                 registry_manager.Save();
+                ksp.RebuildFactorioModlist();
 
                 tx.Complete();
             }
@@ -882,8 +663,9 @@ namespace CKAN
             options.with_recommends = false;
             options.with_suggests = false;
 
-            var resolver = new RelationshipResolver(identifiers.ToList(), options, registry_manager.registry, ksp.Version());
-            List<CkanModule> upgrades = resolver.ModList();
+            List<CfanModuleIdAndVersion> moduleNames = identifiers.Select(p => new CfanModuleIdAndVersion(p)).ToList();
+            var resolver = new RelationshipResolver(moduleNames, options, registry_manager.registry, ksp.Version());
+            List<CfanModule> upgrades = resolver.ModList();
 
             Upgrade(upgrades, netAsyncDownloader);
         }
@@ -893,7 +675,7 @@ namespace CKAN
         /// Will *re-install* or *downgrade* (with a warning) as well as upgrade.
         /// Throws ModuleNotFoundKraken if a module is not installed.
         /// </summary>
-        public void Upgrade(IEnumerable<CkanModule> modules, IDownloader netAsyncDownloader)
+        public void Upgrade(IEnumerable<CfanModule> modules, IDownloader netAsyncDownloader)
         {
             // Start by making sure we've downloaded everything.
             DownloadModules(modules, netAsyncDownloader);
@@ -905,7 +687,7 @@ namespace CKAN
             var to_remove = new List<string>();
 
             // Let's discover what we need to do with each module!
-            foreach (CkanModule module in modules)
+            foreach (CfanModule module in modules)
             {
                 string ident = module.identifier;
                 InstalledModule installed_mod = registry_manager.registry.InstalledModule(ident);
@@ -915,7 +697,7 @@ namespace CKAN
                     //Maybe ModuleNotInstalled ?
                     if (registry_manager.registry.IsAutodetected(ident))
                     {
-                        throw new ModuleNotFoundKraken(ident, module.version.ToString(), String.Format("Can't upgrade {0} as it was not installed by CKAN. \n Please remove manually before trying to install it.", ident));
+                        throw new ModuleNotFoundKraken(ident, module.modVersion.ToString(), String.Format("Can't upgrade {0} as it was not installed by CFAN. \n Please remove manually before trying to install it.", ident));
                     }
 
                     User.RaiseMessage("Installing previously uninstalled mod {0}", ident);
@@ -925,18 +707,18 @@ namespace CKAN
                     // Module already installed. We'll need to remove it first.
                     to_remove.Add(module.identifier);
 
-                    CkanModule installed = installed_mod.Module;
-                    if (installed.version.IsEqualTo(module.version))
+                    CfanModule installed = installed_mod.Module;
+                    if (installed.modVersion.Equals(module.modVersion))
                     {
                         log.WarnFormat("{0} is already at the latest version, reinstalling", installed.identifier);
                     }
-                    else if (installed.version.IsGreaterThan(module.version))
+                    else if (installed.modVersion.IsGreaterThan(module.modVersion))
                     {
-                        log.WarnFormat("Downgrading {0} from {1} to {2}", ident, installed.version, module.version);
+                        log.WarnFormat("Downgrading {0} from {1} to {2}", ident, installed.modVersion, module.modVersion);
                     }
                     else
                     {
-                        log.InfoFormat("Upgrading {0} to {1}", ident, module.version);
+                        log.InfoFormat("Upgrading {0} to {1}", ident, module.modVersion);
                     }
                 }
             }
@@ -952,9 +734,9 @@ namespace CKAN
         /// <summary>
         /// Makes sure all the specified mods are downloaded.
         /// </summary>
-        private void DownloadModules(IEnumerable<CkanModule> mods, IDownloader downloader)
+        private void DownloadModules(IEnumerable<CfanModule> mods, IDownloader downloader)
         {
-            List<CkanModule> downloads = mods.Where(module => !ksp.Cache.IsCachedZip(module.download)).ToList();
+            List<CfanModule> downloads = mods.Where(module => !ksp.Cache.IsCachedZip(module.download)).ToList();
 
             if (downloads.Count > 0)
             {
@@ -963,3 +745,4 @@ namespace CKAN
         }
     }
 }
+

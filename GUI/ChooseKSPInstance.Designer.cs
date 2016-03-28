@@ -157,7 +157,7 @@
             this.Controls.Add(this.KSPInstancesListView);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "ChooseKSPInstance";
-            this.Text = "Select KSP install";
+            this.Text = "Select Factorio install";
             this.ResumeLayout(false);
             this.PerformLayout();
 

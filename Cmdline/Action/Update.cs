@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CKAN.Factorio;
 
 namespace CKAN.CmdLine
 {
@@ -18,7 +19,7 @@ namespace CKAN.CmdLine
         {
             UpdateOptions options = (UpdateOptions) raw_options;
 
-            List<CkanModule> available_prior = null;
+            List<CfanModule> available_prior = null;
 
             user.RaiseMessage("Downloading updates...");
 
@@ -65,14 +66,14 @@ namespace CKAN.CmdLine
         /// </summary>
         /// <param name="modules_prior">List of the available modules prior to the update.</param>
         /// <param name="modules_post">List of the available modules after the update.</param>
-        private void PrintChanges(List<CkanModule> modules_prior, List<CkanModule> modules_post)
+        private void PrintChanges(List<CfanModule> modules_prior, List<CfanModule> modules_post)
         {
-            var prior = new HashSet<CkanModule>(modules_prior, new NameComparer());
-            var post = new HashSet<CkanModule>(modules_post, new NameComparer());
+            var prior = new HashSet<CfanModule>(modules_prior, new CfanModule.NameComparer());
+            var post = new HashSet<CfanModule>(modules_post, new CfanModule.NameComparer());
 
 
-            var added = new HashSet<CkanModule>(post.Except(prior, new NameComparer()));
-            var removed = new HashSet<CkanModule>(prior.Except(post, new NameComparer()));
+            var added = new HashSet<CfanModule>(post.Except(prior, new CfanModule.NameComparer()));
+            var removed = new HashSet<CfanModule>(prior.Except(post, new CfanModule.NameComparer()));
 
 
             var unchanged = post.Intersect(prior);//Default compare includes versions
@@ -83,17 +84,17 @@ namespace CKAN.CmdLine
 
             if (added.Count > 0)
             {
-                PrintModules("New modules [Name (CKAN identifier)]:", added);
+                PrintModules("New modules [Name (CFAN identifier)]:", added);
             }
 
             if (removed.Count > 0)
             {
-                PrintModules("Removed modules [Name (CKAN identifier)]:", removed);
+                PrintModules("Removed modules [Name (CFAN identifier)]:", removed);
             }
 
             if (updated.Count > 0)
             {
-                PrintModules("Updated modules [Name (CKAN identifier)]:", updated);
+                PrintModules("Updated modules [Name (CFAN identifier)]:", updated);
             }
         }
 
@@ -102,7 +103,7 @@ namespace CKAN.CmdLine
         /// </summary>
         /// <param name="message">The message to print.</param>
         /// <param name="modules">The modules to list.</param>
-        private void PrintModules(string message, IEnumerable<CkanModule> modules)
+        private void PrintModules(string message, IEnumerable<CfanModule> modules)
         {
             // Check input.
             if (message == null)
@@ -117,9 +118,9 @@ namespace CKAN.CmdLine
 
             user.RaiseMessage(message);
 
-            foreach(CkanModule module in modules)
+            foreach(CfanModule module in modules)
             {
-                user.RaiseMessage("{0} ({1})", module.name, module.identifier);
+                user.RaiseMessage("{0} ({1})", module.title, module.identifier);
             }
 
             user.RaiseMessage("");

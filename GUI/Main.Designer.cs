@@ -55,6 +55,7 @@ namespace CKAN
             this.FilterCompatibleButton = new System.Windows.Forms.ToolStripMenuItem();
             this.FilterInstalledButton = new System.Windows.Forms.ToolStripMenuItem();
             this.FilterInstalledUpdateButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.cachedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.FilterNewButton = new System.Windows.Forms.ToolStripMenuItem();
             this.FilterNotInstalledButton = new System.Windows.Forms.ToolStripMenuItem();
             this.FilterIncompatibleButton = new System.Windows.Forms.ToolStripMenuItem();
@@ -77,6 +78,8 @@ namespace CKAN
             this.MetadataModuleNameLabel = new System.Windows.Forms.Label();
             this.MetadataModuleAbstractLabel = new System.Windows.Forms.RichTextBox();
             this.MetaDataLowerLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.IdentifierLabel = new System.Windows.Forms.Label();
+            this.MetadataIdentifierLabel = new System.Windows.Forms.Label();
             this.KSPCompatibilityLabel = new System.Windows.Forms.Label();
             this.ReleaseLabel = new System.Windows.Forms.Label();
             this.GitHubLabel = new System.Windows.Forms.Label();
@@ -135,9 +138,6 @@ namespace CKAN
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader8 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ChooseProvidedModsLabel = new System.Windows.Forms.Label();
-            this.MetadataIdentifierLabel = new System.Windows.Forms.Label();
-            this.IdentifierLabel = new System.Windows.Forms.Label();
-            this.cachedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.menuStrip2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -192,40 +192,40 @@ namespace CKAN
             // selectKSPInstallMenuItem
             // 
             this.selectKSPInstallMenuItem.Name = "selectKSPInstallMenuItem";
-            this.selectKSPInstallMenuItem.Size = new System.Drawing.Size(196, 22);
-            this.selectKSPInstallMenuItem.Text = "Select KSP Install...";
+            this.selectKSPInstallMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.selectKSPInstallMenuItem.Text = "Select Factorio Install...";
             this.selectKSPInstallMenuItem.Click += new System.EventHandler(this.selectKSPInstallMenuItem_Click);
             // 
             // openKspDirectoryToolStripMenuItem
             // 
             this.openKspDirectoryToolStripMenuItem.Name = "openKspDirectoryToolStripMenuItem";
-            this.openKspDirectoryToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
-            this.openKspDirectoryToolStripMenuItem.Text = "Open KSP Directory";
+            this.openKspDirectoryToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.openKspDirectoryToolStripMenuItem.Text = "Open Factorio Directory";
             this.openKspDirectoryToolStripMenuItem.Click += new System.EventHandler(this.openKspDirectoryToolStripMenuItem_Click);
             // 
             // installFromckanToolStripMenuItem
             // 
             this.installFromckanToolStripMenuItem.Name = "installFromckanToolStripMenuItem";
-            this.installFromckanToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
-            this.installFromckanToolStripMenuItem.Text = "Install from .ckan...";
+            this.installFromckanToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.installFromckanToolStripMenuItem.Text = "Install from .cfan...";
             this.installFromckanToolStripMenuItem.Click += new System.EventHandler(this.installFromckanToolStripMenuItem_Click);
             // 
             // exportModListToolStripMenuItem
             // 
             this.exportModListToolStripMenuItem.Name = "exportModListToolStripMenuItem";
-            this.exportModListToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
+            this.exportModListToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
             this.exportModListToolStripMenuItem.Text = "&Export installed mods...";
             this.exportModListToolStripMenuItem.Click += new System.EventHandler(this.exportModListToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(193, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(197, 6);
             // 
             // ExitToolButton
             // 
             this.ExitToolButton.Name = "ExitToolButton";
-            this.ExitToolButton.Size = new System.Drawing.Size(196, 22);
+            this.ExitToolButton.Size = new System.Drawing.Size(200, 22);
             this.ExitToolButton.Text = "Exit";
             this.ExitToolButton.Click += new System.EventHandler(this.ExitToolButton_Click);
             // 
@@ -242,22 +242,22 @@ namespace CKAN
             // cKANSettingsToolStripMenuItem
             // 
             this.cKANSettingsToolStripMenuItem.Name = "cKANSettingsToolStripMenuItem";
-            this.cKANSettingsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.cKANSettingsToolStripMenuItem.Text = "CKAN settings";
+            this.cKANSettingsToolStripMenuItem.Size = new System.Drawing.Size(257, 22);
+            this.cKANSettingsToolStripMenuItem.Text = "CFAN settings";
             this.cKANSettingsToolStripMenuItem.Click += new System.EventHandler(this.CKANSettingsToolStripMenuItem_Click);
             // 
             // pluginsToolStripMenuItem
             // 
             this.pluginsToolStripMenuItem.Name = "pluginsToolStripMenuItem";
-            this.pluginsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.pluginsToolStripMenuItem.Text = "CKAN plugins";
+            this.pluginsToolStripMenuItem.Size = new System.Drawing.Size(257, 22);
+            this.pluginsToolStripMenuItem.Text = "CFAN plugins";
             this.pluginsToolStripMenuItem.Click += new System.EventHandler(this.pluginsToolStripMenuItem_Click);
             // 
             // kSPCommandlineToolStripMenuItem
             // 
             this.kSPCommandlineToolStripMenuItem.Name = "kSPCommandlineToolStripMenuItem";
-            this.kSPCommandlineToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.kSPCommandlineToolStripMenuItem.Text = "KSP command-line";
+            this.kSPCommandlineToolStripMenuItem.Size = new System.Drawing.Size(257, 22);
+            this.kSPCommandlineToolStripMenuItem.Text = "Factorio command line arguments";
             this.kSPCommandlineToolStripMenuItem.Click += new System.EventHandler(this.KSPCommandlineToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
@@ -308,7 +308,7 @@ namespace CKAN
             this.launchKSPToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.launchKSPToolStripMenuItem.Name = "launchKSPToolStripMenuItem";
             this.launchKSPToolStripMenuItem.Size = new System.Drawing.Size(113, 36);
-            this.launchKSPToolStripMenuItem.Text = "Launch KSP";
+            this.launchKSPToolStripMenuItem.Text = "Launch Factorio";
             this.launchKSPToolStripMenuItem.Click += new System.EventHandler(this.launchKSPToolStripMenuItem_Click);
             // 
             // RefreshToolButton
@@ -376,6 +376,13 @@ namespace CKAN
             this.FilterInstalledUpdateButton.Text = "Installed (update available)";
             this.FilterInstalledUpdateButton.Click += new System.EventHandler(this.FilterInstalledUpdateButton_Click);
             // 
+            // cachedToolStripMenuItem
+            // 
+            this.cachedToolStripMenuItem.Name = "cachedToolStripMenuItem";
+            this.cachedToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
+            this.cachedToolStripMenuItem.Text = "Cached";
+            this.cachedToolStripMenuItem.Click += new System.EventHandler(this.cachedToolStripMenuItem_Click);
+            // 
             // FilterNewButton
             // 
             this.FilterNewButton.Name = "FilterNewButton";
@@ -423,28 +430,6 @@ namespace CKAN
             this.splitContainer1.Size = new System.Drawing.Size(1015, 578);
             this.splitContainer1.SplitterDistance = 651;
             this.splitContainer1.TabIndex = 7;
-            // 
-            // MetadataIdentifierLabel
-            // 
-            this.MetadataIdentifierLabel.AutoSize = true;
-            this.MetadataIdentifierLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MetadataIdentifierLabel.ForeColor = System.Drawing.Color.Black;
-            this.MetadataIdentifierLabel.Location = new System.Drawing.Point(92, 210);
-            this.MetadataIdentifierLabel.Name = "MetadataIdentifierLabel";
-            this.MetadataIdentifierLabel.Size = new System.Drawing.Size(249, 66);
-            this.MetadataIdentifierLabel.TabIndex = 27;
-            this.MetadataIdentifierLabel.Text = "-";
-            // 
-            // IdentifierLabel
-            // 
-            this.IdentifierLabel.AutoSize = true;
-            this.IdentifierLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.IdentifierLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.IdentifierLabel.Location = new System.Drawing.Point(3, 210);
-            this.IdentifierLabel.Name = "IdentifierLabel";
-            this.IdentifierLabel.Size = new System.Drawing.Size(83, 66);
-            this.IdentifierLabel.TabIndex = 28;
-            this.IdentifierLabel.Text = "Identifier";
             // 
             // ModList
             // 
@@ -528,7 +513,7 @@ namespace CKAN
             // 
             // KSPCompatibility
             // 
-            this.KSPCompatibility.HeaderText = "Max KSP version";
+            this.KSPCompatibility.HeaderText = "Factorio version";
             this.KSPCompatibility.Name = "KSPCompatibility";
             this.KSPCompatibility.ReadOnly = true;
             this.KSPCompatibility.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Programmatic;
@@ -616,7 +601,7 @@ namespace CKAN
             this.MetadataModuleNameLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.MetadataModuleNameLabel.Location = new System.Drawing.Point(3, 0);
             this.MetadataModuleNameLabel.Name = "MetadataModuleNameLabel";
-            this.MetadataModuleNameLabel.Size = new System.Drawing.Size(338, 56);
+            this.MetadataModuleNameLabel.Size = new System.Drawing.Size(338, 51);
             this.MetadataModuleNameLabel.TabIndex = 0;
             this.MetadataModuleNameLabel.Text = "Mod Name";
             this.MetadataModuleNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -625,10 +610,10 @@ namespace CKAN
             // 
             this.MetadataModuleAbstractLabel.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.MetadataModuleAbstractLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MetadataModuleAbstractLabel.Location = new System.Drawing.Point(3, 59);
+            this.MetadataModuleAbstractLabel.Location = new System.Drawing.Point(3, 54);
             this.MetadataModuleAbstractLabel.Name = "MetadataModuleAbstractLabel";
             this.MetadataModuleAbstractLabel.ReadOnly = true;
-            this.MetadataModuleAbstractLabel.Size = new System.Drawing.Size(338, 220);
+            this.MetadataModuleAbstractLabel.Size = new System.Drawing.Size(338, 202);
             this.MetadataModuleAbstractLabel.TabIndex = 27;
             this.MetadataModuleAbstractLabel.Text = "";
             // 
@@ -666,8 +651,31 @@ namespace CKAN
             this.MetaDataLowerLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.MetaDataLowerLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.MetaDataLowerLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.MetaDataLowerLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.MetaDataLowerLayoutPanel.Size = new System.Drawing.Size(344, 276);
             this.MetaDataLowerLayoutPanel.TabIndex = 0;
+            // 
+            // IdentifierLabel
+            // 
+            this.IdentifierLabel.AutoSize = true;
+            this.IdentifierLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.IdentifierLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.IdentifierLabel.Location = new System.Drawing.Point(3, 210);
+            this.IdentifierLabel.Name = "IdentifierLabel";
+            this.IdentifierLabel.Size = new System.Drawing.Size(83, 20);
+            this.IdentifierLabel.TabIndex = 28;
+            this.IdentifierLabel.Text = "Identifier";
+            // 
+            // MetadataIdentifierLabel
+            // 
+            this.MetadataIdentifierLabel.AutoSize = true;
+            this.MetadataIdentifierLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MetadataIdentifierLabel.ForeColor = System.Drawing.Color.Black;
+            this.MetadataIdentifierLabel.Location = new System.Drawing.Point(92, 210);
+            this.MetadataIdentifierLabel.Name = "MetadataIdentifierLabel";
+            this.MetadataIdentifierLabel.Size = new System.Drawing.Size(249, 20);
+            this.MetadataIdentifierLabel.TabIndex = 27;
+            this.MetadataIdentifierLabel.Text = "-";
             // 
             // KSPCompatibilityLabel
             // 
@@ -676,9 +684,9 @@ namespace CKAN
             this.KSPCompatibilityLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.KSPCompatibilityLabel.Location = new System.Drawing.Point(3, 180);
             this.KSPCompatibilityLabel.Name = "KSPCompatibilityLabel";
-            this.KSPCompatibilityLabel.Size = new System.Drawing.Size(83, 73);
+            this.KSPCompatibilityLabel.Size = new System.Drawing.Size(83, 30);
             this.KSPCompatibilityLabel.TabIndex = 13;
-            this.KSPCompatibilityLabel.Text = "Max KSP ver.:";
+            this.KSPCompatibilityLabel.Text = "Factorio version:";
             // 
             // ReleaseLabel
             // 
@@ -804,7 +812,7 @@ namespace CKAN
             this.MetadataModuleKSPCompatibilityLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MetadataModuleKSPCompatibilityLabel.Location = new System.Drawing.Point(92, 180);
             this.MetadataModuleKSPCompatibilityLabel.Name = "MetadataModuleKSPCompatibilityLabel";
-            this.MetadataModuleKSPCompatibilityLabel.Size = new System.Drawing.Size(249, 73);
+            this.MetadataModuleKSPCompatibilityLabel.Size = new System.Drawing.Size(249, 30);
             this.MetadataModuleKSPCompatibilityLabel.TabIndex = 14;
             this.MetadataModuleKSPCompatibilityLabel.Text = "0.0.0";
             // 
@@ -817,7 +825,7 @@ namespace CKAN
             this.MetadataModuleGitHubLinkLabel.Size = new System.Drawing.Size(249, 30);
             this.MetadataModuleGitHubLinkLabel.TabIndex = 26;
             this.MetadataModuleGitHubLinkLabel.TabStop = true;
-            this.MetadataModuleGitHubLinkLabel.Text = "linkLabel2";
+            this.MetadataModuleGitHubLinkLabel.Text = "";
             this.MetadataModuleGitHubLinkLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabel_LinkClicked);
             // 
             // RelationshipTabPage
@@ -1311,13 +1319,6 @@ namespace CKAN
             this.ChooseProvidedModsLabel.Size = new System.Drawing.Size(383, 13);
             this.ChooseProvidedModsLabel.TabIndex = 7;
             this.ChooseProvidedModsLabel.Text = "Several mods provide the virtual module Foo, choose one of the following mods:";
-            // 
-            // cachedToolStripMenuItem
-            // 
-            this.cachedToolStripMenuItem.Name = "cachedToolStripMenuItem";
-            this.cachedToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
-            this.cachedToolStripMenuItem.Text = "Cached";
-            this.cachedToolStripMenuItem.Click += new System.EventHandler(this.cachedToolStripMenuItem_Click);
             // 
             // Main
             // 

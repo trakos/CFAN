@@ -248,7 +248,18 @@ namespace CKAN.CmdLine
         }
         public override int WindowWidth
         {
-            get { return Console.WindowWidth; }
+            get
+            {
+                try
+                {
+                    return Console.WindowWidth;
+                }
+                catch (Exception)
+                {
+                    RaiseError("Couldn't fetch console window width, assuming 80 characters");
+                    return 80;
+                }
+            }
         }
 
     }

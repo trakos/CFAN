@@ -1,4 +1,6 @@
+using System;
 using System.Text.RegularExpressions;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
@@ -12,7 +14,7 @@ namespace CKAN
         private readonly static string BUILD_VERSION = null;
 
         /// <summary>
-        /// Returns the version of the CKAN.dll used, complete with git info
+        /// Returns the version of the CFAN.dll used, complete with git info
         /// and other decorations as filled in by our build system.
         /// Eg: v1.3.5-12-g055d7c3 (beta) or "development (unstable)"
         /// </summary>

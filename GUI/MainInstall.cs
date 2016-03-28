@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
 
 namespace CKAN
 {
@@ -145,12 +147,12 @@ namespace CKAN
             e.Result = new KeyValuePair<bool, ModChanges>(!installCanceled, opts.Key);
         }
 
-        private void AddMod(IEnumerable<RelationshipDescriptor> relations, Dictionary<string, List<string>> chooseAble, 
+        private void AddMod(IEnumerable<ModDependency> relations, Dictionary<string, List<string>> chooseAble, 
             string identifier, IRegistryQuerier registry)
         {
             if (relations == null)
                 return;
-            foreach (RelationshipDescriptor mod in relations)
+            foreach (ModDependency mod in relations)
             {
                 try
                 {
@@ -158,15 +160,15 @@ namespace CKAN
                     // the mod is not installed _and_
                     // the mod is not already in the install list
                     if (
-                        registry.LatestAvailable(mod.name, CurrentInstance.Version()) != null &&
-                        !registry.IsInstalled(mod.name) && !toInstall.Contains(mod.name))
+                        registry.LatestAvailable(mod.modName, CurrentInstance.Version()) != null &&
+                        !registry.IsInstalled(mod.modName) && !toInstall.Contains(mod.modName))
                     {
                         // add it to the list of chooseAble mods we display to the user
-                        if (!chooseAble.ContainsKey(mod.name))
+                        if (!chooseAble.ContainsKey(mod.modName))
                         {
-                            chooseAble.Add(mod.name, new List<string>());
+                            chooseAble.Add(mod.modName, new List<string>());
                         }
-                        chooseAble[mod.name].Add(identifier);
+                        chooseAble[mod.modName].Add(identifier);
                     }
                 }
                 // XXX - Don't ignore all krakens! Those things are important!
@@ -297,16 +299,17 @@ namespace CKAN
                 // actual magic happens here, we run the installer with our mod list
                 var module_installer = ModuleInstaller.GetInstance(manager.CurrentInstance, GUI.user);
                 module_installer.onReportModInstalled = OnModInstalled;
+                
                 return WasSuccessful(
-                    () => module_installer.InstallList(toInstall.ToList(), options, downloader));
+                    () => module_installer.InstallList(toInstall.Select(p => new CfanModuleIdAndVersion(p)), options, downloader));
             }
 
             return true;
         }
 
-        private void OnModInstalled(CkanModule mod)
+        private void OnModInstalled(CfanModule mod)
         {
-            AddStatusMessage("Module \"{0}\" successfully installed", mod.name);
+            AddStatusMessage("Module \"{0}\" successfully installed", mod.title);
         }
 
         private void PostInstallMods(object sender, RunWorkerCompletedEventArgs e)
@@ -364,8 +367,8 @@ namespace CKAN
             Util.Invoke(menuStrip1, () => menuStrip1.Enabled = true);
         }
 
-        private TaskCompletionSource<CkanModule> toomany_source;
-        private void UpdateProvidedModsDialog(TooManyModsProvideKraken tooManyProvides, TaskCompletionSource<CkanModule> task)
+        private TaskCompletionSource<CfanModule> toomany_source;
+        private void UpdateProvidedModsDialog(TooManyModsProvideKraken tooManyProvides, TaskCompletionSource<CfanModule> task)
         {
             toomany_source = task;
             ChooseProvidedModsLabel.Text =
@@ -377,9 +380,9 @@ namespace CKAN
 
             ChooseProvidedModsListView.ItemChecked += ChooseProvidedModsListView_ItemChecked;
 
-            foreach (CkanModule module in tooManyProvides.modules)
+            foreach (CfanModule module in tooManyProvides.modules)
             {
-                ListViewItem item = new ListViewItem {Tag = module, Checked = false, Text = module.name};
+                ListViewItem item = new ListViewItem {Tag = module, Checked = false, Text = module.title};
 
 
                 ListViewItem.ListViewSubItem description =
@@ -421,7 +424,7 @@ namespace CKAN
             {
                 if (item.Checked)
                 {
-                    toomany_source.SetResult((CkanModule)item.Tag);
+                    toomany_source.SetResult((CfanModule)item.Tag);
             }
             }
         }
@@ -450,9 +453,9 @@ namespace CKAN
 
             RecommendedModsListView.Items.Clear();
 
-            foreach (var pair in mods)
+            foreach (KeyValuePair<string, List<string>> pair in mods)
             {
-                CkanModule module;
+                CfanModule module;
 
                 try
                 {
@@ -465,7 +468,8 @@ namespace CKAN
                         without_toomanyprovides_kraken = true
                     };
 
-                    var resolver = new RelationshipResolver(new List<string> {pair.Key}, opts,
+                    CfanModuleIdAndVersion[] arrayWithOneModName = new[] {new CfanModuleIdAndVersion(pair.Key)};
+                    RelationshipResolver resolver = new RelationshipResolver(arrayWithOneModName, opts,
                         RegistryManager.Instance(manager.CurrentInstance).registry, CurrentInstance.Version());
                     if (!resolver.ModList().Any())
                     {
@@ -524,7 +528,7 @@ namespace CKAN
             {
                 if (item.Checked)
                 {
-                    var identifier = ((CkanModule) item.Tag).identifier;
+                    var identifier = ((CfanModule) item.Tag).identifier;
                     toInstall.Add(identifier);
                 }
             }

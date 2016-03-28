@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CKAN.Exporters;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 using CKAN.Properties;
 using CKAN.Types;
 using log4net;
@@ -38,7 +40,7 @@ namespace CKAN
 
     public partial class Main
     {
-        public delegate void ModChangedCallback(CkanModule module, GUIModChangeType change);
+        public delegate void ModChangedCallback(CfanModule module, GUIModChangeType change);
 
         public static event ModChangedCallback modChangedCallback;
 
@@ -184,7 +186,8 @@ namespace CKAN
 
             m_Configuration = Configuration.LoadOrCreateConfiguration
                 (
-                    Path.Combine(CurrentInstance.GameDir(), "CKAN/GUIConfig.xml"),
+                    CurrentInstance.findFactorioBinaryPath(),
+                    Path.Combine(CurrentInstance.CkanDir(), "GUIConfig.xml"),
                     Repo.default_ckan_repo.ToString()
                 );
 
@@ -274,16 +277,16 @@ namespace CKAN
                     log.Info("Making autoupdate call");
                     AutoUpdate.Instance.FetchLatestReleaseInfo();
                     var latest_version = AutoUpdate.Instance.LatestVersion;
-                    var current_version = new Version(Meta.Version());
+                    var current_version = new ModVersion(Meta.Version());
 
                     if (AutoUpdate.Instance.IsFetched() && latest_version.IsGreaterThan(current_version))
                     {
-                        log.Debug("Found higher ckan version");
+                        log.Debug("Found higher cfan version");
                         var release_notes = AutoUpdate.Instance.ReleaseNotes;
                         var dialog = new NewUpdateDialog(latest_version.ToString(), release_notes);
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
-                            log.Info("Start ckan update");
+                            log.Info("Start cfan update");
                             AutoUpdate.Instance.StartUpdateProcess(true);
                         }
                     }
@@ -322,9 +325,9 @@ namespace CKAN
                 UpdateRepo();
             }
 
-            Text = String.Format("CKAN {0} - KSP {1}  --  {2}", Meta.Version(), CurrentInstance.Version(),
+            Text = String.Format("CFAN {0} - Factorio {1}  --  {2}", Meta.Version(), CurrentInstance.Version(),
                 CurrentInstance.GameDir());
-            KSPVersionLabel.Text = String.Format("Kerbal Space Program {0}", CurrentInstance.Version());
+            KSPVersionLabel.Text = String.Format("Factorio {0}", CurrentInstance.Version());
 
             if (m_CommandLineArgs.Length >= 2)
             {
@@ -389,14 +392,15 @@ namespace CKAN
         {
             Util.Invoke(this, () =>
             {
-                Text = String.Format("CKAN {0} - KSP {1}    --    {2}", Meta.Version(), CurrentInstance.Version(),
+                Text = String.Format("CFAN {0} - Factorio {1}    --    {2}", Meta.Version(), CurrentInstance.Version(),
                 CurrentInstance.GameDir());
-                KSPVersionLabel.Text = String.Format("Kerbal Space Program {0}", CurrentInstance.Version());
+                KSPVersionLabel.Text = String.Format("Factorio {0}", CurrentInstance.Version());
             });
 
             m_Configuration = Configuration.LoadOrCreateConfiguration
             (
-                Path.Combine(CurrentInstance.GameDir(), "CKAN/GUIConfig.xml"),
+                CurrentInstance.findFactorioBinaryPath(),
+                Path.Combine(CurrentInstance.CkanDir(), "GUIConfig.xml"),
                 Repo.default_ckan_repo.ToString()
             );
             UpdateModsList();
@@ -834,7 +838,7 @@ namespace CKAN
             }
             catch (Exception exception)
             {
-                GUI.user.RaiseError("Couldn't start KSP. {0}.", exception.Message);
+                GUI.user.RaiseError("Couldn't start Factorio. {0}.", exception.Message);
             }
         }
 
@@ -877,11 +881,11 @@ namespace CKAN
             if (open_file_dialog.ShowDialog() == DialogResult.OK)
             {
                 var path = open_file_dialog.FileName;
-                CkanModule module;
+                CfanModule module;
 
                 try
                 {
-                    module = CkanModule.FromFile(path);
+                    module = CfanFileManager.fromCfanFile(path);
                 }
                 catch (Kraken kraken)
                 {
@@ -932,8 +936,8 @@ namespace CKAN
         {
             var exportOptions = new List<ExportOption>
             {
-                new ExportOption(ExportFileType.CkanFavourite, "CKAN favourites list (*.ckan)", "ckan"),
-                new ExportOption(ExportFileType.Ckan, "CKAN modpack (enforces exact mod versions) (*.ckan)", "ckan"),
+                new ExportOption(ExportFileType.CkanFavourite, "CFAN favourites list (*.cfan)", "cfan"),
+                new ExportOption(ExportFileType.Ckan, "CFAN modpack (enforces exact mod versions) (*.cfan)", "cfan"),
                 new ExportOption(ExportFileType.PlainText, "Plain text (*.txt)", "txt"),
                 new ExportOption(ExportFileType.Markdown, "Markdown (*.md)", "md"),
                 new ExportOption(ExportFileType.BbCode, "BBCode (*.txt)", "txt"),
@@ -968,7 +972,7 @@ namespace CKAN
                     RegistryManager.Instance(CurrentInstance).Save(true, recommends, versions);
 
                     // TODO: The core might eventually save as something other than 'installed-default.ckan'
-                    File.Copy(Path.Combine(CurrentInstance.CkanDir(), "installed-default.ckan"), dlg.FileName, true);
+                    File.Copy(Path.Combine(CurrentInstance.CkanDir(), "installed-default.cfan"), dlg.FileName, true);
                 }
                 else
                 {
@@ -995,7 +999,7 @@ namespace CKAN
 
         private void openKspDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start(Instance.manager.CurrentInstance.GameDir());
+            Process.Start(Instance.manager.CurrentInstance.GameData());
         }
 
         private void DependsGraphTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)

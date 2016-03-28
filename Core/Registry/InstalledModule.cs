@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Schema;
 using Newtonsoft.Json;
 
 namespace CKAN
@@ -25,7 +29,7 @@ namespace CKAN
 
         public InstalledModuleFile(string path, KSP ksp)
         {
-            string absolute_path = ksp.ToAbsoluteGameDir(path);
+            string absolute_path = ksp.ToAbsoluteGameDataDir(path);
             sha1_sum = Sha1Sum(absolute_path);
         }
 
@@ -73,44 +77,35 @@ namespace CKAN
     {
         #region Fields and Properties
 
-        // This rather awful looking code is because while we write to install_time,
-        // we never read from it. That's cool, C#, because it *does* get serialised,
-        // and in the future we will read from it.
+        // we never read from it and in the future we will read from it.
         #pragma warning disable 0414
+        // ReSharper disable once NotAccessedField.Local
         [JsonProperty] private DateTime install_time;
         #pragma warning restore 0414
 
-        [JsonProperty] private CkanModule source_module;
+        [JsonProperty] private CfanJson source_module_json;
 
-//        private static readonly ILog log = LogManager.GetLogger(typeof(InstalledModule));
+        private CfanModule source_module;
 
         // TODO: Our InstalledModuleFile already knows its path, so this could just
         // be a list. However we've left it as a dictionary for now to maintain
         // registry format compatibility.
         [JsonProperty] private Dictionary<string, InstalledModuleFile> installed_files;
 
-        public IEnumerable<string> Files 
-        {
-            get { return installed_files.Keys; }
-        }
+        public IEnumerable<string> Files => installed_files.Keys;
 
-        public string identifier
-        {
-            get { return source_module.identifier; }
-        }
+        public string identifier => source_module.identifier;
 
-        public CkanModule Module
-        {
-            get { return source_module; }
-        }
+        public CfanModule Module => source_module;
 
         #endregion
 
         #region Constructors
 
-        public InstalledModule(KSP ksp, CkanModule module, IEnumerable<string> relative_files)
+        public InstalledModule(KSP ksp, CfanModule module, IEnumerable<string> relative_files)
         {
             install_time = DateTime.Now;
+            source_module_json = module.cfanJson;
             source_module = module;
             installed_files = new Dictionary<string, InstalledModuleFile>();
 
@@ -126,8 +121,6 @@ namespace CKAN
             }
         }
 
-        // If we're being deserialised from our JSON file, we don't need to
-        // do any special construction.
         [JsonConstructor]
         private InstalledModule()
         {
@@ -136,6 +129,13 @@ namespace CKAN
         #endregion
 
         #region Serialisation Fixes
+
+
+        [OnDeserialized]
+        public void removeNulls(StreamingContext streamingContext)
+        {
+            source_module = new CfanModule(source_module_json);
+        }
 
         /// <summary>
         /// Ensures all files for this module have relative paths.
@@ -151,7 +151,7 @@ namespace CKAN
 
                 if (Path.IsPathRooted(path))
                 {
-                    path = ksp.ToRelativeGameDir(path);
+                    path = ksp.ToRelativeGameDataDir(path);
                 }
 
                 normalised_installed_files[path] = tuple.Value;

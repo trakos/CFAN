@@ -13,17 +13,17 @@ namespace CKAN
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://github.com/KSP-CKAN/CKAN/blob/master/LICENSE.md");
+            System.Diagnostics.Process.Start("https://github.com/FACTORIO-CFAN/CFAN/blob/master/LICENSE.md");
         }
 
         private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://github.com/KSP-CKAN/CKAN/graphs/contributors");
+            System.Diagnostics.Process.Start("https://github.com/FACTORIO-CFAN/CFAN/graphs/contributors");
         }
 
         private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://github.com/KSP-CKAN/CKAN/");
+            System.Diagnostics.Process.Start("https://github.com/FACTORIO-CFAN/CFAN/");
         }
 
         private void linkLabel4_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

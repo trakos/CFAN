@@ -1,4 +1,6 @@
 ﻿using System;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
@@ -10,25 +12,14 @@ namespace CKAN
     public class GrasGameComparator : IGameComparator
     {
         static readonly StrictGameComparator strict = new StrictGameComparator();
-        static readonly KSPVersion v103 = new KSPVersion("1.0.3");
 
-        public bool Compatible(KSPVersion gameVersion, CkanModule module)
+        public bool Compatible(FactorioVersion gameVersion, CfanModule module)
         {
             // If it's strictly compatible, then it's compatible.
             if (strict.Compatible(gameVersion, module))
                 return true;
 
-            // If we're in strict mode, and it's not strictly compatible, then it's
-            // not compatible.
-            if (module.ksp_version_strict)
-                return false;
-
-            // Otherwise, check if it's "generally recognise as safe".
-
-            // If we're running KSP 1.0.4, then allow the mod to run if we would have
-            // considered it compatible under 1.0.3 (as 1.0.4 was "just a hotfix").
-            if (gameVersion.Equals("1.0.4"))
-                return strict.Compatible(v103, module);
+            // if we will add something like "maximum game version" for a mod, then it might make sense to add something here (see summary of the class)
 
             return false;
         }

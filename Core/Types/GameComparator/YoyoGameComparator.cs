@@ -1,4 +1,6 @@
 ﻿using System;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
@@ -8,7 +10,7 @@ namespace CKAN
     /// </summary>
     public class YoyoGameComparator : IGameComparator
     {
-        public bool Compatible(KSPVersion gameVersion, CkanModule module)
+        public bool Compatible(FactorioVersion gameVersion, CfanModule module)
         {
             return true;
         }

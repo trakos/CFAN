@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Schema;
+using CKAN.Factorio.Version;
 using log4net;
 using Newtonsoft.Json;
 
@@ -27,9 +31,9 @@ namespace CKAN
         [OnDeserialized]
         internal void SetIdentifier(StreamingContext context)
         {
-            var mod = module_version.Values.FirstOrDefault();
-            identifier = mod.identifier;
-            Debug.Assert(module_version.Values.All(m=>identifier.Equals(m.identifier)));
+            var mod = module_version.Values.First();
+            identifier = mod.modInfo.name;
+            Debug.Assert(module_version.Values.All(m=>identifier.Equals(m.modInfo.name)));
         }
 
         /// <param name="identifier">The module to keep track of</param>
@@ -42,25 +46,24 @@ namespace CKAN
 
         // The map of versions -> modules, that's what we're about!
         [JsonProperty]
-        internal SortedDictionary<Version, CkanModule> module_version = new SortedDictionary<Version, CkanModule>(new RecentVersionComparer());
+        internal SortedDictionary<ModVersion, CfanJson> module_version = new SortedDictionary<ModVersion, CfanJson>(new RecentVersionComparer());
 
         /// <summary>
         /// Record the given module version as being available.
         /// </summary>
-        public void Add(CkanModule module)
+        public void Add(CfanModule module)
         {
             if(!module.identifier.Equals(identifier))
-                throw new ArgumentException(
-                    string.Format("This AvailableModule is for tracking {0} not {1}", identifier, module.identifier));
+                throw new ArgumentException($"This AvailableModule is for tracking {identifier} not {module.identifier}");
 
             log.DebugFormat("Adding {0}", module);
-            module_version[module.version] = module;
+            module_version[module.modVersion] = module.cfanJson;
         }
 
         /// <summary>
         /// Remove the given version from our list of available.
         /// </summary>
-        public void Remove(Version version)
+        public void Remove(ModVersion version)
         {
             module_version.Remove(version);
         }
@@ -71,10 +74,10 @@ namespace CKAN
         /// <param name="ksp_version">If not null only consider mods which match this ksp version.</param>
         /// <param name="relationship">If not null only consider mods which satisfy the RelationshipDescriptor.</param>
         /// <returns></returns>
-        public CkanModule Latest(KSPVersion ksp_version = null, RelationshipDescriptor relationship=null)
+        public CfanModule Latest(FactorioVersion ksp_version = null, ModDependency relationship =null)
         {            
-            var available_versions = new List<Version>(module_version.Keys);
-            CkanModule module;
+            var available_versions = new List<ModVersion>(module_version.Keys);
+            CfanJson module;
             log.DebugFormat("Our dictionary has {0} keys", module_version.Keys.Count);
             log.DebugFormat("Choosing between {0} available versions", available_versions.Count);            
 
@@ -89,8 +92,8 @@ namespace CKAN
             {
                 module = module_version[available_versions.First()];
 
-                log.DebugFormat("No KSP version restriction, {0} is most recent", module);
-                return module;
+                log.DebugFormat("No KSP version restriction, {0} is most recent", module.modInfo.version);
+                return new CfanModule(module);
             }
 
             // If there's no relationship to satisfy, we can just pick the first that is
@@ -99,12 +102,12 @@ namespace CKAN
             {
                 // Time to check if there's anything that we can satisfy.
                 var version =
-                    available_versions.FirstOrDefault(v => module_version[v].IsCompatibleKSP(ksp_version));
+                    available_versions.FirstOrDefault(v => new CfanModule(module_version[v]).IsCompatibleKSP(ksp_version));
                 if (version != null)
-                    return module_version[version];
+                    return new CfanModule(module_version[version]);
 
                 log.DebugFormat("No version of {0} is compatible with KSP {1}",
-                    module_version[available_versions[0]].identifier, ksp_version);
+                    module_version[available_versions[0]].modInfo.name, ksp_version);
 
                 return null;
             }
@@ -112,15 +115,15 @@ namespace CKAN
             // If we're here, then we have a relationship to satisfy, so things get more complex.
             if (ksp_version == null)
             {
-                var version = available_versions.FirstOrDefault(relationship.version_within_bounds);
-                return version == null ? null : module_version[version];
+                var version = available_versions.FirstOrDefault(p => relationship.isSatisfiedBy(identifier, p));
+                return version == null ? null : new CfanModule(module_version[version]);
             }
             else
             {                
                 var version = available_versions.FirstOrDefault(v =>
-                    relationship.version_within_bounds(v) &&
-                    module_version[v].IsCompatibleKSP(ksp_version));
-                return version == null ? null : module_version[version];                
+                    relationship.isSatisfiedBy(identifier, v) &&
+                    new CfanModule(module_version[v]).IsCompatibleKSP(ksp_version));
+                return version == null ? null : new CfanModule(module_version[version]); 
             }
             
         }
@@ -128,11 +131,11 @@ namespace CKAN
         /// <summary>
         /// Returns the module with the specified version, or null if that does not exist.
         /// </summary>
-        public CkanModule ByVersion(Version v)
-        {            
-            CkanModule module;
+        public CfanModule ByVersion(ModVersion v)
+        {
+            CfanJson module;
             module_version.TryGetValue(v, out module);
-            return module;
+            return module != null ? new CfanModule(module) : null;
         }
     }
 
@@ -141,10 +144,10 @@ namespace CKAN
     /// Depends on the behaaviour of Version.CompareTo(Version)
     /// to work correctly.
     /// </summary>
-    public class RecentVersionComparer : IComparer<Version>
+    public class RecentVersionComparer : IComparer<AbstractVersion>
     {
 
-        public int Compare(Version x, Version y)
+        public int Compare(AbstractVersion x, AbstractVersion y)
         {
             return y.CompareTo(x);
         }

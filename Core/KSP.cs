@@ -6,7 +6,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Transactions;
+using CKAN.Factorio;
+using CKAN.Factorio.Schema;
+using CKAN.Factorio.Version;
 using log4net;
+using Newtonsoft.Json;
+using static System.String;
 
 [assembly: InternalsVisibleTo("CKAN.Tests")]
 
@@ -25,14 +30,12 @@ namespace CKAN
         private static readonly ILog log = LogManager.GetLogger(typeof(KSP));
 
         private readonly string gamedir;
-        private KSPVersion version;
+        private readonly string gamedatadir;
+        private FactorioVersion version;
 
         public NetFileCache Cache { get; private set; }
 
-        public RegistryManager RegistryManager
-        {
-            get { return RegistryManager.Instance(this); }
-        }
+        public RegistryManager RegistryManager => RegistryManager.Instance(this);
 
         public Registry Registry
         {
@@ -45,7 +48,7 @@ namespace CKAN
         /// <summary>
         /// Returns a KSP object, insisting that directory contains a valid KSP install.
         /// Will initialise a CKAN instance in the KSP dir if it does not already exist.
-        /// Throws a NotKSPDirKraken if directory is not a KSP install.
+        /// Throws a NotFactorioDirectoryKraken if directory is not a KSP install.
         /// </summary>
         public KSP(string directory, IUser user)
         {
@@ -54,12 +57,11 @@ namespace CKAN
             // Make sure our path is absolute and has normalised slashes.
             directory = KSPPathUtils.NormalizePath(Path.GetFullPath(directory));
 
-            if (! IsKspDir(directory))
-            {
-                throw new NotKSPDirKraken(directory);
-            }
+            VerifyFactorioDirectory(directory);
             
             gamedir = directory;
+            gamedatadir = DetectGameDataDirectory(gamedir);
+            VerifyFactorioDataDirectory(gamedatadir);
             Init();
             Cache = new NetFileCache(DownloadCacheDir());
         }
@@ -73,7 +75,7 @@ namespace CKAN
 
             if (! Directory.Exists(CkanDir()))
             {
-                User.RaiseMessage("Setting up CKAN for the first time...");
+                User.RaiseMessage("Setting up CFAN for the first time...");
                 User.RaiseMessage("Creating {0}", CkanDir());
                 Directory.CreateDirectory(CkanDir());
 
@@ -129,13 +131,12 @@ namespace CKAN
             // In Perl, this is just `use FindBin qw($Bin);` Verbose enough, C#?
             string exe_dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            log.DebugFormat("Checking if KSP is in my exe dir: {0}", exe_dir);
+            log.DebugFormat("Checking if Factorio is in my exe dir: {0}", exe_dir);
 
-            // Checking for a GameData directory probably isn't the best way to
-            // detect KSP, but it works. More robust implementations welcome.
-            if (IsKspDir(exe_dir))
+            // This verification implementation is cool, but better are welcome.
+            if (IsFactorioDirectory(exe_dir))
             {
-                log.InfoFormat("KSP found at {0}", exe_dir);
+                log.InfoFormat("Factorio found at {0}", exe_dir);
                 return exe_dir;
             }
 
@@ -154,101 +155,212 @@ namespace CKAN
 
             if (ksp_steam_path != null)
             {
-                if (IsKspDir(ksp_steam_path))
+                if (IsFactorioDirectory(ksp_steam_path))
                 {
                     return ksp_steam_path;
                 }
 
-                log.DebugFormat("Have Steam, but KSP is not at \"{0}\".", ksp_steam_path);
+                log.DebugFormat("Have Steam, but Factorio is not at \"{0}\".", ksp_steam_path);
             }
 
             // Oh noes! We can't find KSP!
             throw new DirectoryNotFoundException();
         }
 
+        internal static bool IsFactorioDirectory(string directory)
+        {
+            try
+            {
+                VerifyFactorioDirectory(directory);
+                log.DebugFormat("Found factorio directory: {0}", directory);
+                return true;
+            }
+            catch (NotFactorioDirectoryKraken e)
+            {
+                if (!IsNullOrEmpty(e.Message))
+                {
+                    log.DebugFormat("Directory is not a Factorio root: {0}", e.Message);
+                }
+            }
+            catch (NotFactorioDataDirectoryKraken e)
+            {
+                if (!IsNullOrEmpty(e.Message))
+                {
+                    log.WarnFormat("Directory is a factorio root, but failed to find data directory: {0}", e.Message);
+                }
+            }
+            return false;
+        }
+
         /// <summary>
-        /// Checks if the specified directory looks like a KSP directory.
+        /// Checks if the specified directory looks like a Factorio directory.
         /// Returns true if found, false if not.
         /// </summary>
-        internal static bool IsKspDir(string directory)
+        internal static void VerifyFactorioDirectory(string directory)
         {
             //first we need to check is directory exists
-            if (!Directory.Exists(Path.Combine(directory, "GameData")))
+            if (!Directory.Exists(Path.Combine(directory, "data")))
             {
-                log.DebugFormat("Cannot find GameData in {0}", directory);
-                return false;
+                throw new NotFactorioDirectoryKraken(directory, $"Cannot find data in {directory}");
             }
             
-            if (!File.Exists(Path.Combine(directory, "readme.txt")))
+            if (!Directory.Exists(Path.Combine(directory, "data", "base")))
             {
-                log.DebugFormat("Cannot find readme in {0}", directory);
-                return false;
+                throw new NotFactorioDirectoryKraken(directory, $"Cannot find data/base in {directory}");
+            }
+
+            if (!File.Exists(Path.Combine(directory, "data", "base", "info.json")))
+            {
+                throw new NotFactorioDirectoryKraken(directory, $"Cannot find data/base/info.json in {directory}");
             }
 
             //If both exist we should be able to get game version
-            try
+            DetectVersion(directory);
+
+            // then check if config-path.cfg exists
+            if (!File.Exists(Path.Combine(directory, "config-path.cfg")))
             {
-                DetectVersion(directory);
+                throw new NotFactorioDirectoryKraken(directory, $"Cannot find data/base/info.json in {directory}");
             }
-            catch (NotKSPDirKraken)
-            {
-                log.DebugFormat("Cannot detect KSP version in {0}", directory);
-                return false;
-            }
+
             log.DebugFormat("{0} looks like a GameDir", directory);
-            return true;
         }
 
+        /// <summary>
+        /// Checks if the specified directory looks like a Factorio data directory.
+        /// Returns true if found, false if not.
+        /// </summary>
+        internal static void VerifyFactorioDataDirectory(string directory)
+        {
+            // Checking for a config directory probably isn't the best way to
+            // detect Factorio data directory, but it works. More robust implementations welcome.
+
+            //first we need to check is directory exists
+            if (!Directory.Exists(Path.Combine(directory, "config")))
+            {
+                throw new NotFactorioDataDirectoryKraken(directory,
+                    $"Cannot find config in {directory}, did you start the game at least once?");
+            }
+
+            if (!File.Exists(Path.Combine(directory, "config", "config.ini")))
+            {
+                throw new NotFactorioDataDirectoryKraken(directory,
+                    $"Cannot find config/config.ini in {directory}, did you start the game at least once?");
+            }
+
+            log.DebugFormat("{0} looks like a Factorio data directory", directory);
+        }
 
         /// <summary>
         /// Detects the version of KSP in a given directory.
         /// Throws a NotKSPDirKraken if anything goes wrong.
         /// </summary>
-        private static KSPVersion DetectVersion(string directory)
+        private static FactorioVersion DetectVersion(string directory)
         {
             //Contract.Requires<ArgumentNullException>(directory==null);
 
-            string readme;
+            ModInfoJson factorioBaseInfo;
             try
             {
-                // Slurp our README into memory
-                readme = File.ReadAllText(Path.Combine(directory, "readme.txt"));
+                // Slurp our info.json into memory
+                string json = File.ReadAllText(Path.Combine(directory, "data", "base", "info.json"));
+                factorioBaseInfo = JsonConvert.DeserializeObject<ModInfoJson>(json);
             }
             catch
             {
-                log.Error("Could not open KSP readme.txt in "+directory);
-                throw new NotKSPDirKraken("readme.txt not found or not readable");
+                log.Error("Could not open and/or parse Factorio info.json in " + Path.Combine(directory, "data", "base"));
+                throw new NotFactorioDirectoryKraken(directory, "info.json not found or not readable or not parsable");
             }
 
-            // And find the KSP version. Easy! :)
-            Match match = Regex.Match(readme, @"^Version\s+(\d+\.\d+\.\d+)",
-                RegexOptions.IgnoreCase | RegexOptions.Multiline);
-
-            if (match.Success)
-            {
-                string version = match.Groups[1].Value;
-                log.DebugFormat("Found version {0}", version);
-                return new KSPVersion(version);
-            }
-
-            // Oh noes! We couldn't find the version!
-            log.Error("Could not find KSP version in readme.txt");
-
-            throw new NotKSPDirKraken(directory, "Could not find KSP version in readme.txt");
+            return new FactorioVersion(factorioBaseInfo.version.ToString());
         }
-        
-        /// <summary>
-        /// Rebuilds the "Ships" directory inside the current KSP instance
-        /// </summary>
+
         public void RebuildKSPSubDir()
         {
-            string[] FoldersToCheck = { "Ships/VAB", "Ships/SPH", "Ships/@thumbs/VAB", "Ships/@thumbs/SPH" };
+            string[] FoldersToCheck = { "scenario", "mods" };
             foreach (string sRelativePath in FoldersToCheck)
             {
-                string sAbsolutePath = ToAbsoluteGameDir(sRelativePath);
+                string sAbsolutePath = ToAbsoluteGameDataDir(sRelativePath);
                 if (!Directory.Exists(sAbsolutePath))
                     Directory.CreateDirectory(sAbsolutePath);
             }
+        }
+
+        private static string DetectGameDataDirectory(string gameDirectory)
+        {
+            bool usesSystemDirectory = DetectIfGameUsesSystemDirectory(gameDirectory);
+
+            if (!usesSystemDirectory)
+            {
+                return gameDirectory;
+            }
+            if (Platform.IsWindows)
+            {
+                return Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Factorio"
+                );
+            }
+            if (Platform.IsMac)
+            {
+                string homeDirectory = Environment.GetEnvironmentVariable("HOME");
+                if (IsNullOrEmpty(homeDirectory))
+                {
+                    throw new NotFactorioDirectoryKraken(gameDirectory, "Can't find HOME environment variable value");
+                }
+                return Path.Combine(homeDirectory, "Library", "Application Support", "factorio");
+            }
+            if (Platform.IsUnix)
+            {
+                string homeDirectory = Environment.GetEnvironmentVariable("HOME");
+                if (IsNullOrEmpty(homeDirectory))
+                {
+                    throw new NotFactorioDirectoryKraken(gameDirectory, "Can't find HOME environment variable value");
+                }
+                return Path.Combine(homeDirectory, ".factorio");
+            }
+            throw new NotFactorioDirectoryKraken(gameDirectory, "Failed to recognize your OS, that's really unexpected and unfortunate, sorry!");
+        }
+
+        private static bool DetectIfGameUsesSystemDirectory(string gameDirectory)
+        {
+            //Contract.Requires<ArgumentNullException>(gameDirectory==null);
+
+            string config;
+            try
+            {
+                // Slurp our info.json into memory
+                config = File.ReadAllText(Path.Combine(gameDirectory, "config-path.cfg"));
+            }
+            catch
+            {
+                log.Error("Could not open config-path.cfg in " + gameDirectory);
+                throw new NotFactorioDirectoryKraken(gameDirectory, "config-path.cfg not found or not readable");
+            }
+
+            Match match = Regex.Match(config, @"^use-system-read-write-data-directories=([\w]+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            if (match.Success)
+            {
+                string useSystemDirValue = match.Groups[1].Value;
+                log.DebugFormat("Found use-system-read-write-data-directories value: {0}", useSystemDirValue);
+                bool isTrue = string.Equals(useSystemDirValue, "true", StringComparison.OrdinalIgnoreCase);
+                bool isFalse = string.Equals(useSystemDirValue, "false", StringComparison.OrdinalIgnoreCase);
+                if (!isTrue && !isFalse)
+                {
+                    throw new NotFactorioDirectoryKraken(
+                        gameDirectory,
+                        "can't parse use-system-read-write-data-directories value in config-path.cfg: " +
+                        useSystemDirValue
+                    );
+                }
+
+                return isTrue;
+            }
+
+            // Oh noes! We couldn't find the use-system-read-write-data-directories value!
+            log.Error("Could not find use-system-read-write-data-directories in config-path.cfg");
+
+            throw new NotFactorioDirectoryKraken(gameDirectory, "Could not find whether Factorio uses system dir in config-path.cfg");
         }
 
         #endregion
@@ -262,15 +374,13 @@ namespace CKAN
 
         public string GameData()
         {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(GameDir(), "GameData")
-            );
+            return gamedatadir;
         }
 
         public string CkanDir()
         {
             return KSPPathUtils.NormalizePath(
-                Path.Combine(GameDir(), "CKAN")
+                Path.Combine(GameData(), "CFAN")
             );
         }
 
@@ -281,59 +391,17 @@ namespace CKAN
             );
         }
 
-        public string Ships()
+        public string Mods()
         {
             return KSPPathUtils.NormalizePath(
-                Path.Combine(GameDir(), "Ships")
-            );
-        }
-
-        public string ShipsVab()
-        {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(Ships(), "VAB")
-            );
-        }
-
-        public string ShipsSph()
-        {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(Ships(), "SPH")
-            );
-        }
-
-        public string ShipsThumbs()
-        {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(Ships(), "@thumbs")
-            );
-        }
-
-        public string ShipsThumbsSPH()
-        {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(ShipsThumbs(), "SPH")
-            );
-        }
-
-        public string ShipsThumbsVAB()
-        {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(ShipsThumbs(), "VAB")
-            );
-        }
-
-        public string Tutorial()
-        {
-            return KSPPathUtils.NormalizePath(
-                Path.Combine(GameDir(), "saves", "training")
+                Path.Combine(GameData(), "mods")
             );
         }
 
         public string Scenarios()
         {
             return KSPPathUtils.NormalizePath(
-                Path.Combine(GameDir(), "saves", "scenarios")
+                Path.Combine(GameData(), "scenario")
             );
         }
 
@@ -344,7 +412,7 @@ namespace CKAN
             );
         }
 
-        public KSPVersion Version()
+        public FactorioVersion Version()
         {
             if (version != null)
             {
@@ -366,7 +434,7 @@ namespace CKAN
             // TODO: We really should be asking our Cache object to do the
             // cleaning, rather than doing it ourselves.
             
-            log.Debug("Cleaning cahce directory");
+            log.Debug("Cleaning cache directory");
 
             string[] files = Directory.GetFiles(DownloadCacheDir(), "*", SearchOption.AllDirectories);
 
@@ -393,27 +461,11 @@ namespace CKAN
         {
             using (TransactionScope tx = CkanTransaction.CreateTransactionScope())
             {
-                Registry.ClearDlls();
+                Registry.ClearPreexistingModules();
 
-                // TODO: It would be great to optimise this to skip .git directories and the like.
-                // Yes, I keep my GameData in git.
-
-                // Alas, EnumerateFiles is *case-sensitive* in its pattern, which causes
-                // DLL files to be missed under Linux; we have to pick .dll, .DLL, or scanning
-                // GameData *twice*.
-                //
-                // The least evil is to walk it once, and filter it ourselves.
-                IEnumerable<string> files = Directory.EnumerateFiles(
-                                        GameData(),
-                                        "*",
-                                        SearchOption.AllDirectories
-                                    );
-
-                files = files.Where(file => Regex.IsMatch(file, @"\.dll$", RegexOptions.IgnoreCase));
-
-                foreach (string dll in files.Select(KSPPathUtils.NormalizePath))
+                foreach (var module in FactorioModDetector.findAllModsInDirectory(Path.Combine(gamedatadir, "mods")))
                 {
-                    Registry.RegisterDll(this, dll);
+                    Registry.RegisterPreexistingModule(this, module.Key, module.Value);
                 }
                     
                 tx.Complete();
@@ -431,18 +483,23 @@ namespace CKAN
             return KSPPathUtils.ToRelative(path, GameDir());
         }
 
+        public string ToRelativeGameDataDir(string path)
+        {
+            return KSPPathUtils.ToRelative(path, GameData());
+        }
+
         /// <summary>
         /// Given a path relative to this KSP's GameDir, returns the
         /// absolute path on the system. 
         /// </summary>
-        public string ToAbsoluteGameDir(string path)
+        public string ToAbsoluteGameDataDir(string path)
         {
-            return KSPPathUtils.ToAbsolute(path, GameDir());
+            return KSPPathUtils.ToAbsolute(path, GameData());
         }
 
         public override string ToString()
         {
-            return "KSP Install:" + gamedir;
+            return "Factorio Install:" + gamedir;
         }
 
         public override bool Equals(object obj)
@@ -455,6 +512,80 @@ namespace CKAN
         {
             return gamedir.GetHashCode();
         }
-    }
 
+        public string getModTypeRootDirectory(CfanJson.CfanModType kind)
+        {
+            switch (kind)
+            {
+                case CfanJson.CfanModType.MOD:
+                    return Mods();
+                case CfanJson.CfanModType.TEXTURES:
+                    throw new NotImplementedException();
+                case CfanJson.CfanModType.META:
+                    throw new NotImplementedException();
+                case CfanJson.CfanModType.SCENARIO:
+                    return Scenarios();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+            }
+        }
+
+        public void RebuildFactorioModlist()
+        {
+            IList<ModListJson.ModListJsonItem> prevModList = tryGetPreviousFactorioModlist();
+            ModListJson.ModListJsonItem dummyDisabledItem = new ModListJson.ModListJsonItem()
+            {
+                enabled = ModListJson.ModListJsonTruthy.YES
+            };
+            // if mod is already in mod-list.json, take its state from there
+            // if not, set to enabled
+            ModListJson modList = new ModListJson
+            {
+                mods = RegistryManager.registry.Installed(false)
+                    .Keys.Select(
+                        modName =>
+                            new ModListJson.ModListJsonItem()
+                            {
+                                name = modName,
+                                enabled =
+                                    (prevModList.FirstOrDefault(p => p.name == modName) ?? dummyDisabledItem).enabled
+                            }).ToList()
+            };
+            File.WriteAllText(Path.Combine(Mods(), "mod-list.json"), JsonConvert.SerializeObject(modList));
+        }
+
+        private IList<ModListJson.ModListJsonItem> tryGetPreviousFactorioModlist()
+        {
+            try
+            {
+                ModListJson prevModListJson = JsonConvert.DeserializeObject<ModListJson>(File.ReadAllText(Path.Combine(Mods(), "mod-list.json")));
+                if (prevModListJson?.mods != null)
+                {
+                    return prevModListJson.mods;
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error("Couldn't read mod-list.json", e);
+            }
+            return new List<ModListJson.ModListJsonItem>();
+        }
+
+        public string findFactorioBinaryPath()
+        {
+            // pairs: <StringToSaveWhenFound, pathToCheck>
+            // string to save can be relative
+            Tuple<string, string>[] possibleLocations = new[]
+            {
+                new Tuple<string, string>(@"bin\x64\Factorio.exe", Path.Combine(GameDir(), @"bin\x64\Factorio.exe")),
+                new Tuple<string, string>(@"bin\Win32\Factorio.exe", Path.Combine(GameDir(), @"bin\Win32\Factorio.exe")),
+                new Tuple<string, string>(@"./bin/x64/Factorio", Path.Combine(GameDir(), @"bin\x64\Factorio")),
+                new Tuple<string, string>(@"./bin/i386/Factorio", Path.Combine(GameDir(), @"bin\i386\Factorio")),
+                new Tuple<string, string>(@"/usr/bin/factorio", Path.Combine(GameDir(), @"/usr/bin/factorio")),
+            };
+
+            Tuple<string, string> foundLocation = possibleLocations.FirstOrDefault(possibleLocation => File.Exists(possibleLocation.Item2));
+            return foundLocation != null ? foundLocation.Item1 : "";
+        }
+    }
 }

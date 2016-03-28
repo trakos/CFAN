@@ -23,7 +23,7 @@ namespace Tests.Core.Relationships
 
             registry = ksp.KSP.Registry;
             registry.ClearAvailable();
-            registry.ClearDlls();
+            registry.ClearPreexistingModules();
             registry.Installed().Clear();
 
             Repo.UpdateRegistry(TestData.TestKANZip(), registry, ksp.KSP, new NullUser());

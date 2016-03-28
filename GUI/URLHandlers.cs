@@ -15,7 +15,7 @@ namespace CKAN
 
         private static string MimeAppsListPath = ".local/share/applications/mimeapps.list";
         private static string ApplicationsPath = ".local/share/applications/";
-        private const string HandlerFileName = "ckan-handler.desktop";
+        private const string HandlerFileName = "cfan-handler.desktop";
 
         static URLHandlers()
         {
@@ -48,8 +48,8 @@ namespace CKAN
                             return;
                         }
 
-                        if (user.RaiseYesNoDialog(@"CKAN requires permission to add a handler for ckan:// URLs.
-Do you want to allow CKAN to do this? If you click no you won't see this message again."))
+                        if (user.RaiseYesNoDialog(@"CFAN requires permission to add a handler for cfan:// URLs.
+Do you want to allow CFAN to do this? If you click no you won't see this message again."))
                         {
                             // we need elevation to write to the registry
                             ProcessStartInfo startInfo = new ProcessStartInfo(System.Reflection.Assembly.GetEntryAssembly().Location);
@@ -71,7 +71,7 @@ Do you want to allow CKAN to do this? If you click no you won't see this message
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("There was an error while registering the URL handler for ckan:// - {0}", ex.Message);
+                log.ErrorFormat("There was an error while registering the URL handler for cfan:// - {0}", ex.Message);
                 log.ErrorFormat("{0}", ex.StackTrace);
             }
         }
@@ -82,12 +82,12 @@ Do you want to allow CKAN to do this? If you click no you won't see this message
 
             var root = Microsoft.Win32.Registry.ClassesRoot;
 
-            if (root.OpenSubKey("ckan") != null)
+            if (root.OpenSubKey("cfan") != null)
             {
                 try
                 {
                     var path =
-                        (string)root.OpenSubKey("ckan")
+                        (string)root.OpenSubKey("cfan")
                             .OpenSubKey("shell")
                             .OpenSubKey("open")
                             .OpenSubKey("command")
@@ -103,11 +103,11 @@ Do you want to allow CKAN to do this? If you click no you won't see this message
                 {
                 }
 
-                root.DeleteSubKeyTree("ckan");
+                root.DeleteSubKeyTree("cfan");
             }
 
-            var key = root.CreateSubKey("ckan");
-            key.SetValue("", "URL: ckan Protocol");
+            var key = root.CreateSubKey("cfan");
+            key.SetValue("", "URL: cfan Protocol");
             key.SetValue("URL Protocol", "");
             key.CreateSubKey("shell").CreateSubKey("open").CreateSubKey("command").SetValue
                 ("", System.Reflection.Assembly.GetExecutingAssembly().Location + " gui %1");
@@ -153,8 +153,8 @@ Do you want to allow CKAN to do this? If you click no you won't see this message
             {
                 data.Sections.AddSection("Added Associations");
             }
-            data["Added Associations"].RemoveKey("x-scheme-handler/ckan");
-            data["Added Associations"].AddKey("x-scheme-handler/ckan", HandlerFileName);
+            data["Added Associations"].RemoveKey("x-scheme-handler/cfan");
+            data["Added Associations"].AddKey("x-scheme-handler/cfan", HandlerFileName);
 
             parser.WriteFile(MimeAppsListPath, data);
 
@@ -178,13 +178,13 @@ Do you want to allow CKAN to do this? If you click no you won't see this message
             data["Desktop Entry"].AddKey("Version", "1.0");
             data["Desktop Entry"].AddKey("Type", "Application");
             data["Desktop Entry"].AddKey("Exec", "mono " + System.Reflection.Assembly.GetExecutingAssembly().Location + " gui %u");
-            data["Desktop Entry"].AddKey("Icon", "ckan");
+            data["Desktop Entry"].AddKey("Icon", "cfan");
             data["Desktop Entry"].AddKey("StartupNotify", "true");
             data["Desktop Entry"].AddKey("Terminal", "false");
             data["Desktop Entry"].AddKey("Categories", "Utility");
-            data["Desktop Entry"].AddKey("MimeType", "x-scheme-handler/ckan");
-            data["Desktop Entry"].AddKey("Name", "CKAN Launcher");
-            data["Desktop Entry"].AddKey("Comment", "Launch CKAN");
+            data["Desktop Entry"].AddKey("MimeType", "x-scheme-handler/cfan");
+            data["Desktop Entry"].AddKey("Name", "CFAN Launcher");
+            data["Desktop Entry"].AddKey("Comment", "Launch CFAN");
 
             parser.WriteFile(handlerPath, data);
             AutoUpdate.SetExecutable(handlerPath);

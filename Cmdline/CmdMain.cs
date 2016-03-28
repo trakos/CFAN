@@ -10,26 +10,25 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using CKAN.Factorio;
 using log4net;
 using log4net.Config;
 using log4net.Core;
 
 namespace CKAN.CmdLine
 {
-    internal class MainClass
+    public static class CmdMain
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof (MainClass));
+        private static readonly ILog log = LogManager.GetLogger(typeof(CmdMain));
 
-        /*
-         * When the STAThread is applied, it changes the apartment state of the current thread to be single threaded.
-         * Without getting into a huge discussion about COM and threading,
-         * this attribute ensures the communication mechanism between the current thread an
-         * other threads that may want to talk to it via COM.  When you're using Windows Forms,
-         * depending on the feature you're using, it may be using COM interop in order to communicate with
-         * operating system components.  Good examples of this are the Clipboard and the File Dialogs.
-         */
         [STAThread]
         public static int Main(string[] args)
+        {
+            int ret = RunCommandLine(args);
+            return ret;
+        }
+
+        public static int RunCommandLine(string[] args, Func<string[], bool, int> showGuiFunc = null)
         {
             // Launch debugger if the "--debugger" flag is present in the command line arguments.
             // We want to do this as early as possible so just check the flag manually, rather than doing the
@@ -49,14 +48,18 @@ namespace CKAN.CmdLine
 
             BasicConfigurator.Configure();
             LogManager.GetRepository().Threshold = Level.Warn;
-            log.Debug("CKAN started");
+            log.Debug("CFAN started");
 
             Options cmdline;
 
-            // If we're starting with no options then invoke the GUI instead.
+            // If we're starting with no options then invoke the GUI instead (if compiled with GUI)
             if (args.Length == 0)
             {
-                return Gui(new GuiOptions(), args);
+                if (showGuiFunc != null)
+                {
+                    return showGuiFunc(args, false);
+                }
+                args = new[] {"--help"};
             }
 
             IUser user;
@@ -68,7 +71,7 @@ namespace CKAN.CmdLine
             {
                 // Our help screen will already be shown. Let's add some extra data.
                 user = new ConsoleUser(false);
-                user.RaiseMessage("You are using CKAN version {0}", Meta.Version());
+                user.RaiseMessage("You are using CFAN version {0}", Meta.Version());
 
                 return Exit.BADOPT;
             }
@@ -83,14 +86,11 @@ namespace CKAN.CmdLine
             {
                 if (!options.AsRoot)
                 {
-                    user.RaiseError(@"You are trying to run CKAN as root.
-This is a bad idea and there is absolutely no good reason to do it. Please run CKAN from a user account (or use --asroot if you are feeling brave).");
+                    user.RaiseError(@"You are trying to run CFAN as root.
+This is a bad idea and there is absolutely no good reason to do it. Please run CFAN from a user account (or use --asroot if you are feeling brave).");
                     return Exit.ERROR;
                 }
-                else
-                {
-                    user.RaiseMessage("Warning: Running CKAN as root!");
-                }
+                user.RaiseMessage("Warning: Running CFAN as root!");
             }
 
             if (options.Debug)
@@ -112,32 +112,32 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
 
             // User provided KSP instance
 
-            if (options.KSPdir != null && options.KSP != null)
+            if (options.FactorioDirectory != null && options.FactorioInstallName != null)
             {
-                user.RaiseMessage("--ksp and --kspdir can't be specified at the same time");
+                user.RaiseMessage("--factorio and --factorio-dir can't be specified at the same time");
                 return Exit.BADOPT;
             }
-            KSPManager manager= new KSPManager(user);
-            if (options.KSP != null)
+            KSPManager manager = new KSPManager(user);
+            if (options.FactorioInstallName != null)
             {
                 // Set a KSP directory by its alias.
 
                 try
                 {
-                    manager.SetCurrentInstance(options.KSP);
+                    manager.SetCurrentInstance(options.FactorioInstallName);
                 }
                 catch (InvalidKSPInstanceKraken)
                 {
-                    user.RaiseMessage("Invalid KSP installation specified \"{0}\", use '--kspdir' to specify by path, or 'list-installs' to see known KSP installations", options.KSP);
+                    user.RaiseMessage("Invalid Factorio installation specified \"{0}\", use '--factorio-dir' to specify by path, or 'list-installs' to see known Factorio installations", options.FactorioInstallName);
                     return Exit.BADOPT;
                 }
             }
-            else if (options.KSPdir != null)
+            else if (options.FactorioDirectory != null)
             {
                 // Set a KSP directory by its path
-                manager.SetCurrentInstanceByPath(options.KSPdir);
+                manager.SetCurrentInstanceByPath(options.FactorioDirectory);
             }
-            else if (! (cmdline.action == "ksp" || cmdline.action == "version"))
+            else if (!(cmdline.action == "factorio" || cmdline.action == "version"))
             {
                 // Find whatever our preferred instance is.
                 // We don't do this on `ksp/version` commands, they don't need it.
@@ -145,35 +145,20 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
 
                 if (ksp == null)
                 {
-                    user.RaiseMessage("I don't know where KSP is installed.");
-                    user.RaiseMessage("Use 'ckan ksp help' for assistance on setting this.");
+                    user.RaiseMessage("I don't know where Factorio is installed.");
+                    user.RaiseMessage("Use 'cfan factorio help' for assistance on setting this.");
                     return Exit.ERROR;
                 }
                 else
                 {
-                    log.InfoFormat("Using KSP install at {0}",ksp.GameDir());
+                    log.InfoFormat("Using Factorio install at {0} with data dir set to {1}", ksp.GameDir(), ksp.GameData());
                 }
             }
-
-            #region Aliases
-
-            switch (cmdline.action)
-            {
-                case "add":
-                    cmdline.action = "install";
-                    break;
-
-                case "uninstall":
-                    cmdline.action = "remove";
-                    break;
-            }
-
-            #endregion
 
             switch (cmdline.action)
             {
                 case "gui":
-                    return Gui((GuiOptions)options, args);
+                    return ShowGui(args, user, (GuiOptions)options, showGuiFunc);
 
                 case "version":
                     return Version(user);
@@ -189,7 +174,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
                     return (new Install(user)).RunCommand(manager.CurrentInstance, (InstallOptions)cmdline.options);
 
                 case "scan":
-                    return Scan(manager.CurrentInstance,user);
+                    return Scan(manager.CurrentInstance, user);
 
                 case "list":
                     return (new List(user)).RunCommand(manager.CurrentInstance, (ListOptions)cmdline.options);
@@ -211,16 +196,16 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
                     return Clean(manager.CurrentInstance);
 
                 case "repair":
-                    var repair = new Repair(manager.CurrentInstance,user);
-                    return repair.RunSubCommand((SubCommandOptions) cmdline.options);
+                    var repair = new Repair(manager.CurrentInstance, user);
+                    return repair.RunSubCommand((SubCommandOptions)cmdline.options);
 
-                case "ksp":
+                case "factorio":
                     var ksp = new KSP(manager, user);
-                    return ksp.RunSubCommand((SubCommandOptions) cmdline.options);
+                    return ksp.RunSubCommand((SubCommandOptions)cmdline.options);
 
                 case "repo":
-                    var repo = new Repo (manager, user);
-                    return repo.RunSubCommand((SubCommandOptions) cmdline.options);
+                    var repo = new Repo(manager, user);
+                    return repo.RunSubCommand((SubCommandOptions)cmdline.options);
 
                 case "compare":
                     return (new Compare(user)).RunCommand(manager.CurrentInstance, cmdline.options);
@@ -241,7 +226,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
                 MethodInfo display_name = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
                 if (display_name != null)
                 {
-                    var version_string = (string) display_name.Invoke(null, null);
+                    var version_string = (string)display_name.Invoke(null, null);
                     var match = Regex.Match(version_string, @"^\D*(?<major>[\d]+)\.(?<minor>\d+)\.(?<revision>\d+).*$");
 
                     if (match.Success)
@@ -268,14 +253,17 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
             }
         }
 
-        private static int Gui(GuiOptions options, string[] args)
+        private static int ShowGui(string[] args, IUser user, GuiOptions options, Func<string[], bool, int> showGuiFunc)
         {
+            if (showGuiFunc == null)
+            {
+                user.RaiseError("Error: option --gui not available, you have a headless exe.");
+                return Exit.BADOPT;
+            }
+
             // TODO: Sometimes when the GUI exits, we get a System.ArgumentException,
             // but trying to catch it here doesn't seem to help. Dunno why.
-
-            GUI.Main_(args, options.ShowConsole);
-
-            return Exit.OK;
+            return showGuiFunc(args, options.ShowConsole);
         }
 
         private static int Version(IUser user)
@@ -287,16 +275,16 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
 
         private static int Available(CKAN.KSP current_instance, IUser user)
         {
-            List<CkanModule> available = RegistryManager.Instance(current_instance).registry.Available(current_instance.Version());
+            List<CfanModule> available = RegistryManager.Instance(current_instance).registry.Available(current_instance.Version());
 
-            user.RaiseMessage("Mods available for KSP {0}", current_instance.Version());
+            user.RaiseMessage("Mods available for Factorio {0}", current_instance.Version());
             user.RaiseMessage("");
 
             var width = user.WindowWidth;
 
-            foreach (CkanModule module in available)
+            foreach (CfanModule module in available)
             {
-                string entry = String.Format("* {0} ({1}) - {2}", module.identifier, module.version, module.name);
+                string entry = String.Format("* {0} ({1}) - {2}", module.identifier, module.modVersion, module.title);
                 user.RaiseMessage(width > 0 ? entry.PadRight(width).Substring(0, width - 1) : entry);
             }
 
@@ -310,7 +298,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
         /// <param name="user"></param>
         /// <param name="next_command">Changes the output message if set.</param>
         /// <returns>Exit.OK if instance is consistent, Exit.ERROR otherwise </returns>
-        private static int Scan(CKAN.KSP ksp_instance, IUser user, string next_command=null)
+        private static int Scan(CKAN.KSP ksp_instance, IUser user, string next_command = null)
         {
             try
             {
@@ -320,7 +308,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
             catch (InconsistentKraken kraken)
             {
 
-                if (next_command==null)
+                if (next_command == null)
                 {
                     user.RaiseError(kraken.InconsistenciesPretty);
                     user.RaiseError("The repo has not been saved.");
@@ -328,7 +316,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
                 else
                 {
                     user.RaiseMessage("Preliminary scanning shows that the install is in a inconsistent state.");
-                    user.RaiseMessage("Use ckan.exe scan for more details");
+                    user.RaiseMessage("Use cfan.exe scan for more details");
                     user.RaiseMessage("Proceeding with {0} in case it fixes it.\n", next_command);
                 }
 

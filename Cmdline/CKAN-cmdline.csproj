@@ -6,11 +6,26 @@
     <ProjectGuid>{E97D81F6-85E2-4F1F-906D-BE21766602E5}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>CKAN.CmdLine</RootNamespace>
-    <AssemblyName>CmdLine</AssemblyName>
-    <StartupObject>CKAN.CmdLine.MainClass</StartupObject>
-    <ApplicationIcon>..\GUI\assets\ckan.ico</ApplicationIcon>
+    <AssemblyName>cfan_headless</AssemblyName>
+    <StartupObject>CKAN.CmdLine.CmdMain</StartupObject>
+    <ApplicationIcon>cfan.ico</ApplicationIcon>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>false</Optimize>
@@ -18,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
     <Prefer32Bit>false</Prefer32Bit>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommandLine">
@@ -28,7 +44,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Transactions" />
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\Core\packages\SharpZipLib-9478d50\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
       <HintPath>..\CKAN\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -36,7 +55,7 @@
     <Compile Include="Action\Compare.cs" />
     <Compile Include="ConsoleUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Main.cs" />
+    <Compile Include="CmdMain.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Exit.cs" />
     <Compile Include="ProgressReporter.cs" />
@@ -59,13 +78,24 @@
       <Project>{3B9AEA22-FA3B-4E43-9283-EABDD81CF271}</Project>
       <Name>CKAN-core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GUI\CKAN-GUI.csproj">
-      <Project>{A79F9D54-315C-472B-928F-713A5860B2BE}</Project>
-      <Name>CKAN-GUI</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="cfan.ico" />
   </ItemGroup>
 </Project>

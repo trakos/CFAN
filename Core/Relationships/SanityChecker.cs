@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
 using log4net;
 
 namespace CKAN
@@ -16,7 +18,7 @@ namespace CKAN
         ///     Checks the list of modules for consistency errors, returning a list of
         ///     errors found. The list will be empty if everything is fine.
         /// </summary>
-        public static ICollection<string> ConsistencyErrors(IEnumerable<CkanModule> modules, IEnumerable<string> dlls)
+        public static ICollection<string> ConsistencyErrors(IEnumerable<CfanModule> modules, IEnumerable<string> dlls)
         {
             var errors = new HashSet<string>();
 
@@ -28,9 +30,9 @@ namespace CKAN
 
             Dictionary<string, List<string>> providers = ModulesToProvides(modules, dlls);
 
-            foreach (KeyValuePair<string,List<CkanModule>> entry in FindUnmetDependencies(modules, dlls))
+            foreach (KeyValuePair<string,List<CfanModule>> entry in FindUnmetDependencies(modules, dlls))
             {
-                foreach (CkanModule unhappy_mod in entry.Value)
+                foreach (CfanModule unhappy_mod in entry.Value)
                 {
                     errors.Add(string.Format("{0} requires {1} but nothing provides it", unhappy_mod.identifier, entry.Key));
                 }
@@ -43,7 +45,7 @@ namespace CKAN
             // TODO: This doesn't examine versions. We should!
             // TODO: It would be great to factor this into its own function, too.
 
-            foreach (CkanModule mod in modules)
+            foreach (CfanModule mod in modules)
             {
                 // If our mod doesn't conflict with anything, skip it.
                 if (mod.conflicts == null)
@@ -54,13 +56,13 @@ namespace CKAN
                 foreach (var conflict in mod.conflicts)
                 {
                     // If nothing conflicts with us, skip.
-                    if (! providers.ContainsKey(conflict.name))
+                    if (! providers.ContainsKey(conflict.modName))
                     {
                         continue;
                     }
 
                     // If something does conflict with us, and it's not ourselves, that's a fail.
-                    foreach (string provider in providers[conflict.name])
+                    foreach (string provider in providers[conflict.modName])
                     {
                         if (provider != mod.identifier)
                         {
@@ -79,7 +81,7 @@ namespace CKAN
         /// Throws a InconsistentKraken containing a list of inconsistences if they do not.
         /// Does nothing if the modules can happily co-exist.
         /// </summary>
-        public static void EnforceConsistency(IEnumerable<CkanModule> modules, IEnumerable<string> dlls = null)
+        public static void EnforceConsistency(IEnumerable<CfanModule> modules, IEnumerable<string> dlls = null)
         {
             ICollection<string> errors = ConsistencyErrors(modules, dlls);
 
@@ -92,7 +94,7 @@ namespace CKAN
         /// <summary>
         /// Returns true if the mods supplied can co-exist. This checks depends/pre-depends/conflicts only.
         /// </summary>
-        public static bool IsConsistent(IEnumerable<CkanModule> modules, IEnumerable<string> dlls = null)
+        public static bool IsConsistent(IEnumerable<CfanModule> modules, IEnumerable<string> dlls = null)
         {
             return ConsistencyErrors(modules, dlls).Count == 0;
         }
@@ -106,7 +108,7 @@ namespace CKAN
         //          LifeSupport => [ "TACLS", "Snacks" ]
         //          DogeCoinFlag => [ "DogeCoinFlag" ]
         // }
-        public static Dictionary<string, List<string>> ModulesToProvides(IEnumerable<CkanModule> modules, IEnumerable<string> dlls = null)
+        public static Dictionary<string, List<string>> ModulesToProvides(IEnumerable<CfanModule> modules, IEnumerable<string> dlls = null)
         {
             var providers = new Dictionary<string, List<string>>();
 
@@ -115,9 +117,9 @@ namespace CKAN
                 dlls = new List<string>();
             }
 
-            foreach (CkanModule mod in modules)
+            foreach (CfanModule mod in modules)
             {
-                foreach (string provides in mod.ProvidesList)
+                foreach (string provides in mod.providesNames)
                 {
                     log.DebugFormat("{0} provides {1}", mod, provides);
                     providers[provides] = providers.ContainsKey(provides) ? providers[provides] : new List<string>();
@@ -142,7 +144,7 @@ namespace CKAN
         /// Given a list of modules and optional dlls, returns a dictionary of dependencies which are still not met.
         /// The dictionary keys are the un-met depdendencies, the values are the modules requesting them.
         /// </summary>
-        public static Dictionary<string,List<CkanModule>> FindUnmetDependencies(IEnumerable<CkanModule> modules, IEnumerable<string> dlls = null)
+        public static Dictionary<string,List<CfanModule>> FindUnmetDependencies(IEnumerable<CfanModule> modules, IEnumerable<string> dlls = null)
         {
             return FindUnmetDependencies(modules, ModulesToProvides(modules, dlls));
         }
@@ -150,7 +152,7 @@ namespace CKAN
         /// <summary>
         /// Given a list of modules, and a dictionary of providers, returns a dictionary of depdendencies which have not been met.
         /// </summary>
-        internal static Dictionary<string,List<CkanModule>> FindUnmetDependencies(IEnumerable<CkanModule> modules, Dictionary<string,List<string>> provided)
+        internal static Dictionary<string,List<CfanModule>> FindUnmetDependencies(IEnumerable<CfanModule> modules, Dictionary<string,List<string>> provided)
         {
             return FindUnmetDependencies(modules, new HashSet<string> (provided.Keys));
         }
@@ -158,13 +160,13 @@ namespace CKAN
         /// <summary>
         /// Given a list of modules, and a set of providers, returns a dictionary of dependencies which have not been met.
         /// </summary>
-        internal static Dictionary<string,List<CkanModule>> FindUnmetDependencies(IEnumerable<CkanModule> modules, HashSet<string> provided)
+        internal static Dictionary<string,List<CfanModule>> FindUnmetDependencies(IEnumerable<CfanModule> modules, HashSet<string> provided)
         {
-            var unmet = new Dictionary<string,List<CkanModule>> ();
+            var unmet = new Dictionary<string,List<CfanModule>> ();
 
             // TODO: This doesn't examine versions, it should!
 
-            foreach (CkanModule mod in modules)
+            foreach (CfanModule mod in modules.ToArray())
             {
                 // If this module has no dependencies, we're done.
                 if (mod.depends == null)
@@ -174,13 +176,13 @@ namespace CKAN
 
                 // If it does have dependencies, but we can't find anything that provides them,
                 // add them to our unmet list.
-                foreach (RelationshipDescriptor dep in mod.depends.Where(dep => ! provided.Contains(dep.name)))
+                foreach (ModDependency dep in mod.depends.Where(dep => !dep.isOptional && !provided.Contains(dep.modName) && !modules.ToArray().Any(p => p.identifier == dep.modName)))
                 {
-                    if (!unmet.ContainsKey(dep.name))
+                    if (!unmet.ContainsKey(dep.modName))
                     {
-                        unmet[dep.name] = new List<CkanModule>();
+                        unmet[dep.modName] = new List<CfanModule>();
                     }
-                    unmet[dep.name].Add(mod); // mod needs dep.name, but doesn't have it.
+                    unmet[dep.modName].Add(mod); // mod needs dep.name, but doesn't have it.
                 }
             }
 

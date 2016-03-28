@@ -133,7 +133,7 @@
             this.CacheGroupBox.Size = new System.Drawing.Size(476, 49);
             this.CacheGroupBox.TabIndex = 9;
             this.CacheGroupBox.TabStop = false;
-            this.CacheGroupBox.Text = "CKAN Cache";
+            this.CacheGroupBox.Text = "CFAN Cache";
             // 
             // ClearCKANCacheButton
             // 
@@ -171,7 +171,7 @@
             this.groupBox2.Size = new System.Drawing.Size(476, 105);
             this.groupBox2.TabIndex = 11;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "CKAN auto-update";
+            this.groupBox2.Text = "CFAN auto-update";
             // 
             // CheckUpdateOnLaunchCheckbox
             // 
@@ -180,7 +180,7 @@
             this.CheckUpdateOnLaunchCheckbox.Name = "CheckUpdateOnLaunchCheckbox";
             this.CheckUpdateOnLaunchCheckbox.Size = new System.Drawing.Size(195, 17);
             this.CheckUpdateOnLaunchCheckbox.TabIndex = 6;
-            this.CheckUpdateOnLaunchCheckbox.Text = "Check for CKAN updates on launch";
+            this.CheckUpdateOnLaunchCheckbox.Text = "Check for CFAN updates on launch";
             this.CheckUpdateOnLaunchCheckbox.UseVisualStyleBackColor = true;
             this.CheckUpdateOnLaunchCheckbox.CheckedChanged += new System.EventHandler(this.CheckUpdateOnLaunchCheckbox_CheckedChanged);
             // 

@@ -6,6 +6,8 @@ using log4net;
 using Newtonsoft.Json;
 using CKAN.Types;
 using System.Linq;
+using CKAN.Factorio.Version;
+using Newtonsoft.Json.Linq;
 
 namespace CKAN
 {
@@ -19,15 +21,12 @@ namespace CKAN
 
         private readonly ILog log = LogManager.GetLogger(typeof(AutoUpdate));
 
-        private readonly Uri latestCKANReleaseApiUrl = new Uri("https://api.github.com/repos/KSP-CKAN/CKAN/releases/latest");
-
-        private readonly Uri latestUpdaterReleaseApiUrl = new Uri(
-            "https://api.github.com/repos/KSP-CKAN/CKAN-autoupdate/releases/latest");
+        private readonly Uri latestCKANReleaseApiUrl = new Uri("https://api.github.com/repos/Factorio-CFAN/CFAN/releases/latest");
 
         private Uri fetchedUpdaterUrl;
         private Uri fetchedCkanUrl;
 
-        public Version LatestVersion { get; private set; }
+        public CFANVersion LatestVersion { get; private set; }
         public string ReleaseNotes { get; private set; }
 
         private static AutoUpdate instance;
@@ -59,8 +58,7 @@ namespace CKAN
         /// </summary>
         public bool IsFetched()
         {
-            return LatestVersion != null && fetchedUpdaterUrl != null &&
-                fetchedCkanUrl != null && ReleaseNotes != null;
+            return LatestVersion != null && fetchedCkanUrl != null && ReleaseNotes != null;
         }
 
         /// <summary>
@@ -73,19 +71,19 @@ namespace CKAN
 
             try
             {
-                fetchedUpdaterUrl = RetrieveUrl(MakeRequest(latestUpdaterReleaseApiUrl));
-                fetchedCkanUrl = RetrieveUrl(response);
+                fetchedUpdaterUrl = RetrieveUrl(response, "cfan_updater.exe");
+                fetchedCkanUrl = RetrieveUrl(response, "cfan.exe");
             }
             catch (Kraken)
             {
-                LatestVersion = new Version(Meta.Version());
+                LatestVersion = new CFANVersion(Meta.Version(), "");
                 return;
             }
 
-            string body = response.body.ToString();
+            string body = (string)response["body"];
 
             ReleaseNotes = ExtractReleaseNotes(body);
-            LatestVersion = new CKANVersion(response.tag_name.ToString(), response.name.ToString());
+            LatestVersion = new CFANVersion((string)response["tag_name"], (string)response["name"]);
         }
 
         /// <summary>
@@ -157,14 +155,14 @@ namespace CKAN
         /// from the provided github API response
         /// </summary>
         /// <returns>The URL to the downloadable asset.</returns>
-        internal Uri RetrieveUrl(dynamic response)
+        internal Uri RetrieveUrl(JObject response, string executableName)
         {
-            if (response.assets.Count == 0)
+            var asset = response["assets"].Where(a => (string) a["name"] == executableName);
+            if (!asset.Any())
             {
-                throw new Kraken("The latest release isn't uploaded yet.");
+                throw new Kraken("The latest release does not contain " + executableName + " (yet?).");
             }
-            var assets = response.assets[0];
-            return new Uri(assets.browser_download_url.ToString());
+            return new Uri(asset.Select(a => (string) a["browser_download_url"]).First());
         }
 
         /// <summary>
@@ -174,7 +172,7 @@ namespace CKAN
         /// May throw an exception (especially a WebExeption) on failure.
         /// </summary>
         /// <returns>A dynamic object representing the JSON we fetched.</returns>
-        internal dynamic MakeRequest(Uri url)
+        internal JObject MakeRequest(Uri url)
         {
             var web = new WebClient();
             web.Headers.Add("user-agent", Net.UserAgentString);
@@ -182,7 +180,7 @@ namespace CKAN
             try
             {
                 var result = web.DownloadString(url);
-                return JsonConvert.DeserializeObject(result);
+                return JObject.Parse(result);
             }
             catch (WebException webEx)
             {

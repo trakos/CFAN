@@ -37,7 +37,7 @@ namespace CKAN.CmdLine
 
     internal class Actions
     {
-        [VerbOption("gui", HelpText = "Start the CKAN GUI")]
+        [VerbOption("gui", HelpText = "Start the CFAN GUI")]
         public GuiOptions GuiOptions { get; set; }
 
         [VerbOption("search", HelpText = "Search for mods")]
@@ -52,13 +52,13 @@ namespace CKAN.CmdLine
         [VerbOption("available", HelpText = "List available mods")]
         public AvailableOptions Available { get; set; }
 
-        [VerbOption("install", HelpText = "Install a KSP mod")]
+        [VerbOption("install", HelpText = "Install a Factorio mod")]
         public InstallOptions Install { get; set; }
 
         [VerbOption("remove", HelpText = "Remove an installed mod")]
         public RemoveOptions Remove { get; set; }
 
-        [VerbOption("scan", HelpText = "Scan for manually installed KSP mods")]
+        [VerbOption("scan", HelpText = "Scan for manually installed Factorio mods")]
         public ScanOptions Scan { get; set; }
 
         [VerbOption("list", HelpText = "List installed modules")]
@@ -73,16 +73,16 @@ namespace CKAN.CmdLine
         [VerbOption("repair", HelpText = "Attempt various automatic repairs")]
         public SubCommandOptions Repair { get; set; }
 
-        [VerbOption("repo", HelpText = "Manage CKAN repositories")]
+        [VerbOption("repo", HelpText = "Manage CFAN repositories")]
         public SubCommandOptions KSP { get; set; }
 
-        [VerbOption("ksp", HelpText = "Manage KSP installs")]
+        [VerbOption("factorio", HelpText = "Manage Factorio installs")]
         public SubCommandOptions Repo { get; set; }
 
         [VerbOption("compare", HelpText = "Compare version strings")]
         public CompareOptions Compare { get; set; }
 
-        [VerbOption("version", HelpText = "Show the version of the CKAN client being used.")]
+        [VerbOption("version", HelpText = "Show the version of the CFAN client being used.")]
         public VersionOptions Version { get; set; }
     }
 
@@ -99,11 +99,11 @@ namespace CKAN.CmdLine
         [Option("debugger", DefaultValue = false, HelpText = "Launch debugger at start")]
         public bool Debugger { get; set; }
 
-        [Option("ksp", DefaultValue = null, HelpText = "KSP install to use")]
-        public string KSP { get; set; }
+        [Option('f', "factorio", DefaultValue = null, HelpText = "Factorio install to use (by previously set name, see managing Factorio installs)")]
+        public string FactorioInstallName { get; set; }
 
-        [Option("kspdir", DefaultValue = null, HelpText = "KSP dir to use")]
-        public string KSPdir { get; set; }
+        [Option('i', "factorio-dir", DefaultValue = null, HelpText = "Path to Factorio directory to use")]
+        public string FactorioDirectory { get; set; }
 
         [Option("net-useragent", DefaultValue = null, HelpText = "Set the default user-agent string for HTTP requests")]
         public string NetUserAgent { get; set; }
@@ -111,12 +111,12 @@ namespace CKAN.CmdLine
         [Option("headless", DefaultValue = null, HelpText = "Set to disable all prompts")]
         public bool Headless { get; set; }
 
-        [Option("asroot", DefaultValue = null, HelpText = "Allows CKAN to run as root on Linux- based systems")]
+        [Option("asroot", DefaultValue = null, HelpText = "Allows CFAN to run as root on Linux-based systems (bad idea)")]
         public bool AsRoot { get; set; }
     }
 
     /// <summary>
-    /// For things which are subcommands ('ksp', 'repair' etc), we just grab a list
+    /// For things which are subcommands ('factorio', 'repair' etc), we just grab a list
     /// we can pass on.
     /// </summary>
     public class SubCommandOptions : CommonOptions
@@ -130,7 +130,7 @@ namespace CKAN.CmdLine
 
     internal class InstallOptions : CommonOptions
     {
-        [OptionArray('c', "ckanfiles", HelpText = "Local CKAN files to process")]
+        [OptionArray('c', "cfanfiles", HelpText = "Local CFAN files to process")]
         public string[] ckan_files { get; set; }
 
         [Option("no-recommends", HelpText = "Do not install recommended modules")]
@@ -149,7 +149,7 @@ namespace CKAN.CmdLine
 
     internal class UpgradeOptions : CommonOptions
     {
-        [Option('c', "ckanfile", HelpText = "Local CKAN file to process")]
+        [Option('c', "cfanfile", HelpText = "Local CFAN file to process")]
         public string ckan_file { get; set; }
 
         [Option("no-recommends", HelpText = "Do not install recommended modules")]
@@ -202,8 +202,8 @@ namespace CKAN.CmdLine
 
     internal class UpdateOptions : CommonOptions
     {
-        // This option is really meant for devs testing their CKAN-meta forks.
-        [Option('r', "repo", HelpText = "CKAN repository to use (experimental!)")]
+        // This option is really meant for devs testing their CFAN-meta forks.
+        [Option('r', "repo", HelpText = "CFAN repository to use (experimental!)")]
         public string repo { get; set; }
 
         [Option("all", HelpText = "Upgrade all available updated modules")]

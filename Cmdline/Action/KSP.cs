@@ -19,19 +19,19 @@ namespace CKAN.CmdLine
 
         internal class KSPSubOptions : CommonOptions
         {
-            [VerbOption("list", HelpText="List KSP installs")]
+            [VerbOption("list", HelpText="List Factorio installs")]
             public CommonOptions ListOptions { get; set; }
 
-            [VerbOption("add", HelpText="Add a KSP install")]
+            [VerbOption("add", HelpText="Add a Factorio install")]
             public AddOptions AddOptions { get; set; }
 
-            [VerbOption("rename", HelpText="Rename a KSP install")]
+            [VerbOption("rename", HelpText="Rename a Factorio install")]
             public RenameOptions RenameOptions { get; set; }
 
-            [VerbOption("forget", HelpText="Forget a KSP install")]
+            [VerbOption("forget", HelpText="Forget a Factorio install")]
             public ForgetOptions ForgetOptions { get; set; }
 
-            [VerbOption("default", HelpText="Set the default KSP install")]
+            [VerbOption("default", HelpText="Set the default Factorio install")]
             public DefaultOptions DefaultOptions { get; set; }
         }
 
@@ -123,20 +123,20 @@ namespace CKAN.CmdLine
                     return SetDefaultInstall((DefaultOptions)suboptions);
 
                 default:
-                    User.RaiseMessage("Unknown command: ksp {0}", option);
+                    User.RaiseMessage("Unknown command: factorio {0}", option);
                     return Exit.BADOPT;
             }
         }
 
         private int ListInstalls()
         {
-            User.RaiseMessage("Listing all known KSP installations:");
+            User.RaiseMessage("Listing all known Factorio installs:");
             User.RaiseMessage(String.Empty);
 
             int count = 1;
             foreach (var instance in Manager.Instances)
             {
-                User.RaiseMessage("{0}) \"{1}\" - {2}", count, instance.Key, instance.Value.GameDir());
+                User.RaiseMessage("{0}) \"{1}\" - {2} - {3}", count, instance.Key, instance.Value.GameDir(), instance.Value.GameData());
                 count++;
             }
 
@@ -164,9 +164,14 @@ namespace CKAN.CmdLine
                 User.RaiseMessage("Added \"{0}\" with root \"{1}\" to known installs", options.name, options.path);
                 return Exit.OK;
             }
-            catch (NotKSPDirKraken ex)
+            catch (NotFactorioDirectoryKraken ex)
             {
-                User.RaiseMessage("Sorry, {0} does not appear to be a KSP directory", ex.path);
+                User.RaiseMessage("Sorry, {0} does not appear to be a Factorio directory: {1}", ex.path, ex.Message);
+                return Exit.BADOPT;
+            }
+            catch (NotFactorioDataDirectoryKraken ex)
+            {
+                User.RaiseMessage("Sorry, auto-detected directory {0} does not appear to be a Factorio data directory: {1}", ex.path, ex.Message);
                 return Exit.BADOPT;
             }
         }
@@ -272,7 +277,7 @@ namespace CKAN.CmdLine
 
             Manager.SetAutoStart(name);
 
-            User.RaiseMessage("Successfully set \"{0}\" as the default KSP installation", name);
+            User.RaiseMessage("Successfully set \"{0}\" as the default Factorio installation", name);
             return Exit.OK;
         }
     }

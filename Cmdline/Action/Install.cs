@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CKAN.Factorio;
 using log4net;
 
 namespace CKAN.CmdLine
@@ -56,12 +57,12 @@ namespace CKAN.CmdLine
                     // If it is a local file, we already know the filename. If it is remote, create a temporary file and download the remote resource.
                     if (ckan_uri.IsFile)
                     {
-                        log.InfoFormat("Installing from local CKAN file \"{0}\"", filename);
+                        log.InfoFormat("Installing from local CFAN file \"{0}\"", filename);
                         filename = ckan_uri.LocalPath;
                     }
                     else
                     {
-                        log.InfoFormat("Installing from remote CKAN file \"{0}\"", ckan_uri);
+                        log.InfoFormat("Installing from remote CFAN file \"{0}\"", ckan_uri);
                         filename = Net.Download(ckan_uri, null, user);
 
                         log.DebugFormat("Temporary file for \"{0}\" is at \"{1}\".", ckan_uri, filename);
@@ -102,11 +103,20 @@ namespace CKAN.CmdLine
             try
             {
                 var installer = ModuleInstaller.GetInstance(ksp, user);
-                installer.InstallList(options.modules, install_ops);
+                var modules = options.modules.Select(p => new CfanModuleIdAndVersion(p));
+                installer.InstallList(modules, install_ops);
+            }
+            catch (ModuleAndVersionStringInvalidKraken ex)
+            {
+                user.RaiseMessage("One of mod names given was invalid, it has to be a module identifier, or in a format of <modId>=<modVersion>.");
+                user.RaiseMessage("Mod identifier can only contain letters, digits, hyphen and underscore");
+                user.RaiseMessage("Mod version must be in the format x.y.z");
+                user.RaiseMessage($"Invalid string was: {ex.givenString}.");
+                return Exit.ERROR;
             }
             catch (ModuleNotFoundKraken ex)
             {
-                user.RaiseMessage("Module {0} required, but not listed in index, or not available for your version of KSP", ex.module);
+                user.RaiseMessage("Module {0} required, but not listed in index, or not available for your version of Factorio", ex.module);
                 user.RaiseMessage("If you're lucky, you can do a `ckan update` and try again.");
                 user.RaiseMessage("Try `ckan install --no-recommends` to skip installation of recommended modules");
                 return Exit.ERROR;
@@ -124,7 +134,7 @@ namespace CKAN.CmdLine
 
                 for (int i = 0; i < ex.modules.Count; i++)
                 {
-                    mods[i] = String.Format("{0} ({1})", ex.modules[i].identifier, ex.modules[i].name);
+                    mods[i] = String.Format("{0} ({1})", ex.modules[i].identifier, ex.modules[i].title);
                 }
 
                 string message = String.Format("Too many mods provide {0}. Please pick from the following:\n", ex.requested);
@@ -163,12 +173,15 @@ namespace CKAN.CmdLine
                         "Please try a `ckan update` and try again.\n\n"+
                         "If this problem re-occurs, then it maybe a packaging bug.\n"+
                         "Please report it at:\n\n" +
-                        "https://github.com/KSP-CKAN/CKAN-meta/issues/new\n\n"+
+                        // @todo: add link here
+                        "(here should be a link to my github issues)\n" +
+                        "(but I screwed up and forgot to add it, sorry)\n\n" +
+                        //"https://github.com/KSP-CKAN/CKAN-meta/issues/new\n\n"+
                         "Please including the following information in your report:\n\n" +
                         "File           : {0}\n" +
                         "Installing Mod : {1}\n" +
                         "Owning Mod     : {2}\n" +
-                        "CKAN Version   : {3}\n",
+                        "CFAN Version   : {3}\n",
                         ex.filename, ex.installing_module, ex.owning_module,
                         Meta.Version()
                     );
@@ -179,9 +192,9 @@ namespace CKAN.CmdLine
                         "\n\nOh no!\n\n"+
                         "It looks like you're trying to install a mod which is already installed,\n"+
                         "or which conflicts with another mod which is already installed.\n\n"+
-                        "As a safety feature, the CKAN will *never* overwrite or alter a file\n"+
+                        "As a safety feature, the CFAN will *never* overwrite or alter a file\n"+
                         "that it did not install itself.\n\n"+
-                        "If you wish to install {0} via the CKAN,\n"+
+                        "If you wish to install {0} via the CFAN,\n"+
                         "then please manually uninstall the mod which owns:\n\n"+
                         "{1}\n\n"+"and try again.\n",
                         ex.installing_module, ex.filename
@@ -223,9 +236,9 @@ namespace CKAN.CmdLine
             return Exit.OK;
         }
 
-        internal static CkanModule LoadCkanFromFile(CKAN.KSP current_instance, string ckan_file)
+        internal static CfanModule LoadCkanFromFile(CKAN.KSP current_instance, string ckan_file)
         {
-            CkanModule module = CkanModule.FromFile(ckan_file);
+            CfanModule module = CfanFileManager.fromCfanFile(ckan_file);
 
             // We'll need to make some registry changes to do this.
             RegistryManager registry_manager = RegistryManager.Instance(current_instance);

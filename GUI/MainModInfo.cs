@@ -5,6 +5,8 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
 
 namespace CKAN
 {
@@ -23,11 +25,11 @@ namespace CKAN
 
         private void UpdateModInfo(GUIMod gui_module)
         {
-            CkanModule module = gui_module.ToModule();
+            CfanModule module = gui_module.ToModule();
 
             Util.Invoke(MetadataModuleNameLabel, () => MetadataModuleNameLabel.Text = gui_module.Name);
             Util.Invoke(MetadataModuleVersionLabel, () => MetadataModuleVersionLabel.Text = gui_module.LatestVersion.ToString());
-            Util.Invoke(MetadataModuleLicenseLabel, () => MetadataModuleLicenseLabel.Text = string.Join(", ",module.license));
+            Util.Invoke(MetadataModuleLicenseLabel, () => MetadataModuleLicenseLabel.Text = "");
             Util.Invoke(MetadataModuleAuthorLabel, () => MetadataModuleAuthorLabel.Text = gui_module.Authors);
             Util.Invoke(MetadataModuleAbstractLabel, () => MetadataModuleAbstractLabel.Text = module.@abstract);
             Util.Invoke(MetadataIdentifierLabel, () => MetadataIdentifierLabel.Text = module.identifier);
@@ -36,12 +38,7 @@ namespace CKAN
             Util.Invoke(MetadataModuleHomePageLinkLabel,
                        () => MetadataModuleHomePageLinkLabel.Text = gui_module.Homepage.ToString());
 
-            if (module.resources != null && module.resources.repository != null)
-            {
-                Util.Invoke(MetadataModuleGitHubLinkLabel,
-                    () => MetadataModuleGitHubLinkLabel.Text = module.resources.repository.ToString());
-            }
-            else
+            if (string.IsNullOrEmpty(gui_module.Homepage))
             {
                 Util.Invoke(MetadataModuleGitHubLinkLabel,
                     () => MetadataModuleGitHubLinkLabel.Text = "N/A");
@@ -55,9 +52,9 @@ namespace CKAN
             Util.Invoke(MetadataModuleKSPCompatibilityLabel, () => MetadataModuleKSPCompatibilityLabel.Text = gui_module.KSPCompatibilityLong);
         }
 
-        private HashSet<CkanModule> alreadyVisited = new HashSet<CkanModule>();
+        private HashSet<CfanModule> alreadyVisited = new HashSet<CfanModule>();
 
-        private TreeNode UpdateModDependencyGraphRecursively(TreeNode parentNode, CkanModule module, RelationshipType relationship, int depth, bool virtualProvides = false)
+        private TreeNode UpdateModDependencyGraphRecursively(TreeNode parentNode, CfanModule module, RelationshipType relationship, int depth, bool virtualProvides = false)
         {
             if (module == null
                 || (depth > 0 && dependencyGraphRootModule == module)
@@ -68,16 +65,16 @@ namespace CKAN
 
             alreadyVisited.Add(module);
 
-            string nodeText = module.name;
+            string nodeText = module.title;
             if (virtualProvides)
             {
-                nodeText = String.Format("provided by - {0}", module.name);
+                nodeText = String.Format("provided by - {0}", module.title);
             }
 
             var node = parentNode == null ? new TreeNode(nodeText) : parentNode.Nodes.Add(nodeText);
-            node.Name = module.name;
+            node.Name = module.title;
 
-            IEnumerable<RelationshipDescriptor> relationships = null;
+            IEnumerable<ModDependency> relationships = null;
             switch (relationship)
             {
                 case RelationshipType.Depends:
@@ -102,7 +99,7 @@ namespace CKAN
                 return node;
             }
 
-            foreach (RelationshipDescriptor dependency in relationships)
+            foreach (ModDependency dependency in relationships)
             {
                 IRegistryQuerier registry = RegistryManager.Instance(manager.CurrentInstance).registry;
 
@@ -111,20 +108,20 @@ namespace CKAN
                     try
                     {
                         var dependencyModule = registry.LatestAvailable
-                            (dependency.name, manager.CurrentInstance.Version());
+                            (dependency.modName, manager.CurrentInstance.Version());
                         UpdateModDependencyGraphRecursively(node, dependencyModule, relationship, depth + 1);
                     }
                     catch (ModuleNotFoundKraken)
                     {
-                        List<CkanModule> dependencyModules = registry.LatestAvailableWithProvides
-                            (dependency.name, manager.CurrentInstance.Version());
+                        List<CfanModule> dependencyModules = registry.LatestAvailableWithProvides
+                            (dependency.modName, manager.CurrentInstance.Version());
 
                         if (dependencyModules == null)
                         {
                             continue;
                         }
 
-                        var newNode = node.Nodes.Add(dependency.name + " (virtual)");
+                        var newNode = node.Nodes.Add(dependency.modName + " (virtual)");
                         newNode.ForeColor = Color.Gray;
 
                         foreach (var dep in dependencyModules)
@@ -150,7 +147,7 @@ namespace CKAN
             return node;
         }
 
-        private void UpdateModDependencyGraph(CkanModule module)
+        private void UpdateModDependencyGraph(CfanModule module)
         {
             ModInfoTabControl.Tag = module ?? ModInfoTabControl.Tag;
             //Can be costly. For now only update when visible.
@@ -161,11 +158,11 @@ namespace CKAN
             Util.Invoke(DependsGraphTree, _UpdateModDependencyGraph);
         }
 
-        private CkanModule dependencyGraphRootModule;
+        private CfanModule dependencyGraphRootModule;
 
         private void _UpdateModDependencyGraph()
         {
-            var module = (CkanModule) ModInfoTabControl.Tag;
+            var module = (CfanModule) ModInfoTabControl.Tag;
             dependencyGraphRootModule = module;
 
 
@@ -192,7 +189,7 @@ namespace CKAN
                 UpdateModDependencyGraph(null);
         }
 
-        private void UpdateModContentsTree(CkanModule module, bool force = false)
+        private void UpdateModContentsTree(CfanModule module, bool force = false)
         {
             ModInfoTabControl.Tag = module ?? ModInfoTabControl.Tag;
             //Can be costly. For now only update when visible.
@@ -203,7 +200,7 @@ namespace CKAN
             Util.Invoke(ContentsPreviewTree, () => _UpdateModContentsTree(force));
         }
 
-        private CkanModule current_mod_contents_module;
+        private CfanModule current_mod_contents_module;
 
         private void _UpdateModContentsTree(bool force = false)
         {
@@ -212,7 +209,7 @@ namespace CKAN
             {
                 return;
             }
-            CkanModule module = guiMod.ToCkanModule();
+            CfanModule module = guiMod.ToCkanModule();
             if (Equals(module, current_mod_contents_module) && !force)
             {
                 return;
@@ -235,7 +232,7 @@ namespace CKAN
             }
 
             ContentsPreviewTree.Nodes.Clear();
-            ContentsPreviewTree.Nodes.Add(module.name);
+            ContentsPreviewTree.Nodes.Add(module.title);
 
             IEnumerable<string> contents = ModuleInstaller.GetInstance(manager.CurrentInstance, GUI.user).GetModuleContentsList(module);
             if (contents == null)
@@ -258,16 +255,16 @@ namespace CKAN
 
             NetAsyncDownloader dowloader = new NetAsyncDownloader(m_User);
             
-            dowloader.DownloadModules(CurrentInstance.Cache, new List<CkanModule> { (CkanModule)e.Argument });
+            dowloader.DownloadModules(CurrentInstance.Cache, new List<CfanModule> { (CfanModule)e.Argument });
             e.Result = e.Argument;
         }
 
         private void PostModCaching(object sender, RunWorkerCompletedEventArgs e)
         {
-            Util.Invoke(this, () => _PostModCaching((CkanModule)e.Result));
+            Util.Invoke(this, () => _PostModCaching((CfanModule)e.Result));
         }
 
-        private void _PostModCaching(CkanModule module)
+        private void _PostModCaching(CfanModule module)
         {
             HideWaitDialog(true);
 

@@ -49,16 +49,14 @@ namespace CKAN
             SaveConfiguration(this, m_Path);
         }
 
-        public static Configuration LoadOrCreateConfiguration(string path, string defaultRepo)
+        public static Configuration LoadOrCreateConfiguration(string autodetectedBinaryPath, string path, string defaultRepo)
         {
             if (!File.Exists(path))
             {
                 var configuration = new Configuration
                 {
                     m_Path = path,
-                        CommandLineArguments = Platform.IsUnix ? "./KSP.x86_64 -single-instance" :
-                            Platform.IsMac  ? "./KSP.app/Contents/MacOS/KSP" :
-                            "KSP.exe -single-instance"
+                    CommandLineArguments = autodetectedBinaryPath
                 };
 
                 SaveConfiguration(configuration, path);

@@ -68,7 +68,7 @@ namespace CKAN
             if (CurrentInstance != null)
             {
                 // TODO: Throw a better exception
-                throw new KSPManagerKraken("Tried to set KSP instance twice!");
+                throw new KSPManagerKraken("Tried to set Factorio instance twice!");
             }
 
             CurrentInstance = _GetPreferredInstance();
@@ -134,12 +134,7 @@ namespace CKAN
             {
                 return null;
             }
-            catch (NotKSPDirKraken)//Todo check carefully if this is nessesary. 
-            {
-                return null;
-            }
-
-            
+            // nope, checking for NotFactorioDirectoryKraken is not nessary (neither for NotFactorioDataDirectoryKraken)
         }
 
         /// <summary>
@@ -267,7 +262,7 @@ namespace CKAN
 
         public void LoadInstancesFromRegistry()
         {
-            log.Debug("Loading KSP instances from registry");
+            log.Debug("Loading Factorio instances from registry");
 
             instances.Clear();
 
@@ -276,7 +271,7 @@ namespace CKAN
                 var name = instance.Item1;
                 var path = instance.Item2;
                 log.DebugFormat("Loading {0} from {1}", name, path);
-                if (KSP.IsKspDir(path))
+                if (KSP.IsFactorioDirectory(path))
                 {
                     instances.Add(name, new KSP(path, User));
                     log.DebugFormat("Added {0} at {1}", name, path);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using CKAN.Factorio.Version;
 using log4net;
 using log4net.Repository.Hierarchy;
 
@@ -219,7 +220,7 @@ namespace CKAN
                 AutoUpdate.Instance.FetchLatestReleaseInfo();
                 var latestVersion = AutoUpdate.Instance.LatestVersion;
 
-                if (latestVersion.IsGreaterThan(new Version(Meta.Version())) && AutoUpdate.Instance.IsFetched())
+                if (latestVersion.IsGreaterThan(new NonEmptyVersion(Meta.Version())) && AutoUpdate.Instance.IsFetched())
                 {
                     InstallUpdateButton.Enabled = true;
                 }

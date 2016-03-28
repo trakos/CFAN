@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CKAN.Exporters;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 using CKAN.Types;
 using log4net;
 
@@ -41,28 +43,28 @@ namespace CKAN.CmdLine
 
             if (!(options.porcelain) && exportFileType == null)
             {
-                user.RaiseMessage("\nKSP found at {0}\n", ksp.GameDir());
-                user.RaiseMessage("KSP Version: {0}\n", ksp.Version());
+                user.RaiseMessage("\nFactorio found at {0}\n", ksp.GameDir());
+                user.RaiseMessage("Factorio Version: {0}\n", ksp.Version());
 
                 user.RaiseMessage("Installed Modules:\n");
             }
 
             if (exportFileType == null)
             {
-                var installed = new SortedDictionary<string, Version>(registry.Installed());
+                var installed = new SortedDictionary<string, AbstractVersion>(registry.Installed());
 
-                foreach (KeyValuePair<string, Version> mod in installed)
+                foreach (KeyValuePair<string, AbstractVersion> mod in installed)
                 {
-                    Version current_version = mod.Value;
+                    AbstractVersion current_version = mod.Value;
 
                     string bullet = "*";
 
-                    if (current_version is ProvidesVersion)
+                    if (current_version is ProvidedVersion)
                     {
                         // Skip virtuals for now.
                         continue;
                     }
-                    else if (current_version is DllVersion)
+                    else if (current_version is AutodetectedVersion)
                     {
                         // Autodetected dll
                         bullet = "-";
@@ -72,7 +74,7 @@ namespace CKAN.CmdLine
                         try
                         {
                             // Check if upgrades are available, and show appropriately.
-                            CkanModule latest = registry.LatestAvailable(mod.Key, ksp.Version());
+                            CfanModule latest = registry.LatestAvailable(mod.Key, ksp.Version());
 
                             log.InfoFormat("Latest {0} is {1}", mod.Key, latest);
 
@@ -81,12 +83,12 @@ namespace CKAN.CmdLine
                                 // Not compatible!
                                 bullet = "X";
                             }
-                            else if (latest.version.IsEqualTo(current_version))
+                            else if (latest.modVersion.Equals(current_version))
                             {
                                 // Up to date
                                 bullet = "-";
                             }
-                            else if (latest.version.IsGreaterThan(mod.Value))
+                            else if (latest.modVersion.IsGreaterThan(mod.Value))
                             {
                                 // Upgradable
                                 bullet = "^";

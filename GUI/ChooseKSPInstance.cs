@@ -57,8 +57,13 @@ namespace CKAN
                 {
                     instance = new KSP(path, GUI.user);
                 }
-                catch (NotKSPDirKraken){
-                    GUI.user.displayError("Directory {0} is not valid KSP directory.", new object[] {path});
+                catch (NotFactorioDirectoryKraken){
+                    GUI.user.displayError("Directory {0} is not valid Factorio directory.", new object[] {path});
+                    return;
+                }
+                catch (NotFactorioDataDirectoryKraken)
+                {
+                    GUI.user.displayError("Directory {0} is a Factorio directory, but can't detect game data dir, did you start the game at least once?", new object[] { path });
                     return;
                 }
 

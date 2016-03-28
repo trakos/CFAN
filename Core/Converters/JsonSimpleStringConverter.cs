@@ -1,4 +1,5 @@
 using System;
+using CKAN.Factorio.Version;
 using Newtonsoft.Json;
 
 namespace CKAN {
@@ -24,7 +25,7 @@ namespace CKAN {
             // set an attribute in their class saying they can be converted.
             // By returning false here, we declare we're not interested in participating
             // in any other conversions.
-            return false;
+            return objectType == typeof (ModVersion);
         }
     }
 }

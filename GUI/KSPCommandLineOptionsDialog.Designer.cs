@@ -88,7 +88,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "KSPCommandLineOptionsDialog";
-            this.Text = "KSP command-line arguments";
+            this.Text = "Factorio command-line arguments";
             this.ResumeLayout(false);
             this.PerformLayout();
 

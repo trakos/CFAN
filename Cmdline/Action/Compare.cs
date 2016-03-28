@@ -1,4 +1,7 @@
-﻿namespace CKAN.CmdLine
+﻿using System;
+using CKAN.Factorio.Version;
+
+namespace CKAN.CmdLine
 {
     public class Compare : ICommand
     {
@@ -15,8 +18,8 @@
 
             if (options.Left != null && options.Right != null)
             {
-                var leftVersion = new Version(options.Left);
-                var rightVersion = new Version(options.Right);
+                var leftVersion = new ModVersion(options.Left);
+                var rightVersion = new ModVersion(options.Right);
 
                 int compareResult = leftVersion.CompareTo(rightVersion);
                 if (compareResult == 0)
@@ -37,13 +40,13 @@
                 else
                 {
                     user.RaiseMessage(
-                        "Usage: ckan compare version1 version2");
+                        "Usage: cfan compare version1 version2");
                 }
             }
             else
             {
                 user.RaiseMessage(
-                    "Usage: ckan compare version1 version2");
+                    "Usage: cfan compare version1 version2");
                 return Exit.BADOPT;
             }
 

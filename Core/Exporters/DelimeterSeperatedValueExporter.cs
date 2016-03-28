@@ -7,9 +7,7 @@ namespace CKAN.Exporters
     public sealed class DelimeterSeperatedValueExporter : IExporter
     {
         private const string WritePattern = "{1}{0}{2}{0}{3}{0}{4}{0}{5}" +
-                                            "{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}" +
-                                            "{0}{11}{0}{12}{0}{13}{0}{14}{0}{15}" +
-                                            "{0}{16}{0}{17}{0}{18}";
+                                            "{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}";
         private readonly string _delimter;
 
         public DelimeterSeperatedValueExporter(Delimter delimter)
@@ -36,45 +34,29 @@ namespace CKAN.Exporters
                     "identifier",
                     "version",
                     "name",
-                    "abstract",
                     "description",
                     "author",
                     "kind",
                     "download",
                     "download_size",
-                    "ksp_version",
-                    "ksp_version_min",
-                    "ksp_version_max",
-                    "license",
-                    "release_status",
-                    "repository",
                     "homepage",
-                    "bugtracker",
-                    "spacedock"
+                    "contact"
                 );
 
-                foreach (var mod in registry.InstalledModules.OrderBy(i => i.Module.name))
+                foreach (var mod in registry.InstalledModules.OrderBy(i => i.Module.identifier))
                 {
                     writer.WriteLine(WritePattern,
                         _delimter,
                         mod.Module.identifier,
-                        mod.Module.version,
-                        QuoteIfNecessary(mod.Module.name),
-                        QuoteIfNecessary(mod.Module.@abstract),
+                        mod.Module.modVersion,
+                        QuoteIfNecessary(mod.Module.identifier),
                         QuoteIfNecessary(mod.Module.description),
-                        QuoteIfNecessary(string.Join(";", mod.Module.author)),
-                        QuoteIfNecessary(mod.Module.kind),
-                        WriteUri(mod.Module.download),
-                        mod.Module.download_size,
-                        mod.Module.ksp_version,
-                        mod.Module.ksp_version_min,
-                        mod.Module.ksp_version_max,
-                        mod.Module.license,
-                        mod.Module.release_status,
-                        WriteRepository(mod.Module.resources),
-                        WriteHomepage(mod.Module.resources),
-                        WriteBugtracker(mod.Module.resources),
-                        WriteSpaceDock(mod.Module.resources)
+                        QuoteIfNecessary(string.Join(";", mod.Module.authors)),
+                        QuoteIfNecessary(mod.Module.kind.ToString()),
+                        mod.Module.download != null ? WriteUri(mod.Module.download) : "",
+                        mod.Module.download_size.ToString(),
+                        mod.Module.homepage,
+                        mod.Module.contact
                     );
                 }
             }
@@ -83,46 +65,6 @@ namespace CKAN.Exporters
         private string WriteUri(Uri uri)
         {
             return uri != null ? QuoteIfNecessary(uri.ToString()) : string.Empty;
-        }
-
-        private string WriteRepository(ResourcesDescriptor resources)
-        {
-            if (resources != null && resources.repository != null)
-            {
-                return QuoteIfNecessary(resources.repository.ToString());
-            }
-
-            return string.Empty;
-        }
-
-        private string WriteHomepage(ResourcesDescriptor resources)
-        {
-            if (resources != null && resources.homepage != null)
-            {
-                return QuoteIfNecessary(resources.homepage.ToString());
-            }
-
-            return string.Empty;
-        }
-
-        private string WriteBugtracker(ResourcesDescriptor resources)
-        {
-            if (resources != null && resources.bugtracker != null)
-            {
-                return QuoteIfNecessary(resources.bugtracker.ToString());
-            }
-
-            return string.Empty;
-        }
-
-        private string WriteSpaceDock(ResourcesDescriptor resources)
-        {
-            if (resources != null && resources.spacedock != null)
-            {
-                return QuoteIfNecessary(resources.spacedock.ToString());
-            }
-
-            return string.Empty;
         }
 
         private string QuoteIfNecessary(string value)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CKAN.Factorio;
 
 namespace CKAN
 {
@@ -64,12 +65,23 @@ namespace CKAN
         }
     }
 
-    public class NotKSPDirKraken : Kraken
+    public class NotFactorioDirectoryKraken : Kraken
     {
         public string path;
 
-        public NotKSPDirKraken(string path, string reason = null, Exception inner_exception = null)
+        public NotFactorioDirectoryKraken(string path, string reason = null, Exception inner_exception = null)
             :base(reason, inner_exception)
+        {
+            this.path = path;
+        }
+    }
+
+    public class NotFactorioDataDirectoryKraken : Kraken
+    {
+        public string path;
+
+        public NotFactorioDataDirectoryKraken(string path, string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
         {
             this.path = path;
         }
@@ -89,9 +101,9 @@ namespace CKAN
     /// </summary>
     public class BadMetadataKraken : Kraken
     {
-        public CkanModule module;
+        public CfanModule module;
 
-        public BadMetadataKraken(CkanModule module, string reason = null, Exception inner_exception = null)
+        public BadMetadataKraken(CfanModule module, string reason = null, Exception inner_exception = null)
             :base(reason,inner_exception)
         {
             this.module = module;
@@ -114,17 +126,17 @@ namespace CKAN
 
     public class TooManyModsProvideKraken : Kraken
     {
-        public List<CkanModule> modules;
+        public List<CfanModule> modules;
         public string requested;
 
-        public TooManyModsProvideKraken(string requested, List<CkanModule> modules, Exception inner_exception = null)
+        public TooManyModsProvideKraken(string requested, List<CfanModule> modules, Exception inner_exception = null)
             :base(FormatMessage(requested, modules), inner_exception)
         {
             this.modules = modules;
             this.requested = requested;
         }
 
-        internal static string FormatMessage(string requested, List<CkanModule> modules)
+        internal static string FormatMessage(string requested, List<CfanModule> modules)
         {
             string oops = string.Format("Too many mods provide {0}:\n", requested);
             return oops + String.Join("\n* ", modules);
@@ -176,7 +188,7 @@ namespace CKAN
 
         // These aren't set at construction time, but exist so that we can decorate the
         // kraken as appropriate.
-        public CkanModule installing_module;
+        public CfanModule installing_module;
         public string owning_module;
 
         public FileExistsKraken(string filename, string reason = null, Exception inner_exception = null)
@@ -297,6 +309,56 @@ namespace CKAN
                 "\tmozroots --import --ask-remove\n" +
                 "on the command-line to update your certificate store, and try again.\n\n"
             ;
+        }
+    }
+
+    public class InvalidEntryInModsDirectoryKraken : Kraken
+    {
+        public InvalidEntryInModsDirectoryKraken(string reason = null, Exception inner_exception = null)
+            :base(reason, inner_exception)
+        {
+        }
+    }
+
+    public class BadVersionKraken : Kraken
+    {
+        private readonly string versionString;
+
+        public BadVersionKraken(string versionString,  Exception innerException = null)
+            : base(createReasonString(versionString), innerException)
+        {
+            this.versionString = versionString;
+        }
+
+        protected static string createReasonString(string versionString)
+        {
+            return $"[BadVersionKraken] {versionString} is not a valid version string";
+        }
+
+        public override string ToString()
+        {
+            return createReasonString(versionString);
+        }
+    }
+
+    public class ModuleAndVersionStringInvalidKraken : Kraken
+    {
+        public readonly string givenString;
+
+        public ModuleAndVersionStringInvalidKraken(string givenString, Exception innerException = null)
+            : base(createReasonString(givenString), innerException)
+        {
+            this.givenString = givenString;
+        }
+
+        protected static string createReasonString(string versionString)
+        {
+            return $"[ModuleAndVersionStringInvalidKraken] {versionString} is not a valid module=version string";
+        }
+
+        public override string ToString()
+        {
+            return createReasonString(givenString);
         }
     }
 }

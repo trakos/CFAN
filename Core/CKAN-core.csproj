@@ -6,13 +6,16 @@
     <ProjectGuid>{3B9AEA22-FA3B-4E43-9283-EABDD81CF271}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>CKAN</RootNamespace>
-    <AssemblyName>CKAN</AssemblyName>
+    <AssemblyName>cfan_core</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CommandLine">
@@ -44,24 +47,42 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converters\JsonEnumDescriptionConverter.cs" />
     <Compile Include="Exporters\BbCodeExporter.cs" />
     <Compile Include="Exporters\DelimeterSeperatedValueExporter.cs" />
     <Compile Include="Exporters\Exporter.cs" />
     <Compile Include="Exporters\IExporter.cs" />
     <Compile Include="Exporters\MarkdownExporter.cs" />
     <Compile Include="Exporters\PlainTextExporter.cs" />
+    <Compile Include="Factorio\CfanFileManager.cs" />
+    <Compile Include="Factorio\CfanModule.cs" />
+    <Compile Include="Factorio\CfanModuleIdAndVersion.cs" />
+    <Compile Include="Factorio\FactorioModDetector.cs" />
+    <Compile Include="Factorio\FactorioModParser.cs" />
+    <Compile Include="Factorio\Relationships\ModDependency.cs" />
+    <Compile Include="Factorio\Version\AutodetectedVersion.cs" />
+    <Compile Include="Factorio\Version\CFANVersion.cs" />
+    <Compile Include="Factorio\Version\FactorioVersion.cs" />
+    <Compile Include="Factorio\Version\ModVersion.cs" />
+    <Compile Include="Factorio\Version\NonEmptyVersion.cs" />
+    <Compile Include="Factorio\Version\AbstractVersion.cs" />
+    <Compile Include="Factorio\Schema\ModInfoJson.cs" />
+    <Compile Include="Factorio\Schema\ModListJson.cs" />
+    <Compile Include="Factorio\Schema\CfanJson.cs" />
+    <Compile Include="Factorio\Version\ProvidedVersion.cs" />
+    <Compile Include="Installable\IInstallable.cs" />
+    <Compile Include="Installable\InstallableFile.cs" />
+    <Compile Include="Installable\InstallableZipEntry.cs" />
     <Compile Include="Net\AutoUpdate.cs" />
     <Compile Include="Net\IDownloader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="KSP.cs" />
     <Compile Include="ModuleInstaller.cs" />
     <Compile Include="CkanTransaction.cs" />
-    <Compile Include="Types\CKANVersion.cs" />
+    <Compile Include="Registry\AutodetectedModule.cs" />
     <Compile Include="Registry\IRegistryQuerier.cs" />
     <Compile Include="Types\ExportFileType.cs" />
     <Compile Include="User.cs" />
-    <Compile Include="Types\Version.cs" />
-    <Compile Include="Types\KSPVersion.cs" />
     <Compile Include="Meta.cs" />
     <Compile Include="Types\Kraken.cs" />
     <Compile Include="KSPManager.cs" />
@@ -70,14 +91,13 @@
     <Compile Include="Registry\InstalledModule.cs" />
     <Compile Include="Registry\Registry.cs" />
     <Compile Include="Registry\RegistryManager.cs" />
-    <Compile Include="Types\ModuleInstallDescriptor.cs" />
     <Compile Include="Relationships\SanityChecker.cs" />
     <Compile Include="Net\Net.cs" />
     <Compile Include="Net\NetAsyncDownloader.cs" />
     <Compile Include="Relationships\RelationshipResolver.cs" />
     <Compile Include="Net\Repo.cs" />
     <Compile Include="Net\NetFileCache.cs" />
-    <Compile Include="Types\CkanModule.cs" />
+    <Content Include="Types\CkanModule.cs.txt" />
     <Compile Include="Converters\JsonOldResourceUrlConverter.cs" />
     <Compile Include="Converters\JsonSimpleStringConverter.cs" />
     <Compile Include="Converters\JsonSingleOrArrayConverter.cs" />
@@ -102,7 +122,5 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup />
-  <ItemGroup>
-    <Folder Include="Types\GameComparator\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

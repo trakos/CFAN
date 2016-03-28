@@ -151,7 +151,7 @@ namespace CKAN.CmdLine
 
         private int AvailableRepositories()
         {
-            User.RaiseMessage("Listing all (canonical) available CKAN repositories:");
+            User.RaiseMessage("Listing all (canonical) available CFAN repositories:");
             RepositoryList repositories;
 
             try
@@ -160,7 +160,7 @@ namespace CKAN.CmdLine
             }
             catch
             {
-                User.RaiseError("Couldn't fetch CKAN repositories master list from {0}", Repository.default_repo_master_list.ToString());
+                User.RaiseError("Couldn't fetch CFAN repositories master list from {0}", Repository.default_repo_master_list.ToString());
                 return Exit.ERROR;
             }
 
@@ -217,7 +217,7 @@ namespace CKAN.CmdLine
                 }
                 catch
                 {
-                    User.RaiseError("Couldn't fetch CKAN repositories master list from {0}", Repository.default_repo_master_list.ToString());
+                    User.RaiseError("Couldn't fetch CFAN repositories master list from {0}", Repository.default_repo_master_list.ToString());
                     return Exit.ERROR;
                 }
 

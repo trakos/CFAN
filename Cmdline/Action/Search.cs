@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CKAN.Factorio;
 
 namespace CKAN.CmdLine
 {
@@ -26,7 +27,7 @@ namespace CKAN.CmdLine
                 return Exit.BADOPT;
             }
 
-            List<CkanModule> matching_mods = PerformSearch(ksp, options.search_term);
+            List<CfanModule> matching_mods = PerformSearch(ksp, options.search_term);
 
             // Show how many matches we have.
             user.RaiseMessage("Found " + matching_mods.Count.ToString() + " mods matching \"" + options.search_term + "\".");
@@ -38,7 +39,7 @@ namespace CKAN.CmdLine
             }
 
             // Print each mod on a separate line.
-            foreach (CkanModule mod in matching_mods)
+            foreach (CfanModule mod in matching_mods)
             {
                 user.RaiseMessage(mod.identifier);
             }
@@ -52,15 +53,15 @@ namespace CKAN.CmdLine
         /// <returns>List of mathcing modules.</returns>
         /// <param name="ksp">The KSP instance to perform the search for.</param>
         /// <param name="term">The search term. Case insensitive.</param>
-        public List<CkanModule> PerformSearch(CKAN.KSP ksp, string term)
+        public List<CfanModule> PerformSearch(CKAN.KSP ksp, string term)
         {
-            List<CkanModule> matching_mods = new List<CkanModule>();
+            List<CfanModule> matching_mods = new List<CfanModule>();
 
             // Get a list of available mods.
-            List<CkanModule> available_mods = ksp.Registry.Available(ksp.Version());
+            List<CfanModule> available_mods = ksp.Registry.Available(ksp.Version());
 
             // Look for the search term in the list.
-            foreach (CkanModule mod in available_mods)
+            foreach (CfanModule mod in available_mods)
             {
                 // Extract the description. This is an optional field and may be null.
                 string mod_description = String.Empty;
@@ -71,7 +72,7 @@ namespace CKAN.CmdLine
                 }
 
                 // Look for a match in each string.
-                if (mod.name.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1 || mod.identifier.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1 || mod_description.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1)
+                if (mod.title.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1 || mod.identifier.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1 || mod_description.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1)
                 {
                     matching_mods.Add(mod);
                 }

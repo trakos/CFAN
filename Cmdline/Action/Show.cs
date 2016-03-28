@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
 
 namespace CKAN.CmdLine
 {
@@ -36,10 +38,10 @@ namespace CKAN.CmdLine
 
             // Module was not installed, look for an exact match in the available modules,
             // either by "name" (the user-friendly display name) or by identifier
-            CkanModule moduleToShow = ksp.Registry                  
+            CfanModule moduleToShow = ksp.Registry                  
                                       .Available(ksp.Version())
                                       .SingleOrDefault(
-                                            mod => mod.name == options.Modname
+                                            mod => mod.title == options.Modname
                                                 || mod.identifier == options.Modname
                                       );
 
@@ -50,7 +52,7 @@ namespace CKAN.CmdLine
                 user.RaiseMessage("Looking for close matches in available mods for KSP {0}.", ksp.Version());
 
                 Search search = new Search(user);
-                List<CkanModule> matches = search.PerformSearch(ksp, options.Modname);
+                List<CfanModule> matches = search.PerformSearch(ksp, options.Modname);
 
                 // Display the results of the search.
                 if (matches.Count == 0)
@@ -62,7 +64,7 @@ namespace CKAN.CmdLine
                 else if (matches.Count == 1)
                 {
                     // If there is only 1 match, display it.
-                    user.RaiseMessage("Found 1 close match: {0}", matches[0].name);
+                    user.RaiseMessage("Found 1 close match: {0}", matches[0].title);
                     user.RaiseMessage("");
 
                     moduleToShow = matches[0];
@@ -74,7 +76,7 @@ namespace CKAN.CmdLine
 
                     for (int i = 0; i < matches.Count; i++)
                     {
-                        strings_matches[i] = matches[i].name;
+                        strings_matches[i] = matches[i].title;
                     }
 
                     int selection = user.RaiseSelectionDialog("Close matches", strings_matches);
@@ -120,17 +122,10 @@ namespace CKAN.CmdLine
         /// </summary>
         /// <returns>Success status.</returns>
         /// <param name="module">The module to show.</param>
-        public int ShowMod(CkanModule module)
+        public int ShowMod(CfanModule module)
         {
             #region Abstract and description
-            if (!string.IsNullOrEmpty(module.@abstract))
-            {
-                user.RaiseMessage("{0}: {1}", module.name, module.@abstract);
-            }
-            else
-            {
-                user.RaiseMessage("{0}", module.name);
-            }
+            user.RaiseMessage("{0}", module.title);
 
             if (!string.IsNullOrEmpty(module.description))
             {
@@ -140,11 +135,11 @@ namespace CKAN.CmdLine
 
             #region General info (author, version...)
             user.RaiseMessage("\nModule info:");
-            user.RaiseMessage("- version:\t{0}", module.version);
+            user.RaiseMessage("- version:\t{0}", module.modVersion);
 
-            if (module.author != null)
+            if (module.authors != null)
             {
-                user.RaiseMessage("- authors:\t{0}", string.Join(", ", module.author));
+                user.RaiseMessage("- authors:\t{0}", string.Join(", ", module.authors));
             }
             else
             {
@@ -152,59 +147,53 @@ namespace CKAN.CmdLine
                 // You do now. #673.
                 user.RaiseMessage("- authors:\tUNKNOWN");
             }
-
-            user.RaiseMessage("- status:\t{0}", module.release_status);
-            user.RaiseMessage("- license:\t{0}", string.Join(", ", module.license)); 
+            
             #endregion
 
             #region Relationships
-            if (module.depends != null && module.depends.Count > 0)
+            if (module.depends != null && module.depends.Any())
             {
                 user.RaiseMessage("\nDepends:");
-                foreach (RelationshipDescriptor dep in module.depends)
+                foreach (var dep in module.depends)
                     user.RaiseMessage("- {0}", RelationshipToPrintableString(dep));
             }
 
-            if (module.recommends != null && module.recommends.Count > 0)
+            if (module.recommends != null && module.recommends.Any())
             {
                 user.RaiseMessage("\nRecommends:");
-                foreach (RelationshipDescriptor dep in module.recommends)
+                foreach (var dep in module.recommends)
                     user.RaiseMessage("- {0}", RelationshipToPrintableString(dep));
             }
 
-            if (module.suggests != null && module.suggests.Count > 0)
+            if (module.suggests != null && module.suggests.Any())
             {
                 user.RaiseMessage("\nSuggests:");
-                foreach (RelationshipDescriptor dep in module.suggests)
+                foreach (var dep in module.suggests)
                     user.RaiseMessage("- {0}", RelationshipToPrintableString(dep));
             }
 
-            if (module.ProvidesList != null && module.ProvidesList.Count > 0)
+            if (module.providesNames != null && module.providesNames.Any())
             {
                 user.RaiseMessage("\nProvides:");
-                foreach (string prov in module.ProvidesList)
+                foreach (string prov in module.providesNames)
                     user.RaiseMessage("- {0}", prov);
             } 
             #endregion
 
             user.RaiseMessage("\nResources:");
-            if (module.resources != null)
+            if (!String.IsNullOrEmpty(module.homepage))
+                user.RaiseMessage("- homepage: {0}", Uri.EscapeUriString(module.homepage));
+            if (!String.IsNullOrEmpty(module.contact))
+                user.RaiseMessage("- contact: {0}", Uri.EscapeUriString(module.contact));
+
+            if (!module.isMetapackage)
             {
-                if (module.resources.bugtracker != null)
-                    user.RaiseMessage("- bugtracker: {0}", Uri.EscapeUriString(module.resources.bugtracker.ToString()));
-                if (module.resources.homepage != null)
-                    user.RaiseMessage("- homepage: {0}", Uri.EscapeUriString(module.resources.homepage.ToString()));
-                if (module.resources.spacedock != null)
-                    user.RaiseMessage("- spacedock: {0}", Uri.EscapeUriString(module.resources.spacedock.ToString()));
-                if (module.resources.repository != null)
-                    user.RaiseMessage("- repository: {0}", Uri.EscapeUriString(module.resources.repository.ToString()));
+                // Compute the CKAN filename.
+                string file_uri_hash = NetFileCache.CreateURLHash(module.download);
+                string file_name = CfanModule.createStandardFileName(module.identifier, module.modVersion.ToString());
+
+                user.RaiseMessage("\nFilename: {0}", file_uri_hash + "-" + file_name);
             }
-
-            // Compute the CKAN filename.
-            string file_uri_hash = NetFileCache.CreateURLHash(module.download);
-            string file_name = CkanModule.StandardName(module.identifier, module.version);
-
-            user.RaiseMessage("\nFilename: {0}", file_uri_hash + "-" + file_name);
 
             return Exit.OK;
         }
@@ -213,13 +202,13 @@ namespace CKAN.CmdLine
         /// Formats a RelationshipDescriptor into a user-readable string:
         /// Name, version: x, min: x, max: x
         /// </summary>
-        private static string RelationshipToPrintableString(RelationshipDescriptor dep)
+        private static string RelationshipToPrintableString(ModDependency dep)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(dep.name);
-            if (dep.version != null) sb.Append(", version: " + dep.version);
-            if (dep.min_version != null) sb.Append(", min: " + dep.min_version);
-            if (dep.max_version != null) sb.Append(", max: " + dep.max_version);
+            sb.Append(dep.modName);
+            if (dep.isOptional) sb.Append(" (only if installed)");
+            if (dep.minVersion != null) sb.Append(", min: " + dep.minVersion);
+            if (dep.maxVersion != null) sb.Append(", max: " + dep.maxVersion);
             return sb.ToString();
         }
     }

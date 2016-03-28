@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Linq;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
     public sealed class GUIMod
     {
-        private CkanModule Mod { get; set; }
+        private CfanModule Mod { get; set; }
 
         public string Name
         {
-            get { return Mod.name.Trim(); }
+            get { return Mod.title.Trim(); }
         }
 
         public bool IsInstalled { get; private set; }
@@ -45,9 +47,9 @@ namespace CKAN
             get { return IsInstalled ? InstalledVersion : LatestVersion; }
         }
 
-        public GUIMod(CkanModule mod, IRegistryQuerier registry, KSPVersion current_ksp_version)
+        public GUIMod(CfanModule mod, IRegistryQuerier registry, FactorioVersion current_ksp_version)
         {
-            IsCKAN = mod is CkanModule;
+            IsCKAN = mod is CfanModule;
             //Currently anything which could alter these causes a full reload of the modlist
             // If this is ever changed these could be moved into the properties
             Mod = mod;
@@ -56,17 +58,17 @@ namespace CKAN
             HasUpdate = registry.HasUpdate(mod.identifier, current_ksp_version);
             IsIncompatible = !mod.IsCompatibleKSP(current_ksp_version);
             IsAutodetected = registry.IsAutodetected(mod.identifier);
-            Authors = mod.author == null ? "N/A" : String.Join(",", mod.author);
+            Authors = mod.authors == null ? "N/A" : String.Join(",", mod.authors);
 
             var installed_version = registry.InstalledVersion(mod.identifier);
-            Version latest_version = null;
-            var ksp_version = mod.ksp_version;
+            AbstractVersion latest_version = null;
+            var ksp_version = mod.getMinFactorioVersion();
 
             try
             {
                 var latest_available = registry.LatestAvailable(mod.identifier, current_ksp_version);
                 if (latest_available != null)
-                    latest_version = latest_available.version;
+                    latest_version = latest_available.modVersion;
             }
             catch (ModuleNotFoundKraken)
             {
@@ -78,7 +80,7 @@ namespace CKAN
             // Let's try to find the compatibility for this mod. If it's not in the registry at
             // all (because it's a DarkKAN mod) then this might fail.
 
-            CkanModule latest_available_for_any_ksp = null;
+            CfanModule latest_available_for_any_ksp = null;
 
             try
             {
@@ -89,7 +91,7 @@ namespace CKAN
                 // If we can't find the mod in the CKAN, but we've a CkanModule installed, then
                 // use that.
                 if (IsCKAN)
-                    latest_available_for_any_ksp = (CkanModule) mod;
+                    latest_available_for_any_ksp = (CfanModule) mod;
                 
             }
 
@@ -97,14 +99,32 @@ namespace CKAN
             // KSP.
             if (latest_available_for_any_ksp != null)
             {
-                KSPCompatibility = KSPCompatibilityLong = latest_available_for_any_ksp.HighestCompatibleKSP();
+                var minVersion = latest_available_for_any_ksp.getMinFactorioVersion();
+                var maxVersion = latest_available_for_any_ksp.HighestCompatibleKSP();
+                if (minVersion != null && maxVersion != null)
+                {
+                    KSPCompatibility = minVersion.ToString() + " - " + maxVersion.ToString();
+                }
+                else if (minVersion != null)
+                {
+                    KSPCompatibility = " >= " + minVersion.ToString();
+                }
+                else if (maxVersion != null)
+                {
+                    KSPCompatibility = " <= " + maxVersion.ToString();
+                }
+                else
+                {
+                    KSPCompatibility = "any";
+                }
+                KSPCompatibilityLong = KSPCompatibility;
 
                 // If the mod we have installed is *not* the mod we have installed, or we don't know
                 // what we have installed, indicate that an upgrade would be needed.
-                if (installed_version == null || !latest_available_for_any_ksp.version.IsEqualTo(installed_version))
+                if (installed_version == null || !latest_available_for_any_ksp.modVersion.Equals(installed_version))
                 {
                     KSPCompatibilityLong = string.Format("{0} (using mod version {1})",
-                        KSPCompatibility, latest_available_for_any_ksp.version);
+                        KSPCompatibility, latest_available_for_any_ksp.modVersion);
                 }
             }
             else
@@ -119,7 +139,7 @@ namespace CKAN
             }
             else if (latest_available_for_any_ksp != null)
             {
-                LatestVersion = latest_available_for_any_ksp.version.ToString();
+                LatestVersion = latest_available_for_any_ksp.modVersion.ToString();
             }
             else
             {
@@ -133,21 +153,8 @@ namespace CKAN
             // If we have homepage provided use that, otherwise use the spacedock page or the github repo so that users have somewhere to get more info than just the abstract.
 
             Homepage = "N/A";
-            if (mod.resources != null)
-            {
-                if (mod.resources.homepage != null)
-                {
-                    Homepage = mod.resources.homepage.ToString();
-                }
-                else if (mod.resources.spacedock != null)
-                {
-                    Homepage = mod.resources.spacedock.ToString();
-                }
-                else if (mod.resources.repository != null)
-                {
-                    Homepage = mod.resources.repository.ToString();
-                }
-            }
+            if (!string.IsNullOrEmpty(mod.homepage))
+                Homepage = mod.homepage;
 
             Identifier = mod.identifier;
 
@@ -158,21 +165,21 @@ namespace CKAN
             else
                 DownloadSize = mod.download_size / 1024+"";
             
-            Abbrevation = new string(mod.name.Split(' ').
+            Abbrevation = new string(mod.title.Split(' ').
                 Where(s => s.Length > 0).Select(s => s[0]).ToArray());
 
             if (Main.Instance != null)
                 IsCached = Main.Instance.CurrentInstance.Cache.IsMaybeCachedZip(mod.download);
         }
 
-        public CkanModule ToCkanModule()
+        public CfanModule ToCkanModule()
         {
             if (!IsCKAN) throw new InvalidCastException("Method can not be called unless IsCKAN");
-            var mod = Mod as CkanModule;
+            var mod = Mod as CfanModule;
             return mod;
         }
 
-        public CkanModule ToModule()
+        public CfanModule ToModule()
         {
             return Mod;
         }
@@ -191,7 +198,7 @@ namespace CKAN
             return null;
         }
 
-        public static implicit operator CkanModule(GUIMod mod)
+        public static implicit operator CfanModule(GUIMod mod)
         {
             return mod.ToModule();
         }

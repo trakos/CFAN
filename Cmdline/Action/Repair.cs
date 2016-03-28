@@ -11,7 +11,7 @@ namespace CKAN.CmdLine
 
         internal class RepairSubOptions : CommonOptions
         {
-            [VerbOption("registry", HelpText="Try to repair the CKAN registry")]
+            [VerbOption("registry", HelpText="Try to repair the CFAN registry")]
             public CommonOptions Registry { get; set; }
         }
 
@@ -57,6 +57,7 @@ namespace CKAN.CmdLine
         {
             CurrentInstance.Registry.Repair();
             CurrentInstance.RegistryManager.Save();
+            CurrentInstance.RebuildFactorioModlist();
             User.RaiseMessage("Registry repairs attempted. Hope it helped.");
             return Exit.OK;
         }

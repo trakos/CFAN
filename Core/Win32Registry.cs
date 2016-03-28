@@ -14,7 +14,7 @@ namespace CKAN
 
     public class Win32Registry : IWin32Registry
     {
-        private static readonly string CKAN_KEY = @"HKEY_CURRENT_USER\Software\CKAN";
+        private static readonly string CKAN_KEY = @"HKEY_CURRENT_USER\Software\CFAN";
 
         public Win32Registry()
         {
@@ -22,19 +22,19 @@ namespace CKAN
         }
         private int InstanceCount
         {
-            get { return GetRegistryValue(@"KSPInstanceCount", 0); }
+            get { return GetRegistryValue(@"FactorioInstanceCount", 0); }
         }
 
         public string AutoStartInstance
         {
-            get { return GetRegistryValue(@"KSPAutoStartInstance", ""); }
+            get { return GetRegistryValue(@"FactorioAutoStartInstance", ""); }
             set { SetAutoStartInstance(value??String.Empty); }
         }
 
         private Tuple<string, string> GetInstance(int i)
         {
-            return new Tuple<string, string>(GetRegistryValue("KSPInstanceName_" + i, ""),
-                GetRegistryValue("KSPInstancePath_" + i, ""));
+            return new Tuple<string, string>(GetRegistryValue("FactorioInstanceName_" + i, ""),
+                GetRegistryValue("FactorioInstancePath_" + i, ""));
         }
 
         public void SetRegistryToInstances(SortedList<string, KSP> instances, string auto_start_instance)
@@ -58,27 +58,27 @@ namespace CKAN
 
         private void ConstructKey()
         {
-            var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\CKAN");
+            var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\CFAN");
             if (key == null)
             {
-                Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\CKAN");
+                Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\CFAN");
             }
         }
 
         private void SetAutoStartInstance(string instance_name)
         {
-            SetRegistryValue(@"KSPAutoStartInstance", instance_name ?? String.Empty);
+            SetRegistryValue(@"FactorioAutoStartInstance", instance_name ?? String.Empty);
         }
 
         private void SetNumberOfInstances(int count)
         {
-            SetRegistryValue(@"KSPInstanceCount", count);
+            SetRegistryValue(@"FactorioInstanceCount", count);
         }
 
         private void SetInstanceKeysTo(int instance_number, string name, KSP ksp)
         {            
-            SetRegistryValue(@"KSPInstanceName_" + instance_number, name);
-            SetRegistryValue(@"KSPInstancePath_" + instance_number, ksp.GameDir());
+            SetRegistryValue(@"FactorioInstanceName_" + instance_number, name);
+            SetRegistryValue(@"FactorioInstancePath_" + instance_number, ksp.GameDir());
         }        
 
         private void SetRegistryValue<T>(string key, T value)

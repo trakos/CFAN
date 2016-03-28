@@ -3,12 +3,12 @@ using System.Runtime.CompilerServices;
 
 // Information about this assembly is defined by the following attributes. 
 // Change them to the values specific to your project.
-[assembly: AssemblyTitle ("CKAN")]
-[assembly: AssemblyDescription ("The Comprehensive Kerbal Archive Network")]
+[assembly: AssemblyTitle("CFAN")]
+[assembly: AssemblyDescription("Cool Factorio Archive Network")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany ("https://github.com/KSP-CKAN/CKAN")]
+[assembly: AssemblyCompany("https://github.com/FACTORIO-CFAN/CFAN")]
 [assembly: AssemblyProduct ("")]
-[assembly: AssemblyCopyright ("Copyright CKAN Team, https://github.com/KSP-CKAN/CKAN\nCC-BY 4.0, LGPL, or MIT; you choose!")]
+[assembly: AssemblyCopyright("MIT")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".

@@ -49,7 +49,7 @@ namespace CKAN
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(317, 20);
             this.label1.TabIndex = 0;
-            this.label1.Text = "CKAN - The Comprehensive Kerbal Archive Network";
+            this.label1.Text = "CFAN - Cool Factorio Archive Network";
             this.label1.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // linkLabel1
@@ -100,7 +100,7 @@ namespace CKAN
             this.linkLabel4.Size = new System.Drawing.Size(73, 13);
             this.linkLabel4.TabIndex = 4;
             this.linkLabel4.TabStop = true;
-            this.linkLabel4.Text = "Forum Thread";
+            //this.linkLabel4.Text = "Forum Thread";
             this.linkLabel4.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel4_LinkClicked);
             // 
             // label2
@@ -114,13 +114,13 @@ namespace CKAN
             // 
             // linkLabel5
             // 
-            this.linkLabel5.LinkArea = new System.Windows.Forms.LinkArea(0, 15);
+            this.linkLabel5.LinkArea = new System.Windows.Forms.LinkArea(0, 16);
             this.linkLabel5.Location = new System.Drawing.Point(125, 84);
             this.linkLabel5.Name = "linkLabel5";
-            this.linkLabel5.Size = new System.Drawing.Size(71, 13);
+            this.linkLabel5.Size = new System.Drawing.Size(110, 13);
             this.linkLabel5.TabIndex = 6;
             this.linkLabel5.TabStop = true;
-            this.linkLabel5.Text = "Homepage";
+            this.linkLabel5.Text = "Forked from CKAN";
             this.linkLabel5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.linkLabel5.UseCompatibleTextRendering = true;
             this.linkLabel5.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel5_LinkClicked);

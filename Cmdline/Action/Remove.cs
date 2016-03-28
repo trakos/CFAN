@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CKAN.Factorio.Version;
 
 namespace CKAN.CmdLine
 {
@@ -34,7 +35,7 @@ namespace CKAN.CmdLine
 
                 // Get the list of installed modules
                 IRegistryQuerier registry = RegistryManager.Instance(ksp).registry;
-                var installed = new SortedDictionary<string, Version>(registry.Installed(false));
+                var installed = new SortedDictionary<string, AbstractVersion>(registry.Installed(false));
 
                 // Try every regex on every installed module:
                 // if it matches, select for removal
@@ -54,7 +55,7 @@ namespace CKAN.CmdLine
                 log.Debug("Removing all mods");
                 // Get the list of installed modules
                 IRegistryQuerier registry = RegistryManager.Instance(ksp).registry;
-                var installed = new SortedDictionary<string, Version>(registry.Installed(false));
+                var installed = new SortedDictionary<string, AbstractVersion>(registry.Installed(false));
 
                 // Add it to the list that should be uninstalled.
                 options.modules.AddRange(installed.Keys);

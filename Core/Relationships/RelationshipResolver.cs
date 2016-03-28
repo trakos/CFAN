@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Version;
 using log4net;
 
 namespace CKAN
@@ -77,20 +80,20 @@ namespace CKAN
     {
         // A list of all the mods we're going to install.
         private static readonly ILog log = LogManager.GetLogger(typeof (RelationshipResolver));
-        private readonly Dictionary<string, CkanModule> modlist = new Dictionary<string, CkanModule>();
-        private readonly List<CkanModule> user_requested_mods = new List<CkanModule>();
+        private readonly Dictionary<string, CfanModule> modlist = new Dictionary<string, CfanModule>();
+        private readonly List<CfanModule> user_requested_mods = new List<CfanModule>();
 
         //TODO As the conflict detection gets more advanced there is a greater need to have messages in here
         // as recreating them from reasons is no longer possible.
-        private readonly List<KeyValuePair<CkanModule, CkanModule>> conflicts =
-            new List<KeyValuePair<CkanModule, CkanModule>>();
-        private readonly Dictionary<CkanModule, SelectionReason> reasons =
-            new Dictionary<CkanModule, SelectionReason>(new NameComparer());
+        private readonly List<KeyValuePair<CfanModule, CfanModule>> conflicts =
+            new List<KeyValuePair<CfanModule, CfanModule>>();
+        private readonly Dictionary<CfanModule, SelectionReason> reasons =
+            new Dictionary<CfanModule, SelectionReason>(new CfanModule.NameComparer());
 
         private readonly IRegistryQuerier registry;
-        private readonly KSPVersion kspversion;
+        private readonly FactorioVersion kspversion;
         private readonly RelationshipResolverOptions options;
-        private readonly HashSet<CkanModule> installed_modules;
+        private readonly HashSet<CfanModule> installed_modules;
 
         /// <summary>
         /// Creates a new Relationship resolver.
@@ -98,13 +101,13 @@ namespace CKAN
         /// <param name="options"><see cref="RelationshipResolverOptions"/></param>
         /// <param name="registry">The registry to use</param>
         /// <param name="kspversion">The version of the install that the registry corresponds to</param>
-        public RelationshipResolver(RelationshipResolverOptions options, IRegistryQuerier registry, KSPVersion kspversion)
+        public RelationshipResolver(RelationshipResolverOptions options, IRegistryQuerier registry, FactorioVersion kspversion)
         {
             this.registry = registry;
             this.kspversion = kspversion;
             this.options = options;
 
-            installed_modules = new HashSet<CkanModule>(registry.InstalledModules.Select(i_module => i_module.Module));
+            installed_modules = new HashSet<CfanModule>(registry.InstalledModules.Select(i_module => i_module.Module));
             var installed_relationship = new SelectionReason.Installed();
             foreach (var module in installed_modules)
             {
@@ -119,9 +122,8 @@ namespace CKAN
         /// <param name="options"></param>
         /// <param name="registry"></param>
         /// <param name="kspversion"></param>
-        public RelationshipResolver(IEnumerable<string> module_names, RelationshipResolverOptions options, IRegistryQuerier registry,
-            KSPVersion kspversion) :
-                this(module_names.Select(name => CkanModule.FromIDandVersion(registry, name, kspversion)).ToList(),
+        public RelationshipResolver(IEnumerable<CfanModuleIdAndVersion> module_names, RelationshipResolverOptions options, IRegistryQuerier registry, FactorioVersion kspversion) :
+                this(module_names.Select(p => p.version != null ? registry.GetModuleByVersion(p.identifier, p.version) : registry.LatestAvailable(p.identifier, kspversion)).ToList(),
                     options,
                     registry,
                     kspversion)
@@ -132,10 +134,10 @@ namespace CKAN
         /// <summary>
         /// Creates a new resolver that will find a way to install all the modules specified.
         /// </summary>
-        public RelationshipResolver(IEnumerable<CkanModule> modules, RelationshipResolverOptions options, IRegistryQuerier registry,
-            KSPVersion kspversion):this(options,registry,kspversion)
+        public RelationshipResolver(ICollection<CfanModule> modules, RelationshipResolverOptions options, IRegistryQuerier registry,
+            FactorioVersion kspversion):this(options,registry,kspversion)
         {
-            AddModulesToInstall(modules);
+            AddModulesToInstall(modules.ToArray());
         }
 
         /// <summary>
@@ -159,11 +161,9 @@ namespace CKAN
         /// <summary>
         /// Add modules to consideration of the relationship resolver.
         /// </summary>
-        /// <param name="modules">Modules to attempt to install</param>
-        public void AddModulesToInstall(IEnumerable<CkanModule> modules)
+        /// <param name="ckan_modules">Modules to attempt to install</param>
+        public void AddModulesToInstall(ICollection<CfanModule> ckan_modules)
         {
-            //Count may need to do a full enumeration. Might as well convert to array
-            var ckan_modules = modules as CkanModule[] ?? modules.ToArray();
             log.DebugFormat("Processing relationships for {0} modules", ckan_modules.Count());
 
             // Start by figuring out what versions we're installing, and then
@@ -172,7 +172,7 @@ namespace CKAN
             // virtual packages.
             foreach (var module in ckan_modules)
             {
-                log.DebugFormat("Preparing to resolve relationships for {0} {1}", module.identifier, module.version);
+                log.DebugFormat("Preparing to resolve relationships for {0} {1}", module.identifier, module.modVersion);
 
                 //Need to check against installed mods and those to install.
                 var mods = modlist.Values.Concat(installed_modules).Where(listed_mod => listed_mod.ConflictsWith(module));
@@ -180,8 +180,8 @@ namespace CKAN
                 {
                     if (options.procede_with_inconsistencies)
                     {
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(listed_mod, module));
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(module, listed_mod));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(listed_mod, module));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(module, listed_mod));
                     }
                     else
                     {
@@ -205,12 +205,12 @@ namespace CKAN
 
             if (!options.without_enforce_consistency)
             {
-                var final_modules = new List<CkanModule>(modlist.Values);
+                var final_modules = new List<CfanModule>(modlist.Values);
                 final_modules.AddRange(installed_modules);
                 // Finally, let's do a sanity check that our solution is actually sane.
                 SanityChecker.EnforceConsistency(
                     final_modules,
-                    registry.InstalledDlls
+                    registry.InstalledPreexistingModules
                     );
             }
         }
@@ -220,7 +220,7 @@ namespace CKAN
         /// in which the mod is to be un-installed.
         /// </summary>
         /// <param name="mods">The mods to remove.</param>
-        public void RemoveModsFromInstalledList(IEnumerable<CkanModule> mods)
+        public void RemoveModsFromInstalledList(IEnumerable<CfanModule> mods)
         {
             foreach (var module in mods)
             {
@@ -233,7 +233,7 @@ namespace CKAN
         /// Resolves all relationships for a module.
         /// May recurse to ResolveStanza, which may add additional modules to be installed.
         /// </summary>
-        private void Resolve(CkanModule module, RelationshipResolverOptions options, IEnumerable<RelationshipDescriptor> old_stanza = null)
+        private void Resolve(CfanModule module, RelationshipResolverOptions options, IEnumerable<ModDependency> old_stanza = null)
         {
             // Even though we may resolve top-level suggests for our module,
             // we don't install suggestions all the down unless with_all_suggests
@@ -272,17 +272,17 @@ namespace CKAN
         ///
         /// </summary>
 
-        private void ResolveStanza(IEnumerable<RelationshipDescriptor> stanza, SelectionReason reason,
-            RelationshipResolverOptions options, bool soft_resolve = false, IEnumerable<RelationshipDescriptor> old_stanza = null)
+        private void ResolveStanza(IEnumerable<ModDependency> stanza, SelectionReason reason,
+            RelationshipResolverOptions options, bool soft_resolve = false, IEnumerable<ModDependency> old_stanza = null)
         {
             if (stanza == null)
             {
                 return;
             }
 
-            foreach (var descriptor in stanza)
+            foreach (ModDependency descriptor in stanza)
             {
-                string dep_name = descriptor.name;
+                string dep_name = descriptor.modName;
                 log.DebugFormat("Considering {0}", dep_name);
 
                 // If we already have this dependency covered, skip.
@@ -291,43 +291,45 @@ namespace CKAN
                 if (modlist.ContainsKey(dep_name))
                 {
                     var module = modlist[dep_name];
-                    if (descriptor.version_within_bounds(module.version))
+                    
+                    if (descriptor.isSatisfiedBy(module.identifier, module.modVersion))
                         continue;
                     //TODO Ideally we could check here if it can be replaced by the version we want.
                     if (options.procede_with_inconsistencies)
                     {
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(module,reason.Parent));
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(reason.Parent,module));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(module,reason.Parent));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(reason.Parent,module));
                         continue;
                     }
                     throw new InconsistentKraken(
                         string.Format(
                             "{0} requires a version {1}. However a incompatible version, {2}, is in the resolver",
-                            dep_name, descriptor.RequiredVersion, module.version));
+                            dep_name, descriptor.minVersion, module.modVersion));
                 }
 
                 if (registry.IsInstalled(dep_name))
                 {
-                    if(descriptor.version_within_bounds(registry.InstalledVersion(dep_name)))
+                    if(descriptor.isSatisfiedBy(dep_name, registry.InstalledVersion(dep_name)))
                         continue;
                     var module = registry.InstalledModule(dep_name).Module;
 
                     //TODO Ideally we could check here if it can be replaced by the version we want.
                     if (options.procede_with_inconsistencies)
                     {
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(module, reason.Parent));
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(reason.Parent, module));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(module, reason.Parent));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(reason.Parent, module));
                         continue;
                     }
                     throw new InconsistentKraken(
                         string.Format(
                             "{0} requires a version {1}. However a incompatible version, {2}, is already installed",
-                            dep_name, descriptor.RequiredVersion, registry.InstalledVersion(dep_name)));
+                            dep_name, descriptor.minVersion, registry.InstalledVersion(dep_name)));
                 }
 
                 var descriptor1 = descriptor;
-                List<CkanModule> candidates = registry.LatestAvailableWithProvides(dep_name, kspversion, descriptor)
-                    .Where(mod=>descriptor1.version_within_bounds(mod.version) && MightBeInstallable(mod)).ToList();
+                List<CfanModule> candidates = registry.LatestAvailableWithProvides(dep_name, kspversion, descriptor)
+                    .Where(mod => descriptor1.isSatisfiedBy(mod.identifier, mod.modVersion) && MightBeInstallable(mod))
+                    .ToList();
 
                 if (candidates.Count == 0)
                 {
@@ -353,7 +355,7 @@ namespace CKAN
                     // we need, then select that.
                     if (old_stanza != null)
                     {
-                        List<CkanModule> provide = candidates.Where(can => old_stanza.Where(relation => can.identifier == relation.name).Any()).ToList();
+                        List<CfanModule> provide = candidates.Where(can => old_stanza.Where(relation => can.identifier == relation.modName).Any()).ToList();
                         if (!provide.Any() || provide.Count() > 1)
                         {
                             //We still have either nothing, or too my to pick from
@@ -368,13 +370,13 @@ namespace CKAN
                     }
                 }
 
-                CkanModule candidate = candidates[0];
+                CfanModule candidate = candidates[0];
 
                 // Finally, check our candidate against everything which might object
                 // to it being installed; that's all the mods which are fixed in our
                 // list thus far, as well as everything on the system.
 
-                var fixed_mods = new HashSet<CkanModule>(modlist.Values);
+                var fixed_mods = new HashSet<CfanModule>(modlist.Values);
                 fixed_mods.UnionWith(installed_modules);
 
                 var conflicting_mod = fixed_mods.FirstOrDefault(mod => mod.ConflictsWith(candidate));
@@ -393,8 +395,8 @@ namespace CKAN
                     if (options.procede_with_inconsistencies)
                     {
                         Add(candidate, reason);
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(conflicting_mod, candidate));
-                        conflicts.Add(new KeyValuePair<CkanModule, CkanModule>(candidate, conflicting_mod));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(conflicting_mod, candidate));
+                        conflicts.Add(new KeyValuePair<CfanModule, CfanModule>(candidate, conflicting_mod));
                     }
                     else
                     {
@@ -409,12 +411,12 @@ namespace CKAN
         /// Adds the specified module to the list of modules we're installing.
         /// This also adds its provides list to what we have available.
         /// </summary>
-        private void Add(CkanModule module, SelectionReason reason)
+        private void Add(CfanModule module, SelectionReason reason)
         {
-            if (module.IsMetapackage)
+            if (module.isMetapackage)
                 return;
 
-            log.DebugFormat("Adding {0} {1}", module.identifier, module.version);
+            log.DebugFormat("Adding {0} {1}", module.identifier, module.modVersion);
 
             if (modlist.ContainsKey(module.identifier))
             {
@@ -427,7 +429,7 @@ namespace CKAN
 
             log.DebugFormat("Added {0}", module.identifier);
             // Stop here if it doesn't have any provide aliases.
-            if (module.provides == null)
+            if (module.providesNames == null)
             {
                 return;
             }
@@ -436,7 +438,7 @@ namespace CKAN
 
             // It's okay if there's already a key for one of our aliases
             // in the resolution list. In which case, we don't do anything.
-            var aliases = module.provides.Where(alias => !modlist.ContainsKey(alias));
+            var aliases = module.providesNames.Where(alias => !modlist.ContainsKey(alias));
             foreach (string alias in aliases)
             {
                 log.DebugFormat("Adding {0} providing {1}", module.identifier, alias);
@@ -451,7 +453,7 @@ namespace CKAN
         /// <param name="module">The module to consider</param>
         /// <param name="compatible">For internal use</param>
         /// <returns>If it has dependencies compatible for the current version</returns>
-        private bool MightBeInstallable(CkanModule module, List<string> compatible = null)
+        private bool MightBeInstallable(CfanModule module, List<string> compatible = null)
         {
             if (module.depends == null) return true;
             if (compatible == null)
@@ -466,7 +468,7 @@ namespace CKAN
             // in case a dependent depends on it
             compatible.Add(module.identifier);
 
-            var needed = module.depends.Select(depend => registry.LatestAvailableWithProvides(depend.name, kspversion));
+            var needed = module.depends.Select(depend => registry.LatestAvailableWithProvides(depend.modName, kspversion));
             //We need every dependency to have at least one possible module
             var installable = needed.All(need => need.Any(mod => MightBeInstallable(mod, compatible)));
             compatible.Remove(module.identifier);
@@ -477,9 +479,9 @@ namespace CKAN
         /// <summary>
         /// Returns a list of all modules to install to satisfy the changes required.
         /// </summary>
-        public List<CkanModule> ModList()
+        public List<CfanModule> ModList()
         {
-            var modules = new HashSet<CkanModule>(modlist.Values);
+            var modules = new HashSet<CfanModule>(modlist.Values);
             return modules.ToList();
         }
 
@@ -487,11 +489,11 @@ namespace CKAN
         ///  Returns a IList consisting of keyValuePairs containing conflicting mods.
         /// Note: (a,b) in the list should imply that (b,a) is in the list.
         /// </summary>
-        public Dictionary<CkanModule, String> ConflictList
+        public Dictionary<CfanModule, String> ConflictList
         {
             get
             {
-                var dict = new Dictionary<CkanModule, String>();
+                var dict = new Dictionary<CfanModule, String>();
                 foreach (var conflict in conflicts)
                 {
                     var module = conflict.Key;
@@ -514,7 +516,7 @@ namespace CKAN
         /// </summary>
         /// <param name="mod">A Mod in the resolvers modlist. Must not be null</param>
         /// <returns></returns>
-        public string ReasonStringFor(CkanModule mod)
+        public string ReasonStringFor(CfanModule mod)
         {
             var reason = ReasonFor(mod);
             var is_root_type = reason.GetType() == typeof (SelectionReason.UserRequested)
@@ -524,7 +526,7 @@ namespace CKAN
                 : reason.Reason + ReasonStringFor(reason.Parent);
         }
 
-        public SelectionReason ReasonFor(CkanModule mod)
+        public SelectionReason ReasonFor(CfanModule mod)
         {
             if (mod == null) throw new ArgumentNullException();
             if (!ModList().Contains(mod))
@@ -543,14 +545,14 @@ namespace CKAN
     public abstract class SelectionReason
     {
         //Currently assumed to exist for any relationship other than useradded or installed
-        public virtual CkanModule Parent { get; protected set; }
+        public virtual CfanModule Parent { get; protected set; }
         //Should contain a newline at the end of the string.
         public abstract String Reason { get; }
 
 
         public class Installed : SelectionReason
         {
-            public override CkanModule Parent
+            public override CfanModule Parent
             {
                 get
                 {
@@ -559,15 +561,12 @@ namespace CKAN
                 }
             }
 
-            public override string Reason
-            {
-                get { return "  Currently installed.\n"; }
-            }
+            public override string Reason => "  Currently installed.\n";
         }
 
         public class UserRequested : SelectionReason
         {
-            public override CkanModule Parent
+            public override CfanModule Parent
             {
                 get
                 {
@@ -576,52 +575,40 @@ namespace CKAN
                 }
             }
 
-            public override string Reason
-            {
-                get { return "  Requested by user.\n"; }
-            }
+            public override string Reason => "  Requested by user.\n";
         }
 
         public sealed class Suggested : SelectionReason
         {
-            public Suggested(CkanModule module)
+            public Suggested(CfanModule module)
             {
                 if (module == null) throw new ArgumentNullException();
                 Parent = module;
             }
 
-            public override string Reason
-            {
-                get { return "  Suggested by " + Parent.name + ".\n"; }
-            }
+            public override string Reason => "  Suggested by " + Parent.identifier + ".\n";
         }
 
         public sealed class Depends : SelectionReason
         {
-            public Depends(CkanModule module)
+            public Depends(CfanModule module)
             {
                 if (module == null) throw new ArgumentNullException();
                 Parent = module;
             }
 
-            public override string Reason
-            {
-                get { return "  To satisfy dependency from " + Parent.name + ".\n"; }
-            }
+            public override string Reason => "  To satisfy dependency from " + Parent.identifier + ".\n";
         }
 
         public sealed class Recommended : SelectionReason
         {
-            public Recommended(CkanModule module)
+            public Recommended(CfanModule module)
             {
                 if (module == null) throw new ArgumentNullException();
                 Parent = module;
             }
 
-            public override string Reason
-            {
-                get { return "  Recommended by " + Parent.name + ".\n"; }
-            }
+            public override string Reason => "  Recommended by " + Parent.identifier + ".\n";
         }
     }
 }

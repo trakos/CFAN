@@ -2,22 +2,25 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
+using CKAN.CmdLine;
 
 namespace CKAN
 {
     public static class GUI
     {
-        internal static GUIUser user = new GUIUser();
+        internal static GUIUser user;
+
         /// <summary>
         ///     The main entry point for the application.
         /// </summary>
         [STAThread]
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            Main_(args);
+            user = new GUIUser();
+            return CmdMain.RunCommandLine(args, StartGuiApplication);
         }
 
-        public static void Main_(string[] args, bool showConsole = false)
+        public static int StartGuiApplication(string[] args, bool showConsole = false)
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionEventHandler;
             Application.EnableVisualStyles();
@@ -34,6 +37,8 @@ namespace CKAN
             {
                 new Main(args, user, showConsole);
             }
+
+            return Exit.OK;
         }
 
         public static void UnhandledExceptionEventHandler(Object sender, UnhandledExceptionEventArgs e)

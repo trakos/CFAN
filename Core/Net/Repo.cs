@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ChinhDo.Transactions;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
@@ -29,8 +31,8 @@ namespace CKAN
 
             try
             {
-                CkanModule module = CkanModule.FromJson(metadata);
-                log.InfoFormat("Found {0} version {1}", module.identifier, module.version);
+                CfanModule module = CfanFileManager.fromJson(metadata);
+                log.InfoFormat("Found {0} version {1}", module.identifier, module.modVersion);
                 registry.AddAvailable(module);
             }
             catch (Exception exception)
@@ -164,7 +166,7 @@ namespace CKAN
                 break;
             }
 
-            List<CkanModule> metadataChanges = new List<CkanModule>();
+            List<CfanModule> metadataChanges = new List<CfanModule>();
 
             foreach (var identifierModulePair in old_available)
             {
@@ -172,7 +174,9 @@ namespace CKAN
 
                 if (registry.IsInstalled(identifier))
                 {
-                    var installedVersion = registry.InstalledVersion(identifier);
+                    AbstractVersion abstractVersion = registry.InstalledVersion(identifier);
+                    var installedVersion = new ModVersion(abstractVersion.ToString());
+
                     if (!(registry.available_modules.ContainsKey(identifier)))
                     {
                         log.InfoFormat("UpdateRegistry, module {0}, version {1} not in repository ({2})", identifier, installedVersion, repo);
@@ -185,7 +189,7 @@ namespace CKAN
                     }
 
                     // if the mod is installed and the metadata is different we have to reinstall it
-                    var metadata = registry.available_modules[identifier].module_version[installedVersion];
+                    CfanModule metadata = new CfanModule(registry.available_modules[identifier].module_version[installedVersion]);
 
                     if (!old_available.ContainsKey(identifier) ||
                         !old_available[identifier].module_version.ContainsKey(installedVersion))
@@ -193,62 +197,13 @@ namespace CKAN
                         continue;
                     }
 
-                    var oldMetadata = old_available[identifier].module_version[installedVersion];
+                    CfanModule oldMetadata = new CfanModule(old_available[identifier].module_version[installedVersion]);
 
-                    bool same = true;
-                    if ((metadata.install == null) != (oldMetadata.install == null) ||
-                        (metadata.install != null && metadata.install.Length != oldMetadata.install.Length))
-                    {
-                        same = false;
-                    }
-                    else
-                    {
-                        if(metadata.install != null)
-                        for (int i = 0; i < metadata.install.Length; i++)
-                        {
-                            if (metadata.install[i].file != oldMetadata.install[i].file)
-                            {
-                                same = false;
-                                break;
-                            }
-
-                            if (metadata.install[i].install_to != oldMetadata.install[i].install_to)
-                            {
-                                same = false;
-                                break;
-                            }
-
-                            if ((metadata.install[i].filter == null) != (oldMetadata.install[i].filter == null))
-                            {
-                                same = false;
-                                break;
-                            }
-
-                            if(metadata.install[i].filter != null)
-                            if (!metadata.install[i].filter.SequenceEqual(oldMetadata.install[i].filter))
-                            {
-                                same = false;
-                                break;
-                            }
-
-                            if ((metadata.install[i].filter_regexp == null) != (oldMetadata.install[i].filter_regexp == null))
-                            {
-                                same = false;
-                                break;
-                            }
-
-                            if(metadata.install[i].filter_regexp != null)
-                            if (!metadata.install[i].filter_regexp.SequenceEqual(oldMetadata.install[i].filter_regexp))
-                            {
-                                same = false;
-                                break;
-                            }
-                        }
-                    }
+                    bool same = metadata.kind == oldMetadata.kind;
 
                     if (!same)
                     {
-                        metadataChanges.Add(registry.available_modules[identifier].module_version[installedVersion]);
+                        metadataChanges.Add(new CfanModule(registry.available_modules[identifier].module_version[installedVersion]));
                     }
                 }
             }
@@ -259,7 +214,7 @@ namespace CKAN
                 for (int i = 0; i < metadataChanges.Count; i++)
                 {
                     mods += metadataChanges[i].identifier + " "
-                        + metadataChanges[i].version.ToString() + ((i < metadataChanges.Count-1) ? ", " : "");
+                        + metadataChanges[i].modVersion.ToString() + ((i < metadataChanges.Count-1) ? ", " : "");
                 }
 
                 if(user.RaiseYesNoDialog(String.Format(
@@ -295,7 +250,7 @@ It is advisable that you reinstall them in order to preserve consistency with th
                     using (TarInputStream tarStream = new TarInputStream(gzipStream))
                     {
                         // Walk the archive, looking for .ckan files.
-                        const string filter = @"\.ckan$";
+                        const string filter = @"\.cfan$";
 
                         while (true)
                         {
@@ -357,7 +312,7 @@ It is advisable that you reinstall them in order to preserve consistency with th
             using (var zipfile = new ZipFile(path))
             {
                 // Walk the archive, looking for .ckan files.
-                const string filter = @"\.ckan$";
+                const string filter = @"\.cfan$";
 
                 foreach (ZipEntry entry in zipfile)
                 {

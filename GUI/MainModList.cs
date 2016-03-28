@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Windows.Forms;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
@@ -144,7 +146,7 @@ namespace CKAN
         {
             log.Debug("Updating the mod list");
 
-            KSPVersion version = CurrentInstance.Version();
+            FactorioVersion version = CurrentInstance.Version();
             IRegistryQuerier registry = RegistryManager.Instance(CurrentInstance).registry;
             var gui_mods = new HashSet<GUIMod>(registry.Available(version)
                 .Select(m => new GUIMod(m, registry, version)));
@@ -294,7 +296,7 @@ namespace CKAN
         public delegate void ModFiltersUpdatedEvent(MainModList source);
 
         //TODO Move to relationship resolver and have it use this.
-        public delegate Task<CkanModule> HandleTooManyProvides(TooManyModsProvideKraken kraken);
+        public delegate Task<CfanModule> HandleTooManyProvides(TooManyModsProvideKraken kraken);
 
         public event ModFiltersUpdatedEvent ModFiltersUpdated;
         public ReadOnlyCollection<GUIMod> Modules { get; set; }
@@ -349,10 +351,10 @@ namespace CKAN
         /// <param name="version">The version of the current KSP install</param>
         public async Task<IEnumerable<ModChange>> ComputeChangeSetFromModList(
             IRegistryQuerier registry, HashSet<ModChange> changeSet, ModuleInstaller installer,
-            KSPVersion version)
+            FactorioVersion version)
         {
-            var modules_to_install = new HashSet<CkanModule>();
-            var modules_to_remove = new HashSet<CkanModule>();
+            var modules_to_install = new HashSet<CfanModule>();
+            var modules_to_remove = new HashSet<CfanModule>();
             var options = new RelationshipResolverOptions
             {
                 without_toomanyprovides_kraken = false,
@@ -421,8 +423,8 @@ namespace CKAN
             foreach (var dependency in registry.FindReverseDependencies(modules_to_remove.Select(mod=>mod.identifier)))
             {
                 //TODO This would be a good place to have a event that alters the row's graphics to show it will be removed
-                CkanModule module_by_version = registry.GetModuleByVersion(installed_modules[dependency].identifier,
-                    installed_modules[dependency].version) ?? registry.InstalledModule(dependency).Module;
+                CfanModule module_by_version = registry.GetModuleByVersion(installed_modules[dependency].identifier,
+                    installed_modules[dependency].modVersion) ?? registry.InstalledModule(dependency).Module;
                 changeSet.Add(new ModChange(new GUIMod(module_by_version, registry, version), GUIModChangeType.Remove, null));
             }
             //May throw InconsistentKraken
@@ -582,7 +584,7 @@ namespace CKAN
 
 
         public static Dictionary<GUIMod, string> ComputeConflictsFromModList(IRegistryQuerier registry,
-            IEnumerable<ModChange> change_set, KSPVersion ksp_version)
+            IEnumerable<ModChange> change_set, FactorioVersion ksp_version)
         {
             var modules_to_install = new HashSet<string>();
             var modules_to_remove = new HashSet<string>();
@@ -615,11 +617,12 @@ namespace CKAN
 
             var installed =
                 registry.Installed()
-                    .Where(pair => pair.Value.CompareTo(new ProvidesVersion("")) != 0)
+                    .Where(pair => pair.Value.CompareTo(new ProvidedVersion("", "0.0.0")) != 0)
                     .Select(pair => pair.Key);
 
             //We wish to only check mods that would exist after the changes are made.
-            var mods_to_check = installed.Union(modules_to_install).Except(modules_to_remove);
+            var mods_to_check =
+                installed.Union(modules_to_install).Except(modules_to_remove).Select(p => new CfanModuleIdAndVersion(p));
             var resolver = new RelationshipResolver(mods_to_check.ToList(), options, registry, ksp_version);
             return resolver.ConflictList.ToDictionary(item => new GUIMod(item.Key, registry, ksp_version),
                 item => item.Value);

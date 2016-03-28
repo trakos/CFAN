@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ChinhDo.Transactions;
+using CKAN.Factorio.Version;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -163,7 +164,7 @@ namespace CKAN
 
             var installed = new JObject();
             installed["kind"] = "metapackage";
-            installed["abstract"] = "A list of modules installed on the " + kspInstanceName + " KSP instance";
+            installed["abstract"] = "A list of modules installed on the " + kspInstanceName + " Factorio instance";
             installed["name"] = name;
             installed["license"] = "unknown";
             installed["version"] = DateTime.UtcNow.ToString("yyyy.MM.dd.hh.mm.ss");
@@ -172,7 +173,7 @@ namespace CKAN
 
             var mods = new JArray();
             foreach (var mod in registry.Installed()
-                .Where(mod => !(mod.Value is ProvidesVersion || mod.Value is DllVersion)))
+                .Where(mod => !(mod.Value is ProvidedVersion || mod.Value is AutodetectedVersion)))
             {
                 var module = new JObject();
                 module["name"] = mod.Key;
@@ -225,7 +226,7 @@ namespace CKAN
 
             // TODO how do we obtain the name of the current KSP instance?
             string kspInstanceName = "default";
-            string installedModsPath = Path.Combine(directoryPath, "installed-" + kspInstanceName + ".ckan");
+            string installedModsPath = Path.Combine(directoryPath, "installed-" + kspInstanceName + ".cfan");
             file_transaction.WriteAllText(installedModsPath, SerializeCurrentInstall(recommmends, with_versions));
         }
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
+using CKAN.Factorio;
 using CurlSharp;
 using log4net;
 
@@ -46,7 +47,7 @@ namespace CKAN
         private static readonly ILog log = LogManager.GetLogger(typeof (NetAsyncDownloader));
 
         private List<NetAsyncDownloaderDownloadPart> downloads;
-        private List<CkanModule> modules;
+        private List<CfanModule> modules;
         private int completed_downloads;
 
         //Used for inter-thread communication.
@@ -70,13 +71,13 @@ namespace CKAN
         {
             User = user;
             downloads = new List<NetAsyncDownloaderDownloadPart>();
-            modules = new List<CkanModule>();
+            modules = new List<CfanModule>();
             complete_or_canceled = new ManualResetEvent(false);
         }
 
         /// <summary>
         /// Downloads our files, returning an array of filenames that we're writing to.
-        /// The sole argument is a collection of KeyValuePair(s) containing the download URL and the expected download size
+        /// The sole argument is a collection of KeyValuePair(s) containing the download URL and the expected downloadUrls size
         /// The .onCompleted delegate will be called on completion.
         /// </summary>
         private void Download(ICollection<KeyValuePair<Uri, long>> urls)
@@ -246,14 +247,14 @@ namespace CKAN
         /// </summary>
         public void DownloadModules(
             NetFileCache cache,
-            IEnumerable<CkanModule> modules
+            IEnumerable<CfanModule> modules
             )
         {
-            var unique_downloads = new Dictionary<Uri, CkanModule>();
+            var unique_downloads = new Dictionary<Uri, CfanModule>();
 
             // Walk through all our modules, but only keep the first of each
             // one that has a unique download path.
-            foreach (CkanModule module in modules.Where(module => !unique_downloads.ContainsKey(module.download)))
+            foreach (CfanModule module in modules.Where(module => !unique_downloads.ContainsKey(module.download)))
             {
                 unique_downloads[module.download] = module;
             }
@@ -370,7 +371,7 @@ namespace CKAN
 
                         try
                         {
-                            cache.Store(urls[i], filenames[i], modules[i].StandardName());
+                            cache.Store(urls[i], filenames[i], modules[i].standardFileName);
                         }
                         catch (FileNotFoundException e)
                         {

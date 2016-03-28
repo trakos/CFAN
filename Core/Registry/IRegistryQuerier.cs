@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
@@ -8,14 +11,14 @@ namespace CKAN
     public interface IRegistryQuerier
     {
         IEnumerable<InstalledModule> InstalledModules { get;}
-        IEnumerable<string> InstalledDlls { get; }
+        IEnumerable<string> InstalledPreexistingModules { get; }
 
         /// <summary>
         /// Returns a simple array of all latest available modules for
         /// the specified version of KSP.
         /// </summary>
         // TODO: This name is misleading. It's more a LatestAvailable's'
-        List<CkanModule> Available(KSPVersion ksp_version);
+        List<CfanModule> Available(FactorioVersion version);
 
         /// <summary>
         ///     Returns the latest available version of a module that
@@ -24,7 +27,7 @@ namespace CKAN
         ///     If no ksp_version is provided, the latest module for *any* KSP is returned.
         /// <exception cref="ModuleNotFoundKraken">Throws if asked for a non-existent module.</exception>
         /// </summary>
-        CkanModule LatestAvailable(string identifier, KSPVersion ksp_version, RelationshipDescriptor relationship_descriptor = null);
+        CfanModule LatestAvailable(string identifier, FactorioVersion version = null, ModDependency modDependency = null);
 
         /// <summary>
         ///     Returns the latest available version of a module that satisifes the specified version and
@@ -33,7 +36,7 @@ namespace CKAN
         ///     Returns an empty list if nothing is available for our system, which includes if no such module exists.
         ///     If no KSP version is provided, the latest module for *any* KSP version is given.
         /// </summary>
-        List<CkanModule> LatestAvailableWithProvides(string identifier, KSPVersion ksp_version, RelationshipDescriptor relationship_descriptor = null);
+        List<CfanModule> LatestAvailableWithProvides(string identifier, FactorioVersion version, ModDependency modDependency = null);
 
         /// <summary>
         ///     Checks the sanity of the registry, to ensure that all dependencies are met,
@@ -52,27 +55,27 @@ namespace CKAN
         /// Gets the installed version of a mod. Does not check for provided or autodetected mods.
         /// </summary>
         /// <returns>The module or null if not found</returns>
-        CkanModule GetInstalledVersion(string identifer);
+        CfanModule GetInstalledVersion(string identifer);
 
         /// <summary>
         /// Attempts to find a module with the given identifier and version.
         /// </summary>
         /// <returns>The module if it exists, null otherwise.</returns>
-        CkanModule GetModuleByVersion(string identifier, Version version);
+        CfanModule GetModuleByVersion(string identifier, AbstractVersion version);
 
         /// <summary>
         ///     Returns a simple array of all incompatible modules for
         ///     the specified version of KSP.
         /// </summary>
-        List<CkanModule> Incompatible(KSPVersion ksp_version);
+        List<CfanModule> Incompatible(FactorioVersion ksp_version);
 
         /// <summary>
         /// Returns a dictionary of all modules installed, along with their
         /// versions.
-        /// This includes DLLs, which will have a version type of `DllVersion`.
+        /// This includes DLLs, which will have a version type of `AutodetectedVersion`.
         /// This includes Provides if set, which will have a version of `ProvidesVersion`.
         /// </summary>
-        Dictionary<string, Version> Installed(bool include_provides = true);
+        Dictionary<string, AbstractVersion> Installed(bool include_provides = true);
 
         /// <summary>
         /// Returns the InstalledModule, or null if it is not installed.
@@ -82,25 +85,37 @@ namespace CKAN
 
         /// <summary>
         /// Returns the installed version of a given mod.
-        ///     If the mod was autodetected (but present), a version of type `DllVersion` is returned.
+        ///     If the mod was autodetected (but present), a version of type `AutodetectedVersion` is returned.
         ///     If the mod is provided by another mod (ie, virtual) a type of ProvidesVersion is returned.
         /// </summary>
         /// <param name="with_provides">If set to false will not check for provided versions.</param>
         /// <returns>The version of the mod or null if not found</returns>
-        Version InstalledVersion(string identifier, bool with_provides = true);
+        AbstractVersion InstalledVersion(string identifier, bool with_provides = true);
     }
 
     /// <summary>
     /// Helpers for <see cref="IRegistryQuerier"/>
     /// </summary>
     public static class IRegistryQuerierHelpers
-{
-        /// <summary>
-        /// Helper to call <see cref="IRegistryQuerier.GetModuleByVersion(string, Version)"/>
-        /// </summary>
-        public static CkanModule GetModuleByVersion(this IRegistryQuerier querier, string ident, string version)
+    {
+        public static CfanModule GetModuleByIdentifierAndOptionalVersion(this IRegistryQuerier querier, CfanModuleIdAndVersion moduleIdAndVersion, FactorioVersion factorioVersion)
         {
-            return querier.GetModuleByVersion(ident, new Version(version));
+            if (moduleIdAndVersion.version != null)
+            {
+                return GetModuleByVersion(querier, moduleIdAndVersion.identifier, moduleIdAndVersion.version.ToString());
+            }
+            else
+            {
+                return querier.LatestAvailable(moduleIdAndVersion.identifier, factorioVersion);
+            }
+        }
+
+        /// <summary>
+        /// Helper to call <see cref="IRegistryQuerier.GetModuleByVersion(string, AbstractVersion)"/>
+        /// </summary>
+        public static CfanModule GetModuleByVersion(this IRegistryQuerier querier, string ident, string version)
+        {
+            return querier.GetModuleByVersion(ident, new ModVersion(version));
         }
 
         /// <summary>
@@ -120,16 +135,16 @@ namespace CKAN
         /// <returns><c>true</c>, if autodetected<c>false</c> otherwise.</returns>
         public static bool IsAutodetected(this IRegistryQuerier querier, string identifier)
         {
-            return querier.IsInstalled(identifier) && querier.InstalledVersion(identifier) is DllVersion;
+            return querier.IsInstalled(identifier) && querier.InstalledVersion(identifier) is AutodetectedVersion;
         }
 
         /// <summary>
         /// Is the mod installed and does it have a newer version compatible with version
         /// We can't update AD mods
         /// </summary>
-        public static bool HasUpdate(this IRegistryQuerier querier, string identifier, KSPVersion version)
+        public static bool HasUpdate(this IRegistryQuerier querier, string identifier, FactorioVersion version)
         {
-            CkanModule newest_version;
+            CfanModule newest_version;
             try
             {
                 newest_version = querier.LatestAvailable(identifier, version);
@@ -139,8 +154,8 @@ namespace CKAN
                 return false;
             }
             if (newest_version == null) return false;
-            return !new List<string>(querier.InstalledDlls).Contains(identifier) && querier.IsInstalled(identifier, false) 
-                && newest_version.version.IsGreaterThan(querier.InstalledVersion(identifier));
+            return !new List<string>(querier.InstalledPreexistingModules).Contains(identifier) && querier.IsInstalled(identifier, false) 
+                && newest_version.modVersion.IsGreaterThan(querier.InstalledVersion(identifier));
         }
     }
 }

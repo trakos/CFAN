@@ -1,4 +1,6 @@
 ﻿using System;
+using CKAN.Factorio;
+using CKAN.Factorio.Version;
 
 namespace CKAN
 {
@@ -11,7 +13,7 @@ namespace CKAN
         /// Returns true if the given module is compatible with the supplied
         /// gameVersion, false otherwise.
         /// </summary>
-        bool Compatible(KSPVersion gameVersion, CkanModule module);
+        bool Compatible(FactorioVersion gameVersion, CfanModule module);
     }
 }
 

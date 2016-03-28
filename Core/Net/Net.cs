@@ -15,7 +15,7 @@ namespace CKAN
 
     public class Net
     {
-        public static string UserAgentString = "Mozilla/4.0 (compatible; CKAN)";
+        public static string UserAgentString = "Mozilla/4.0 (compatible; CFAN)";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof (Net));
         private static readonly TxFileManager FileTransaction = new TxFileManager();

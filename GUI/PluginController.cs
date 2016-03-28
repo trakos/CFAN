@@ -60,7 +60,7 @@ namespace CKAN
                 {
                     if (loadedPlugin.GetName() == pluginInstance.GetName())
                     {
-                        if (loadedPlugin.GetVersion().IsLessThan(pluginInstance.GetVersion()))
+                        if (loadedPlugin.GetVersion() < pluginInstance.GetVersion())
                         {
                             DeactivatePlugin(loadedPlugin);
                             m_DormantPlugins.Remove(loadedPlugin);
@@ -76,7 +76,7 @@ namespace CKAN
                 {
                     if (loadedPlugin.GetName() == pluginInstance.GetName())
                     {
-                        if (loadedPlugin.GetVersion().IsLessThan(pluginInstance.GetVersion()))
+                        if (loadedPlugin.GetVersion() < pluginInstance.GetVersion())
                         {
                             m_DormantPlugins.Remove(loadedPlugin);
                         }

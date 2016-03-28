@@ -92,7 +92,7 @@ namespace CKAN
         {
             // There are several possibilities for the path under Linux.
             // Try with the uppercase version.
-            string ksp_path = Path.Combine(steam_path, "SteamApps", "common", "Kerbal Space Program");
+            string ksp_path = Path.Combine(steam_path, "SteamApps", "common", "Factorio");
 
             if (Directory.Exists(ksp_path))
             {
@@ -100,7 +100,7 @@ namespace CKAN
             }
 
             // Try with the lowercase version.
-            ksp_path = Path.Combine(steam_path, "steamapps", "common", "Kerbal Space Program");
+            ksp_path = Path.Combine(steam_path, "steamapps", "common", "Factorio");
 
             if (Directory.Exists(ksp_path))
             {
@@ -155,7 +155,7 @@ namespace CKAN
                             ksp_path = KSPDirectory(split_line[3]);
                             if (ksp_path != null)
                             {
-                                log.InfoFormat("Found a KSP install at {0}", ksp_path);
+                                log.InfoFormat("Found a Factorio install at {0}", ksp_path);
                                 return ksp_path;
                             }
                         }
