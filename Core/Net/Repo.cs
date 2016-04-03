@@ -94,6 +94,9 @@ namespace CKAN
             // Save our changes.
             registry_manager.Save();
 
+            // maybe we can move some preexisting modules to installed (i.e. they now may have corresponding version available)
+            ksp.ScanGameData();
+
             // Return how many we got!
             return registry_manager.registry.Available(ksp.Version()).Count;
         }
@@ -110,6 +113,9 @@ namespace CKAN
 
             // Save our changes!
             registry_manager.Save();
+
+            // maybe we can move some preexisting modules to installed (i.e. they now may have corresponding version available)
+            ksp.ScanGameData();
 
             // Return how many we got!
             return registry_manager.registry.Available(ksp.Version()).Count;

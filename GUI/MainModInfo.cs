@@ -250,12 +250,23 @@ namespace CKAN
 
         private void CacheMod(object sender, DoWorkEventArgs e)
         {
+            CfanModule module = (CfanModule) e.Argument;
+            if (module.isMetapackage)
+            {
+                AddLogMessage($"Cannot download metapackage. {module.title}");
+                return;
+            }
+            if (module.download == null)
+            {
+                AddLogMessage($"No available download link for {module.title}.");
+                return;
+            }
             ResetProgress();
             ClearLog();
 
             NetAsyncDownloader dowloader = new NetAsyncDownloader(m_User);
             
-            dowloader.DownloadModules(CurrentInstance.Cache, new List<CfanModule> { (CfanModule)e.Argument });
+            dowloader.DownloadModules(CurrentInstance.Cache, new List<CfanModule> { module });
             e.Result = e.Argument;
         }
 

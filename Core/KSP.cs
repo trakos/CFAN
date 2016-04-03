@@ -463,9 +463,31 @@ namespace CKAN
             {
                 Registry.ClearPreexistingModules();
 
-                foreach (var module in FactorioModDetector.findAllModsInDirectory(Path.Combine(gamedatadir, "mods")))
+                foreach (var detectedModule in FactorioModDetector.findAllModsInDirectory(Path.Combine(gamedatadir, "mods")))
                 {
-                    Registry.RegisterPreexistingModule(this, module.Key, module.Value);
+                    string detectedModulePath = detectedModule.Key;
+                    ModInfoJson detectedModInfo = detectedModule.Value;
+                    if (Registry.InstalledModules.Any(p => p.identifier == detectedModInfo.name))
+                    {
+                        continue;
+                    }
+                    AvailableModule availableModule;
+                    if (Registry.available_modules.TryGetValue(detectedModInfo.name, out availableModule))
+                    {
+                        CfanModule availableCfan = availableModule.ByVersion(detectedModInfo.version);
+                        if (availableCfan != null)
+                        {
+                            string expectedFilename = availableCfan.standardFileName + ".zip";
+                            if (Path.GetFileName(detectedModulePath) == expectedFilename)
+                            {
+                                // yay, we can use this mod as installed (we will be able to update/remove it through cfan)
+                                Registry.RegisterModule(availableCfan, new []{detectedModulePath}, this);
+                                continue;
+                            }
+                        }
+                    }
+                    // we only register that this module exists, but we won't be able to do anything with it
+                    Registry.RegisterPreexistingModule(this, detectedModulePath, detectedModInfo);
                 }
                     
                 tx.Complete();

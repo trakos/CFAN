@@ -254,7 +254,7 @@ namespace CKAN
 
             // Walk through all our modules, but only keep the first of each
             // one that has a unique download path.
-            foreach (CfanModule module in modules.Where(module => !unique_downloads.ContainsKey(module.download)))
+            foreach (CfanModule module in modules.Where(module => module.download != null && !unique_downloads.ContainsKey(module.download)))
             {
                 unique_downloads[module.download] = module;
             }
