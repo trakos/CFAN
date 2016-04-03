@@ -2,10 +2,11 @@
 use 5.010;
 use strict;
 use warnings;
+use IPC::System::Simple qw(systemx capturex);
 use autodie qw(:all);
 use FindBin qw($Bin);
+use File::Basename;
 use File::Path qw(remove_tree);
-use IPC::System::Simple qw(systemx capturex);
 use File::Spec;
 use File::Copy::Recursive qw(rcopy);
 use autodie qw(rcopy);
@@ -15,12 +16,12 @@ use Fcntl qw(SEEK_SET);
 
 my $REPACK  = "Core/packages/ILRepack.1.25.0/tools/ILRepack.exe";
 my $TARGET  = "Debug";      # Even our releases contain debugging info
-my $OUTNAME = "ckan.exe";   # Or just `ckan` if we want to be unixy
+my $OUTNAME = "cfan.exe";   # Or just `ckan` if we want to be unixy
 my $BUILD   = "$Bin/../build";
-my @SOURCE  = map { "$Bin/../$_"} qw(Core Cmdline GUI Netkan Tests AutoUpdate CKAN CKAN.sln);
-my $METACLASS = "build/Core/Meta.cs";
+my @SOURCE  = map { "$Bin/../$_"} qw(Core Cmdline GUI CFAN-Netfan Tests AutoUpdate CKAN CKAN.sln);
+my $METACLASS = "Core/Meta.cs";
 
-my @PROJECTS = qw(Cmdline Core GUI Netkan AutoUpdate Tests);
+my @PROJECTS = qw(Cmdline Core GUI CFAN-Netfan);
 
 my @BUILD_OPTS = is_stable() ? "/p:DefineConstants=STABLE" : ();
 
@@ -32,15 +33,11 @@ mkdir($BUILD);
 
 # Copy our project files over.
 foreach my $file (@SOURCE) {
-    copy($file, $BUILD);
+    copy($file, $BUILD . "/" . basename($file));
 }
 
-# Remove any old build artifacts
-foreach my $project (@PROJECTS) {
-    -d "$project" or die "Can't find project $project in build dir";
-    remove_tree(File::Spec->catdir($BUILD, "$project/bin"));
-    remove_tree(File::Spec->catdir($BUILD, "$project/obj"));
-}
+# Change to our build directory
+chdir($BUILD);
 
 # Before we build, see if we can locate a version and add it in.
 # Because travis does a shallow clone, we might fail at this in
@@ -57,11 +54,16 @@ else {
     warn "No recent tag found, making development build.\n";
 }
 
-# Change to our build directory
-chdir($BUILD);
+
+# Remove any old build artifacts
+foreach my $project (@PROJECTS) {
+    -d "$project" or die "Can't find project $project in build dir";
+    remove_tree(File::Spec->catdir($BUILD, "$project/bin"));
+    remove_tree(File::Spec->catdir($BUILD, "$project/obj"));
+}
 
 # And build..
-system("xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/assets/ckan.ico", "CKAN.sln");
+system("cmd", "/C", "xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/cfan.ico", "CKAN.sln");
 
 say "\n\n=== Repacking ===\n\n";
 
@@ -72,25 +74,52 @@ chdir("$Bin/..");
 my @cmd = (
     "mono",
     $REPACK,
-    "--out:ckan.exe",
+    "--out:build/cfan.exe",
     "--targetplatform=v4",
-    "--lib:build/Cmdline/bin/$TARGET",
-    "build/Cmdline/bin/$TARGET/CmdLine.exe",
-    glob("build/Cmdline/bin/$TARGET/*.dll"),
-    "build/Cmdline/bin/$TARGET/CKAN-GUI.exe", # Yes, bundle the .exe as a .dll
+    "--lib:build/GUI/bin/$TARGET",
+    "build/GUI/bin/$TARGET/cfan.exe",
+    glob("build/GUI/bin/$TARGET/*.dll"),
+    "build/GUI/bin/$TARGET/cfan_headless.exe", # Yes, bundle the .exe as a .dll
 );
 
 system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
 
-# Repack netkan
+# Repack cfan_netkan
 
 @cmd = (
     "mono",
     $REPACK,
-    "--out:netkan.exe",
-    "--lib:build/Netkan/bin/$TARGET",
-    "build/Netkan/bin/$TARGET/NetKAN.exe",
-    glob("build/Netkan/bin/$TARGET/*.dll"),
+    "--out:build/cfan_netkan.exe",
+    "--lib:build/CFAN-netfan/bin/$TARGET",
+    "build/CFAN-netfan/bin/$TARGET/cfan_netfan.exe",
+    glob("build/CFAN-netfan/bin/$TARGET/*.dll"),
+    "build/CFAN-netfan/bin/$TARGET/cfan_headless.exe", # Yes, bundle the .exe as a .dll
+);
+
+system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
+
+# Repack cfan_headless
+
+@cmd = (
+    "mono",
+    $REPACK,
+    "--out:build/cfan_headless.exe",
+    "--lib:build/CmdLine/bin/$TARGET",
+    "build/CmdLine/bin/$TARGET/cfan_headless.exe",
+    glob("build/CmdLine/bin/$TARGET/*.dll")
+);
+
+system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
+
+# Repack cfan_updater
+
+@cmd = (
+    "mono",
+    $REPACK,
+    "--out:build/cfan_updater.exe",
+    "--lib:build/AutoUpdate/bin/$TARGET",
+    "build/AutoUpdate/bin/$TARGET/cfan_updater.exe",
+    glob("build/AutoUpdate/bin/$TARGET/*.dll")
 );
 
 system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
@@ -100,6 +129,8 @@ say "Done!";
 # Do an appropriate copy for our system
 sub copy {
     my ($src, $dst) = @_;
+	warn $src;
+	warn $dst;
 
     if ($^O eq "MSWin32") {
         # Use File::Copy::Recursive under Windows
@@ -141,6 +172,7 @@ sub set_build {
 }
 
 sub is_stable {
+    return 1;
     my $branch = eval { capturex(qw(git rev-parse --abbrev-ref HEAD)) };
 
     return 0 if not $branch;    # If git fails, we're not stable. See #546.

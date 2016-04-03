@@ -21,7 +21,7 @@ namespace CKAN
 
         private readonly ILog log = LogManager.GetLogger(typeof(AutoUpdate));
 
-        private readonly Uri latestCKANReleaseApiUrl = new Uri("https://api.github.com/repos/Factorio-CFAN/CFAN/releases/latest");
+        private readonly Uri latestCKANReleaseApiUrl = new Uri("https://api.github.com/repos/trakos/CFAN/releases/latest");
 
         private Uri fetchedUpdaterUrl;
         private Uri fetchedCkanUrl;

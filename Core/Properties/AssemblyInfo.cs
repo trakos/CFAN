@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTitle("CFAN")]
 [assembly: AssemblyDescription("Cool Factorio Archive Network")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany("https://github.com/FACTORIO-CFAN/CFAN")]
+[assembly: AssemblyCompany("https://github.com/trakos/CFAN")]
 [assembly: AssemblyProduct ("")]
 [assembly: AssemblyCopyright("MIT")]
 [assembly: AssemblyTrademark ("")]

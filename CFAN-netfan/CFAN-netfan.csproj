@@ -41,9 +41,8 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\CKAN\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NUnrar, Version=1.0.1.0, Culture=neutral, PublicKeyToken=07e9cc01f0cd8860, processorArchitecture=MSIL">
-      <HintPath>..\packages\nunrar.1.0.1\lib\net40\NUnrar.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="NUnrar">
+      <HintPath>..\CKAN\packages\nunrar.1.0.1\lib\net40\NUnrar.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
