@@ -163,6 +163,18 @@ namespace CKAN
                 log.DebugFormat("Have Steam, but Factorio is not at \"{0}\".", ksp_steam_path);
             }
 
+            string autodetected = KSPPathUtils.DefaultPath();
+
+            if (autodetected != null)
+            {
+                if (IsFactorioDirectory(autodetected))
+                {
+                    return autodetected;
+                }
+
+                log.DebugFormat("Directory exists, but Factorio is not at \"{0}\".", ksp_steam_path);
+            }
+
             // Oh noes! We can't find KSP!
             throw new DirectoryNotFoundException();
         }
@@ -216,12 +228,6 @@ namespace CKAN
 
             //If both exist we should be able to get game version
             DetectVersion(directory);
-
-            // then check if config-path.cfg exists
-            if (!File.Exists(Path.Combine(directory, "config-path.cfg")))
-            {
-                throw new NotFactorioDirectoryKraken(directory, $"Cannot find data/base/info.json in {directory}");
-            }
 
             log.DebugFormat("{0} looks like a GameDir", directory);
         }
@@ -324,18 +330,15 @@ namespace CKAN
 
         private static bool DetectIfGameUsesSystemDirectory(string gameDirectory)
         {
-            //Contract.Requires<ArgumentNullException>(gameDirectory==null);
-
             string config;
             try
             {
-                // Slurp our info.json into memory
                 config = File.ReadAllText(Path.Combine(gameDirectory, "config-path.cfg"));
             }
-            catch
+            catch (Exception e)
             {
-                log.Error("Could not open config-path.cfg in " + gameDirectory);
-                throw new NotFactorioDirectoryKraken(gameDirectory, "config-path.cfg not found or not readable");
+                log.Error("Could not open config-path.cfg in " + gameDirectory, e);
+                return true;
             }
 
             Match match = Regex.Match(config, @"^use-system-read-write-data-directories=([\w]+)$", RegexOptions.IgnoreCase | RegexOptions.Multiline);

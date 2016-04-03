@@ -144,9 +144,9 @@ namespace CKAN
             {
                 repo_file = Net.Download(repo);
             }
-            catch (System.Net.WebException)
+            catch (System.Net.WebException e)
             {
-                user.RaiseMessage("Connection to {0} could not be established.", repo);
+                user.RaiseError($"Couldn't download {repo}.", e);
                 return;
             }
 

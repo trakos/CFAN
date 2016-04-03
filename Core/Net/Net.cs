@@ -53,12 +53,11 @@ namespace CKAN
 
             try
             {
-                agent.Headers.Add(HttpRequestHeader.Authorization, $"token {0}");
                 agent.DownloadFile(url, filename);
             }
             catch (Exception ex)
             {
-                Log.InfoFormat("Download failed, trying with curlsharp...");
+                Log.Info("Download failed, trying with curlsharp...", ex);
 
                 try
                 {

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using log4net;
 
@@ -109,6 +111,28 @@ namespace CKAN
 
             return null;
 
+        }
+
+        public static string DefaultPath()
+        {
+            return possibleDefaultPaths().FirstOrDefault(Directory.Exists);
+        }
+
+        protected static IEnumerable<string> possibleDefaultPaths()
+        { 
+            if (Platform.IsWindows)
+            {
+                yield return @"C:\Program Files (x86)\Factorio";
+                yield return @"C:\Program Files\Factorio";
+            }
+            if (Platform.IsMac)
+            {
+                yield return @"/Applications/factorio.app/Contents";
+            }
+            if (Platform.IsUnix)
+            {
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "factorio");
+            }
         }
 
         /// <summary>
