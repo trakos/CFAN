@@ -8,12 +8,12 @@ namespace CKAN.Factorio.Version
 {
     [Serializable]
     [JsonConverter(typeof(JsonSimpleStringConverter))]
-    public class CFANVersion : NonEmptyVersion
+    public class CFANVersion : AutodetectedVersion
     {
         public string Name { get; protected set; }
 
         public CFANVersion(string version, string name)
-            : base(version)
+            : base(version.Split('-').FirstOrDefault())
         {
             Name = name;
         }

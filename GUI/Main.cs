@@ -277,7 +277,7 @@ namespace CKAN
                     log.Info("Making autoupdate call");
                     AutoUpdate.Instance.FetchLatestReleaseInfo();
                     var latest_version = AutoUpdate.Instance.LatestVersion;
-                    var current_version = new ModVersion(Meta.Version());
+                    var current_version = new CFANVersion(Meta.Version(), "");
 
                     if (AutoUpdate.Instance.IsFetched() && latest_version.IsGreaterThan(current_version))
                     {

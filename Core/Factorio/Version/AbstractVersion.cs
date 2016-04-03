@@ -12,7 +12,7 @@ namespace CKAN.Factorio.Version
 
         protected AbstractVersion(System.Version version)
         {
-            this.version = (System.Version) version.Clone();
+            this.version = (System.Version) version?.Clone();
         }
 
         public bool IsGreaterThan(AbstractVersion other)

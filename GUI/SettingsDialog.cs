@@ -220,7 +220,7 @@ namespace CKAN
                 AutoUpdate.Instance.FetchLatestReleaseInfo();
                 var latestVersion = AutoUpdate.Instance.LatestVersion;
 
-                if (latestVersion.IsGreaterThan(new NonEmptyVersion(Meta.Version())) && AutoUpdate.Instance.IsFetched())
+                if (latestVersion.IsGreaterThan(new CFANVersion(Meta.Version(), "")) && AutoUpdate.Instance.IsFetched())
                 {
                     InstallUpdateButton.Enabled = true;
                 }
