@@ -320,6 +320,30 @@ namespace CKAN
         }
     }
 
+    public class NetfanDownloadKraken : Kraken
+    {
+        public NetfanDownloadKraken(string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
+        {
+        }
+    }
+
+    public class CachedPreviousDownloadErrorKraken : NetfanDownloadKraken
+    {
+        public CachedPreviousDownloadErrorKraken(string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
+        {
+        }
+    }
+
+    public class HtmlInsteadOfModDownloadedKraken : NetfanDownloadKraken
+    {
+        public HtmlInsteadOfModDownloadedKraken(string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
+        {
+        }
+    }
+
     public class BadVersionKraken : Kraken
     {
         private readonly string versionString;

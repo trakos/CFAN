@@ -1,15 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using CFAN_netfan.CfanAggregator;
+using CFAN_netfan.CfanAggregator.FactorioModsCom;
+using CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer;
+using CFAN_netfan.CfanAggregator.LocalRepository;
+using CFAN_netfan.Compression;
 using CKAN;
 using CKAN.CmdLine;
-using CKAN.Factorio;
 using CKAN.Factorio.Schema;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
-using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
 namespace CFAN_netfan
@@ -29,11 +28,19 @@ namespace CFAN_netfan
             IUser user = new ConsoleUser(false);
             repoPath = args[0];
             repoUrlPrefix = args[1];
-            MainCfanAggregator mainAggregator = new MainCfanAggregator(new ICfanAggregator[]
+            CombinedModFileNormalizer modFileNormalizer = new CombinedModFileNormalizer(new IModFileNormalizer[]
             {
-                new LocalRepositoryAggregator(repoUrlPrefix, repoPath)
+                new RarToZipNormalizer(), 
+                new ModZipRootNormalizer()
             });
-            mainAggregator.getAllCfanJsons(user).ToList().ForEach(p => saveCfanJson(user, p));
+            LocalRepositoryManager localRepositoryManager = new LocalRepositoryManager(repoUrlPrefix, repoPath);
+            FmmMirrorManager fmmMirrorManager = new FmmMirrorManager(repoUrlPrefix, repoPath, modFileNormalizer);
+            CombinedCfanAggregator combinedAggregator = new CombinedCfanAggregator(new ICfanAggregator[]
+            {
+                new LocalRepositoryAggregator(localRepositoryManager),
+                new FactorioModsComAggregator(localRepositoryManager, fmmMirrorManager), 
+            });
+            combinedAggregator.getAllCfanJsons(user).ToList().ForEach(p => saveCfanJson(user, p));
             createFinalRepositoryTarGz(user);
             user.RaiseMessage("Done.");
         }

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CKAN.Factorio.Relationships;
 using CKAN.Factorio.Schema;
 using ICSharpCode.SharpZipLib.Zip;
 using log4net;
@@ -17,6 +19,31 @@ namespace CKAN.Factorio
         {
             string json = getInfoJsonTextContent(directoryOrZipFile);
             return JsonConvert.DeserializeObject<ModInfoJson>(json);
+        }
+
+        public static CfanJson createCfanJsonFromFile(string directoryOrZipFile)
+        {
+            ModInfoJson modInfo = parseMod(directoryOrZipFile);
+            if (modInfo == null)
+            {
+                throw new Exception($"Couldn't parse info.json from '{directoryOrZipFile}'!");
+            }
+            return new CfanJson
+            {
+                modInfo = modInfo,
+                aggregatorData = new Dictionary<string, string>(),
+                authors = modInfo.author.Split(',').Select(p => p.Trim()).ToArray(),
+                categories = new string[0],
+                downloadSize = new System.IO.FileInfo(directoryOrZipFile).Length,
+                downloadUrls = new string[0],
+                releasedAt = null,
+                suggests = new ModDependency[0],
+                recommends = new ModDependency[0],
+                conflicts = new ModDependency[0],
+                tags = new string[0],
+                type = CfanJson.CfanModType.MOD
+            };
+
         }
 
         protected static string getInfoJsonTextContent(string directoryOrZipFile)
@@ -38,7 +65,7 @@ namespace CKAN.Factorio
                 }
             }
 
-            if (File.Exists(directoryOrZipFile) && Path.GetExtension(directoryOrZipFile) == ".zip")
+            if (File.Exists(directoryOrZipFile))
             {
                 try
                 {

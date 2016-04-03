@@ -25,3 +25,5 @@ netkan.exe
 *.ncrunchsolution
 *.pyc
 quotes.txt.dat
+CFAN-netfan/bin/
+CFAN-netfan/obj/

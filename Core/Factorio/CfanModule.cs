@@ -32,7 +32,7 @@ namespace CKAN.Factorio
         public IEnumerable<ModDependency> conflicts => cfanJson.suggests;
         public IEnumerable<ModDependency> supports => new ModDependency[0];
         public string title => cfanJson.modInfo.title;
-        public string @abstract => cfanJson.modInfo.description.Split('.').FirstOrDefault();
+        public string @abstract => cfanJson.modInfo.description?.Split('.').FirstOrDefault() ?? "";
         public string release_status => null;
 
         public CfanModule(CfanJson cfanJson)

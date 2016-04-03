@@ -763,7 +763,7 @@ namespace CKAN
             {
                 // Make our hypothetical install, and remove the listed modules from it.
                 HashSet<CfanModule> hypothetical = new HashSet<CfanModule>(orig_installed); // Clone because we alter hypothetical.
-                hypothetical.RemoveWhere(mod => modules_to_remove.Contains(mod.identifier));
+                hypothetical.RemoveWhere(mod => modules_to_remove.Contains(mod.ToString()));
 
                 log.DebugFormat("Started with {0}, removing {1}, and keeping {2}; our dlls are {3}", string.Join(", ", orig_installed), string.Join(", ", modules_to_remove), string.Join(", ", hypothetical), string.Join(", ", dlls));
 

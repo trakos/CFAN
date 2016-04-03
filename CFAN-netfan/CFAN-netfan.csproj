@@ -41,6 +41,10 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\CKAN\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NUnrar, Version=1.0.1.0, Culture=neutral, PublicKeyToken=07e9cc01f0cd8860, processorArchitecture=MSIL">
+      <HintPath>..\packages\nunrar.1.0.1\lib\net40\NUnrar.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -50,15 +54,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ICfanAggregator.cs" />
-    <Compile Include="MainCfanAggregator.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmDownloader.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmIgnorer.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmSpecialCases.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\IFmmConverter.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\CombinedFmmConverter.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\FmmMirrorManager.cs" />
+    <Compile Include="CfanAggregator\LocalRepository\LocalRepositoryManager.cs" />
+    <Compile Include="CfanAggregator\ICfanAggregator.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\CombinedModFileNormalizer.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\ModZipRootNormalizer.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\RarToZipNormalizer.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\IModFileNormalizer.cs" />
+    <Compile Include="CfanAggregator\CombinedCfanAggregator.cs" />
     <Compile Include="CfanAggregator\FactorioModsComAggregator.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModJson.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModReleaseJson.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\Schema\ModJson.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\Schema\ModReleaseJson.cs" />
     <Compile Include="CfanAggregator\LocalRepositoryAggregator.cs" />
+    <Compile Include="Compression\SimpleRar.cs" />
+    <Compile Include="Compression\SimpleZip.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleTarGz.cs" />
+    <Compile Include="Compression\SimpleTarGz.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cmdline\CKAN-cmdline.csproj">
@@ -74,6 +91,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

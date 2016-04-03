@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -28,12 +30,12 @@ namespace CKAN
         ///     Throws a MissingCertificateException *and* prints a message to the
         ///     console if we detect missing certificates (common on a fresh Linux/mono install)
         /// </summary>
-        public static string Download(Uri url, string filename = null, IUser user = null)
+        public static string Download(Uri url, string filename = null, IUser user = null, Dictionary<string, string> additionalHeaders = null)
         {
-            return Download(url.OriginalString, filename, user);
+            return Download(url.OriginalString, filename, user, additionalHeaders);
         }
 
-        public static string Download(string url, string filename = null, IUser user = null)
+        public static string Download(string url, string filename = null, IUser user = null, Dictionary<string, string> additionalHeaders = null)
         {
             user = user ?? new NullUser();
             user.RaiseMessage("Downloading {0}", url);
@@ -47,9 +49,11 @@ namespace CKAN
             Log.DebugFormat("Downloading {0} to {1}", url, filename);
 
             var agent = MakeDefaultHttpClient();
-           
+            additionalHeaders?.ToList().ForEach(p => agent.Headers.Add(p.Key, p.Value));
+
             try
             {
+                agent.Headers.Add(HttpRequestHeader.Authorization, $"token {0}");
                 agent.DownloadFile(url, filename);
             }
             catch (Exception ex)
@@ -63,6 +67,10 @@ namespace CKAN
                     using (FileStream stream = File.OpenWrite(filename))
                     using (var curl = Curl.CreateEasy(url, stream))
                     {
+                        var headers = new CurlSlist();
+                        additionalHeaders?.ToList().ForEach(p => headers.Append($"{p.Key}: {p.Value}"));
+                        curl.HttpHeader = headers;
+
                         CurlCode result = curl.Perform();
                         if (result != CurlCode.Ok)
                         {
