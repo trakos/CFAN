@@ -44,5 +44,25 @@ namespace CKAN.Factorio.Version
                         .ToString()
                     );
         }
+
+        // that's silly, but should work
+        public static ModVersion minWithTheSameMinor(ModVersion minVersion)
+        {
+            return
+                new ModVersion(
+                    new System.Version(minVersion.version.Major, minVersion.version.Minor, 0)
+                        .ToString()
+                    );
+        }
+
+        // that's silly, but should work
+        public static ModVersion maxWithTheSameMinor(ModVersion minVersion)
+        {
+            return
+                new ModVersion(
+                    new System.Version(minVersion.version.Major, minVersion.version.Minor, int.MaxValue)
+                        .ToString()
+                    );
+        }
     }
 }

@@ -61,7 +61,7 @@ namespace CKAN.Factorio
         public bool IsCompatibleKSP(FactorioVersion kspVersion)
         {
             ModDependency baseGame = cfanJson.modInfo.dependencies.FirstOrDefault(p => p.modName == "base");
-            return baseGame?.minVersion == null || baseGame.minVersion <= kspVersion;
+            return baseGame == null || baseGame.isSatisfiedBy("base", kspVersion);
         }
 
         public FactorioVersion getMinFactorioVersion()
