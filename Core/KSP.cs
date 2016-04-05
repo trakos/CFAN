@@ -337,7 +337,7 @@ namespace CKAN
             }
             catch (Exception e)
             {
-                log.Error("Could not open config-path.cfg in " + gameDirectory, e);
+                log.Info("Could not open config-path.cfg in " + gameDirectory, e);
                 return true;
             }
 
@@ -606,6 +606,7 @@ namespace CKAN
                 new Tuple<string, string>(@"bin\Win32\Factorio.exe", Path.Combine(GameDir(), @"bin\Win32\Factorio.exe")),
                 new Tuple<string, string>(@"./bin/x64/Factorio", Path.Combine(GameDir(), @"bin\x64\Factorio")),
                 new Tuple<string, string>(@"./bin/i386/Factorio", Path.Combine(GameDir(), @"bin\i386\Factorio")),
+                new Tuple<string, string>(@"./MacOS/factorio", Path.Combine(GameDir(), @"MacOS/factorio")),
                 new Tuple<string, string>(@"/usr/bin/factorio", Path.Combine(GameDir(), @"/usr/bin/factorio")),
             };
 
