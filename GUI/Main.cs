@@ -313,7 +313,7 @@ namespace CKAN
 
             var old_YesNoDialog = m_User.displayYesNo;
             m_User.displayYesNo = YesNoDialog;
-            URLHandlers.RegisterURLHandler(m_Configuration, m_User);
+            //URLHandlers.RegisterURLHandler(m_Configuration, m_User);
             m_User.displayYesNo = old_YesNoDialog;
 
             ApplyToolButton.Enabled = false;
@@ -969,35 +969,14 @@ namespace CKAN
 
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                var exportOption = exportOptions[dlg.FilterIndex - 1]; // FilterIndex is 1-indexed
+                var exportOption = exportOptions[dlg.FilterIndex - 1];
+                var fileMode = File.Exists(dlg.FileName) ? FileMode.Truncate : FileMode.CreateNew;
 
-                if (exportOption.ExportFileType == ExportFileType.Ckan || exportOption.ExportFileType == ExportFileType.CkanFavourite)
+                using (var stream = new FileStream(dlg.FileName, fileMode))
                 {
-                    bool recommends = false;
-                    bool versions = true;
+                    var registry = RegistryManager.Instance(CurrentInstance).registry;
 
-                    if (exportOption.ExportFileType == ExportFileType.CkanFavourite)
-                    {
-                        recommends = true;
-                        versions = false;
-                    }
-
-                    // Save, just to be certain that the installed-*.ckan metapackage is generated
-                    RegistryManager.Instance(CurrentInstance).Save(true, recommends, versions);
-
-                    // TODO: The core might eventually save as something other than 'installed-default.ckan'
-                    File.Copy(Path.Combine(CurrentInstance.CkanDir(), "installed-default.cfan"), dlg.FileName, true);
-                }
-                else
-                {
-                    var fileMode = File.Exists(dlg.FileName) ? FileMode.Truncate : FileMode.CreateNew;
-
-                    using (var stream = new FileStream(dlg.FileName, fileMode))
-                    {
-                        var registry = RegistryManager.Instance(CurrentInstance).registry;
-
-                        new Exporter(exportOption.ExportFileType).Export(registry, stream);
-                    }
+                    new Exporter(exportOption.ExportFileType).Export(registry, stream);
                 }
             }
         }

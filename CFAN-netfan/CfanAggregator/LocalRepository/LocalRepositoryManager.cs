@@ -32,7 +32,7 @@ namespace CFAN_netfan.CfanAggregator.LocalRepository
             {
                 throw new Exception($"Unexpected file '{file}' in mods directory!");
             }
-            CfanJson cfanJson = FactorioModParser.createCfanJsonFromFile(file);
+            CfanJson cfanJson = CfanGenerator.createCfanJsonFromFile(file);
             cfanJson.aggregatorData = new Dictionary<string, string>
             {
                 ["x-source"] = typeof (LocalRepositoryAggregator).Name
@@ -47,39 +47,12 @@ namespace CFAN_netfan.CfanAggregator.LocalRepository
             {
                 throw new Exception($"Unexpected file '{file}' in packs directory!");
             }
-            ModListJson modList = JsonConvert.DeserializeObject<ModListJson>(File.ReadAllText(file, Encoding.UTF8));
             string[] splitStrings = Path.GetFileNameWithoutExtension(file).Split(new[] { '-' }, 3);
             string author = splitStrings[0];
             string nameAndTitle = splitStrings[1];
-            string version = splitStrings[2];
-            return new CfanJson
-            {
-                modInfo = new ModInfoJson
-                {
-                    name = nameAndTitle,
-                    title = nameAndTitle,
-                    author = author,
-                    version = new ModVersion(version),
-                    description =
-                        $"This a meta-package that will install all mods from the modpack {nameAndTitle} by {author}.",
-                    dependencies =
-                        modList.mods.Where(p => p.enabled == ModListJson.ModListJsonTruthy.YES)
-                            .Select(p => new ModDependency(p.name))
-                            .ToArray()
-                },
-                aggregatorData = new Dictionary<string, string> { ["x-source"] = typeof(LocalRepositoryAggregator).Name },
-                authors = new[] { author },
-                categories = new string[0],
-                downloadSize = 0,
-                downloadUrls = new string[0],
-                type = CfanJson.CfanModType.META,
-                suggests =
-                    modList.mods.Where(p => p.enabled == ModListJson.ModListJsonTruthy.NO).Select(p => new ModDependency(p.name)).ToArray(),
-                conflicts = new ModDependency[0],
-                recommends = new ModDependency[0],
-                tags = new string[0],
-                releasedAt = null
-            };
+            ModVersion version = new ModVersion(splitStrings[2]);
+            string description = $"This is a meta-package that will install all mods from the modpack {nameAndTitle} by {author}.";
+            return CfanGenerator.createCfanJsonFromModListJson(file, nameAndTitle, nameAndTitle, version, author, description);
         }
     }
 }

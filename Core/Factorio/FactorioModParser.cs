@@ -21,31 +21,6 @@ namespace CKAN.Factorio
             return JsonConvert.DeserializeObject<ModInfoJson>(json);
         }
 
-        public static CfanJson createCfanJsonFromFile(string directoryOrZipFile)
-        {
-            ModInfoJson modInfo = parseMod(directoryOrZipFile);
-            if (modInfo == null)
-            {
-                throw new Exception($"Couldn't parse info.json from '{directoryOrZipFile}'!");
-            }
-            return new CfanJson
-            {
-                modInfo = modInfo,
-                aggregatorData = new Dictionary<string, string>(),
-                authors = modInfo.author.Split(',').Select(p => p.Trim()).ToArray(),
-                categories = new string[0],
-                downloadSize = new System.IO.FileInfo(directoryOrZipFile).Length,
-                downloadUrls = new string[0],
-                releasedAt = null,
-                suggests = new ModDependency[0],
-                recommends = new ModDependency[0],
-                conflicts = new ModDependency[0],
-                tags = new string[0],
-                type = CfanJson.CfanModType.MOD
-            };
-
-        }
-
         protected static string getInfoJsonTextContent(string directoryOrZipFile)
         {
             if (Directory.Exists(directoryOrZipFile))

@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Converters\JsonEnumDescriptionConverter.cs" />
+    <Compile Include="Exporters\CfanExporter.cs" />
     <Compile Include="Exporters\BbCodeExporter.cs" />
     <Compile Include="Exporters\DelimeterSeperatedValueExporter.cs" />
     <Compile Include="Exporters\Exporter.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="Exporters\MarkdownExporter.cs" />
     <Compile Include="Exporters\PlainTextExporter.cs" />
     <Compile Include="Factorio\CfanFileManager.cs" />
+    <Compile Include="Factorio\CfanGenerator.cs" />
     <Compile Include="Factorio\CfanModule.cs" />
     <Compile Include="Factorio\CfanModuleIdAndVersion.cs" />
     <Compile Include="Factorio\FactorioModDetector.cs" />

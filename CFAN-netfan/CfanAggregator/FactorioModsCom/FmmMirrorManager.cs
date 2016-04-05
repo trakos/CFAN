@@ -32,7 +32,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom
 
         public CfanJson generateCfanFromZipFile(IUser user, string file)
         {
-            CfanJson cfanJson = FactorioModParser.createCfanJsonFromFile(file);
+            CfanJson cfanJson = CfanGenerator.createCfanJsonFromFile(file);
             cfanJson.aggregatorData = new Dictionary<string, string>
             {
                 ["x-source"] = typeof(FactorioModsComAggregator).Name

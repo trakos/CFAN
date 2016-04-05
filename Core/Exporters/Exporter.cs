@@ -35,6 +35,12 @@ namespace CKAN.Exporters
                 case ExportFileType.Tsv:
                     _exporter = new DelimeterSeperatedValueExporter(DelimeterSeperatedValueExporter.Delimter.Tab);
                     break;
+                case ExportFileType.Ckan:
+                    _exporter = new CfanExporter(true);
+                    break;
+                case ExportFileType.CkanFavourite:
+                    _exporter = new CfanExporter(false);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
