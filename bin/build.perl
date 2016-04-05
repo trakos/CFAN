@@ -84,12 +84,12 @@ my @cmd = (
 
 system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
 
-# Repack cfan_netkan
+# Repack cfan_netfan
 
 @cmd = (
     "mono",
     $REPACK,
-    "--out:build/cfan_netkan.exe",
+    "--out:build/cfan_netfan.exe",
     "--lib:build/CFAN-netfan/bin/$TARGET",
     "build/CFAN-netfan/bin/$TARGET/cfan_netfan.exe",
     glob("build/CFAN-netfan/bin/$TARGET/*.dll"),
