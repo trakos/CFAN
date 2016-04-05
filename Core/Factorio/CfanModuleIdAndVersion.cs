@@ -21,7 +21,7 @@ namespace CKAN.Factorio
         public CfanModuleIdAndVersion(string stringWithIdentifierEqualsVersion)
         {
             Match match = Regex.Match(stringWithIdentifierEqualsVersion,
-                @"^(?<mod>[A-Za-z0-9-_]*)(?<version>=\d+\.\d+\.?\d*)?$");
+                @"^(?<mod>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-]*)(?<version>=\d+\.\d+\.?\d*)?$");
 
             if (!match.Success)
             {

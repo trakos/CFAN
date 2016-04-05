@@ -109,7 +109,7 @@ namespace CKAN.CmdLine
             catch (ModuleAndVersionStringInvalidKraken ex)
             {
                 user.RaiseMessage("One of mod names given was invalid, it has to be a module identifier, or in a format of <modId>=<modVersion>.");
-                user.RaiseMessage("Mod identifier can only contain letters, digits, hyphen and underscore");
+                user.RaiseMessage("Mod identifier can only contain letters, digits, hyphen, space and underscore");
                 user.RaiseMessage("Mod version must be in the format x.y.z");
                 user.RaiseMessage($"Invalid string was: {ex.givenString}.");
                 return Exit.ERROR;
