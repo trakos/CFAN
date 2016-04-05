@@ -20,7 +20,7 @@ namespace CKAN
             return CmdMain.RunCommandLine(args, StartGuiApplication);
         }
 
-        public static int StartGuiApplication(string[] args, bool showConsole = false)
+        public static int StartGuiApplication(string[] args, GuiOptions guiOptions)
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionEventHandler;
             Application.EnableVisualStyles();
@@ -35,7 +35,7 @@ namespace CKAN
             }
             else
             {
-                new Main(args, user, showConsole);
+                new Main(args, user, guiOptions);
             }
 
             return Exit.OK;

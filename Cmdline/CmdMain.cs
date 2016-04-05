@@ -28,7 +28,7 @@ namespace CKAN.CmdLine
             return ret;
         }
 
-        public static int RunCommandLine(string[] args, Func<string[], bool, int> showGuiFunc = null)
+        public static int RunCommandLine(string[] args, Func<string[], GuiOptions, int> showGuiFunc = null)
         {
             // Launch debugger if the "--debugger" flag is present in the command line arguments.
             // We want to do this as early as possible so just check the flag manually, rather than doing the
@@ -57,7 +57,7 @@ namespace CKAN.CmdLine
             {
                 if (showGuiFunc != null)
                 {
-                    return showGuiFunc(args, false);
+                    return showGuiFunc(args, null);
                 }
                 args = new[] {"--help"};
             }
@@ -253,7 +253,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
             }
         }
 
-        private static int ShowGui(string[] args, IUser user, GuiOptions options, Func<string[], bool, int> showGuiFunc)
+        private static int ShowGui(string[] args, IUser user, GuiOptions options, Func<string[], GuiOptions, int> showGuiFunc)
         {
             if (showGuiFunc == null)
             {
@@ -263,7 +263,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
 
             // TODO: Sometimes when the GUI exits, we get a System.ArgumentException,
             // but trying to catch it here doesn't seem to help. Dunno why.
-            return showGuiFunc(args, options.ShowConsole);
+            return showGuiFunc(args, options);
         }
 
         private static int Version(IUser user)

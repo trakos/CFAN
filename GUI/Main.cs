@@ -15,6 +15,7 @@ using CKAN.Properties;
 using CKAN.Types;
 using log4net;
 using Timer = System.Windows.Forms.Timer;
+using CKAN.CmdLine;
 
 namespace CKAN
 {
@@ -152,7 +153,7 @@ namespace CKAN
             }
         }
 
-        public Main(string[] cmdlineArgs, GUIUser User, bool showConsole)
+        public Main(string[] cmdlineArgs, GUIUser User, GuiOptions guiOptions)
         {
             log.Info("Starting the GUI");
             m_CommandLineArgs = cmdlineArgs;
@@ -169,9 +170,28 @@ namespace CKAN
             // We need to initialize error dialog first to display errors
             m_ErrorDialog = controlFactory.CreateControl<ErrorDialog>();
 
+            Manager = new KSPManager(User);
+
+            if (guiOptions?.FactorioInstallName != null)
+            {
+                // Set a KSP directory by its alias.
+                try
+                {
+                    manager.SetCurrentInstance(guiOptions.FactorioInstallName);
+                }
+                catch (InvalidKSPInstanceKraken)
+                {
+                    User.RaiseError("Invalid Factorio installation specified \"{0}\", use '--factorio-dir' to specify by path, or 'list-installs' to see known Factorio installations", guiOptions.FactorioInstallName);
+                }
+            }
+            else if (guiOptions?.FactorioDirectory != null)
+            {
+                // Set a KSP directory by its path
+                manager.SetCurrentInstanceByPath(guiOptions.FactorioDirectory);
+            }
+
             // We want to check our current instance is null first, as it may
             // have already been set by a command-line option.
-            Manager = new KSPManager(User);
             if (CurrentInstance == null && manager.GetPreferredInstance() == null)
             {
                 Hide();
@@ -203,7 +223,7 @@ namespace CKAN
 
             RecreateDialogs();
 
-            if (!showConsole)
+            if (guiOptions?.ShowConsole != true)
             {
                 Util.HideConsoleWindow();
             }

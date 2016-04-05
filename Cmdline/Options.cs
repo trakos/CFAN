@@ -194,7 +194,7 @@ namespace CKAN.CmdLine
     {
     }
 
-    internal class GuiOptions : CommonOptions
+    public class GuiOptions : CommonOptions
     {
         [Option("show-console", HelpText = "Shows the console while running the GUI")]
         public bool ShowConsole { get; set; }
