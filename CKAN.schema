@@ -9,7 +9,7 @@
             "oneOf" : [
                 {
                     "type"        : "integer",
-                    "description" : "The integer '1' is special cased",
+                    "description" : "The integer '1' is special case",
                     "minimum"     : 1,
                     "maximum"     : 1
                 },
@@ -195,7 +195,17 @@
                     }
                 },
                 "required" : [ "install_to" ],
-                "comment" : "One must have either file or find, is there a JSON Schema friendly way of specifying that?"
+                "oneOf": [
+                    {
+                        "required": [ "file" ]
+                    },
+                    {
+                        "required": [ "find" ]
+                    },
+                    {
+                        "required": [ "find_regexp" ]
+                    }
+                ]
             }
         }
     },
@@ -204,9 +214,20 @@
         "name",
         "abstract",
         "identifier",
-        "download",
         "license",
         "version"
+    ],
+    "oneOf": [
+        {
+            "required": [ "download" ]
+        },
+        {
+            "properties": {
+                "kind": {
+                    "enum": [ "metapackage" ]
+                }
+            }
+        }
     ],
     "definitions" : {
         "identifier" : {

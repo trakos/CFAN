@@ -27,12 +27,12 @@ namespace CKAN.CmdLine
                     user.RaiseMessage(
                         "\"{0}\" and \"{1}\" are the same versions.", leftVersion, rightVersion);
                 }
-                else if (compareResult == -1)
+                else if (compareResult < 0)
                 {
                     user.RaiseMessage(
                         "\"{0}\" is lower than \"{1}\".", leftVersion, rightVersion);
                 }
-                else if (compareResult == 1)
+                else if (compareResult > 0)
                 {
                     user.RaiseMessage(
                         "\"{0}\" is higher than \"{1}\".", leftVersion, rightVersion);
