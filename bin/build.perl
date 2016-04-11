@@ -129,8 +129,6 @@ say "Done!";
 # Do an appropriate copy for our system
 sub copy {
     my ($src, $dst) = @_;
-	warn $src;
-	warn $dst;
 
     if ($^O eq "MSWin32") {
         # Use File::Copy::Recursive under Windows

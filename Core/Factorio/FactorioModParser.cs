@@ -13,8 +13,6 @@ namespace CKAN.Factorio
 {
     public class FactorioModParser
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(KSP));
-
         public static ModInfoJson parseMod(string directoryOrZipFile)
         {
             string json = getInfoJsonTextContent(directoryOrZipFile);
