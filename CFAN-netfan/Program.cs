@@ -31,6 +31,7 @@ namespace CFAN_netfan
             CombinedModFileNormalizer modFileNormalizer = new CombinedModFileNormalizer(new IModFileNormalizer[]
             {
                 new RarToZipNormalizer(), 
+                new SevenZipToZipNormalizer(),
                 new ModZipRootNormalizer()
             });
             LocalRepositoryManager localRepositoryManager = new LocalRepositoryManager(repoUrlPrefix, repoPath);

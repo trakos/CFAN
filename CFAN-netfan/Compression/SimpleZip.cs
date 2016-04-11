@@ -7,7 +7,7 @@ namespace CFAN_netfan.Compression
 {
     class SimpleZip
     {
-        // FastZip messes paths on mono
+        // FastZip messes paths on mono, so use this instead
         public static void ExtractZip(string zipFileName, string targetDirectory)
         {
             using (var zipFile = new ZipFile(zipFileName))

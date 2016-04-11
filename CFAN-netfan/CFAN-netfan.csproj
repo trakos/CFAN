@@ -44,6 +44,9 @@
     <Reference Include="NUnrar">
       <HintPath>..\CKAN\packages\nunrar.1.0.1\lib\net40\NUnrar.dll</HintPath>
     </Reference>
+    <Reference Include="SharpCompress">
+      <HintPath>..\CKAN\packages\sharpcompress.0.11.6\lib\net40\SharpCompress.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -59,6 +62,7 @@
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\IFmmConverter.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\CombinedFmmConverter.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmMirrorManager.cs" />
+    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\SevenZipToZipNormalizer.cs" />
     <Compile Include="CfanAggregator\LocalRepository\LocalRepositoryManager.cs" />
     <Compile Include="CfanAggregator\ICfanAggregator.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\CombinedModFileNormalizer.cs" />
@@ -71,6 +75,7 @@
     <Compile Include="CfanAggregator\FactorioModsCom\Schema\ModReleaseJson.cs" />
     <Compile Include="CfanAggregator\LocalRepositoryAggregator.cs" />
     <Compile Include="Compression\SimpleRar.cs" />
+    <Compile Include="Compression\SimpleSevenZip.cs" />
     <Compile Include="Compression\SimpleZip.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
