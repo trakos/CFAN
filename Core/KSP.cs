@@ -73,6 +73,12 @@ namespace CKAN
         {
             log.DebugFormat("Initialising {0}", CkanDir());
 
+            if (!Directory.Exists(Mods()))
+            {
+                User.RaiseMessage("Creating {0}", Mods());
+                Directory.CreateDirectory(Mods());
+            }
+
             if (! Directory.Exists(CkanDir()))
             {
                 User.RaiseMessage("Setting up CFAN for the first time...");
