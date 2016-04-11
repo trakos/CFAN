@@ -7,6 +7,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using log4net;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Permissions;
 
 namespace CKAN
@@ -164,16 +165,22 @@ namespace CKAN
             // check them to see if we can find the one we're looking
             // for.
 
-            foreach (string file in files)
+            string file = files.Select(f => new {f, filename = Path.GetFileName(f)})
+                .Where(@t => @t.filename.StartsWith(hash))
+                .Select(@t => @t.f).FirstOrDefault();
+
+            if (!File.Exists(file))
             {
-                string filename = Path.GetFileName(file);
-                if (filename.StartsWith(hash))
-                {
-                    return file;
-                }
+                // shouldn't happen
+                log.Debug("Rebuilding cache index");
+                cachedFiles = Directory.GetFiles(cachePath);
+
+                return files.Select(f => new {f, filename = Path.GetFileName(f)})
+                    .Where(@t => @t.filename.StartsWith(hash))
+                    .Select(@t => @t.f).FirstOrDefault();
             }
 
-            return null;
+            return file;
         }
 
         /// <summary>
