@@ -344,6 +344,22 @@ namespace CKAN
         }
     }
 
+    public class NetfanNormalizerKraken : Kraken
+    {
+        public NetfanNormalizerKraken(string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
+        {
+        }
+    }
+
+    public class InvalidInfoJsonInZipNormalizerKraken : NetfanNormalizerKraken
+    {
+        public InvalidInfoJsonInZipNormalizerKraken(string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
+        {
+        }
+    }
+
     public class BadVersionKraken : Kraken
     {
         private readonly string versionString;

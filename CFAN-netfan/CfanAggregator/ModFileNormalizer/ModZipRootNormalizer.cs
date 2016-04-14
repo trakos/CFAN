@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CFAN_netfan.Compression;
+using CKAN;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
+namespace CFAN_netfan.CfanAggregator.ModFileNormalizer
 {
     class ModZipRootNormalizer : IModFileNormalizer
     {
@@ -45,7 +45,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
         {
             using (ZipFile zipFile = new ZipFile(File.OpenRead(pathToZip)))
             {
-                ZipEntry entry = getInfoJsonEntry(zipFile, $"zip: ${pathToZip} mod: ${expectedDirectoryName}");
+                ZipEntry entry = getInfoJsonEntry(zipFile, $"zip: {pathToZip} mod: {expectedDirectoryName}");
                 foundRootDirectoryName = getParentDirectory(entry.Name);
                 return foundRootDirectoryName != expectedDirectoryName;
             }
@@ -59,7 +59,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
                 .ToArray();
             if (!infoJsonEntries.Any())
             {
-                throw new Exception($"Zip file does not have info.json inside (${exceptionHelperText})");
+                throw new InvalidInfoJsonInZipNormalizerKraken($"Zip file does not have info.json inside ({exceptionHelperText})");
             }
             if (infoJsonEntries.Length == 1)
             {
@@ -71,7 +71,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
             // same length for more than one info.json means there can't be info.json that would be above other
             if (shortestInfoJsonEntries.Length > 1)
             {
-                throw new Exception($"Zip file has more than one info.json with same path length (${exceptionHelperText})");
+                throw new InvalidInfoJsonInZipNormalizerKraken($"Zip file has more than one info.json with same path length ({exceptionHelperText})");
             }
             // if all names starts with parent dir of first info.json we're all good
             // there is a special case where parentDirectory is just ""
@@ -81,7 +81,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
             {
                 return shortestInfoJsonEntry;
             }
-            throw new Exception($"Zip file has more than one info.json in different directories (${exceptionHelperText})");
+            throw new InvalidInfoJsonInZipNormalizerKraken($"Zip file has more than one info.json in different directories ({exceptionHelperText})");
         }
 
         // we have to use this method because Path. uses windows directory separators

@@ -1,31 +1,20 @@
-﻿using System;
-using System.IO;
-using System.Threading;
+﻿using System.IO;
 using CFAN_netfan.Compression;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
+namespace CFAN_netfan.CfanAggregator.ModFileNormalizer
 {
-    class RarToZipNormalizer : IModFileNormalizer
+    class SevenZipToZipNormalizer : IModFileNormalizer
     {
         public void normalizeModFile(string pathToWouldBeZip, string expectedRootDirectoryName)
         {
-            if (!SimpleRar.IsRarFile(pathToWouldBeZip))
+            if (!SimpleSevenZip.IsSevenZipFile(pathToWouldBeZip))
             {
                 return;
             }
             string tempDirectory = getTemporaryDirectory();
-            SimpleRar.ExtractRar(pathToWouldBeZip, tempDirectory);
-            try
-            {
-                File.Delete(pathToWouldBeZip);
-            }
-            catch (Exception)
-            {
-                Thread.Sleep(500);
-                GC.Collect();
-                File.Delete(pathToWouldBeZip);
-            }
+            SimpleSevenZip.ExtractSevenZip(pathToWouldBeZip, tempDirectory);
+            File.Delete(pathToWouldBeZip);
             new FastZip().CreateZip(pathToWouldBeZip, tempDirectory, recurse: true, fileFilter: null);
             Directory.Delete(tempDirectory, true);
         }

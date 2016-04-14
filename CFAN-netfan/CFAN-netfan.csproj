@@ -44,11 +44,15 @@
     <Reference Include="NUnrar">
       <HintPath>..\CKAN\packages\nunrar.1.0.1\lib\net40\NUnrar.dll</HintPath>
     </Reference>
+    <Reference Include="Octokit">
+      <HintPath>..\CKAN\packages\Octokit.0.19.0\lib\net45\Octokit.dll</HintPath>
+    </Reference>
     <Reference Include="SharpCompress">
       <HintPath>..\CKAN\packages\sharpcompress.0.11.6\lib\net40\SharpCompress.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,24 +60,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CfanAggregator\Aggregators\GithubAggregator.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmDownloader.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmIgnorer.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmSpecialCases.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\IFmmConverter.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\CombinedFmmConverter.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\FmmMirrorManager.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\SevenZipToZipNormalizer.cs" />
-    <Compile Include="CfanAggregator\LocalRepository\LocalRepositoryManager.cs" />
+    <Compile Include="CfanAggregator\Github\GithubRepositoriesDataProvider.cs" />
+    <Compile Include="CfanAggregator\ModDirectoryManager.cs" />
+    <Compile Include="CfanAggregator\ModFileNormalizer\SevenZipToZipNormalizer.cs" />
     <Compile Include="CfanAggregator\ICfanAggregator.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\CombinedModFileNormalizer.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\ModZipRootNormalizer.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\RarToZipNormalizer.cs" />
-    <Compile Include="CfanAggregator\FactorioModsCom\ModFileNormalizer\IModFileNormalizer.cs" />
-    <Compile Include="CfanAggregator\CombinedCfanAggregator.cs" />
-    <Compile Include="CfanAggregator\FactorioModsComAggregator.cs" />
+    <Compile Include="CfanAggregator\ModFileNormalizer\CombinedModFileNormalizer.cs" />
+    <Compile Include="CfanAggregator\ModFileNormalizer\ModZipRootNormalizer.cs" />
+    <Compile Include="CfanAggregator\ModFileNormalizer\RarToZipNormalizer.cs" />
+    <Compile Include="CfanAggregator\ModFileNormalizer\IModFileNormalizer.cs" />
+    <Compile Include="CfanAggregator\Aggregators\CombinedCfanAggregator.cs" />
+    <Compile Include="CfanAggregator\Aggregators\FactorioModsComAggregator.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\Schema\ModJson.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\Schema\ModReleaseJson.cs" />
-    <Compile Include="CfanAggregator\LocalRepositoryAggregator.cs" />
+    <Compile Include="CfanAggregator\Aggregators\LocalRepositoryAggregator.cs" />
     <Compile Include="Compression\SimpleRar.cs" />
     <Compile Include="Compression\SimpleSevenZip.cs" />
     <Compile Include="Compression\SimpleZip.cs" />

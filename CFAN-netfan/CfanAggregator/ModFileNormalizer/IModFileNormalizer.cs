@@ -1,4 +1,4 @@
-﻿namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
+﻿namespace CFAN_netfan.CfanAggregator.ModFileNormalizer
 {
     interface IModFileNormalizer
     {

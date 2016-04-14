@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
+using CFAN_netfan.CfanAggregator.Aggregators;
 using CFAN_netfan.CfanAggregator.FactorioModsCom.Schema;
-using CFAN_netfan.CfanAggregator.LocalRepository;
 using CKAN;
 using CKAN.Factorio.Schema;
 
@@ -13,9 +10,9 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter
 {
     class FmmDownloader : IFmmConverter
     {
-        protected FmmMirrorManager fmmManager;
+        protected ModDirectoryManager fmmManager;
 
-        public FmmDownloader(FmmMirrorManager fmmManager)
+        public FmmDownloader(ModDirectoryManager fmmManager)
         {
             this.fmmManager = fmmManager;
         }
@@ -52,16 +49,18 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter
                     string downloadedFilePath;
                     try
                     {
-                        downloadedFilePath = fmmManager.getCachedOrDownloadFmmFile(user, url, expectedFilename);
+                        downloadedFilePath = fmmManager.getCachedOrDownloadFile(user, url, expectedFilename);
                     }
                     catch (NetfanDownloadKraken e)
                     {
                         user.RaiseError($"Couldn't download {modJson.name}: {e.Message}");
                         continue;
                     }
-                    CfanJson cfan = fmmManager.generateCfanFromZipFile(user, downloadedFilePath);
-                    cfan.aggregatorData["fmm-id"] = modJson.id.ToString();
-                    yield return cfan;
+                    yield return fmmManager.generateCfanFromZipFile(user, downloadedFilePath, new Dictionary<string, string>
+                    {
+                        ["x-source"] = typeof(FactorioModsComAggregator).Name,
+                        ["fmm-id"] = modJson.id.ToString()
+                    });
                 }
             }
         }

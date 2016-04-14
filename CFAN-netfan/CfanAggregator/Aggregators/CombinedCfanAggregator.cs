@@ -4,7 +4,7 @@ using System.Linq;
 using CKAN;
 using CKAN.Factorio.Schema;
 
-namespace CFAN_netfan.CfanAggregator
+namespace CFAN_netfan.CfanAggregator.Aggregators
 {
     public class CombinedCfanAggregator : ICfanAggregator
     {
@@ -15,7 +15,7 @@ namespace CFAN_netfan.CfanAggregator
             this.cfanAggregators = cfanAggregators;
         }
 
-        public IList<CfanJson> getAllCfanJsons(IUser user)
+        public IEnumerable<CfanJson> getAllCfanJsons(IUser user)
         {
             List<CfanJson> result = new List<CfanJson>();
             foreach (ICfanAggregator cfanAggregator in cfanAggregators)

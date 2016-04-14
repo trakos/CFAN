@@ -6,7 +6,7 @@ namespace CFAN_netfan.CfanAggregator
 {
     public interface ICfanAggregator
     {
-        IList<CfanJson> getAllCfanJsons(IUser user);
+        IEnumerable<CfanJson> getAllCfanJsons(IUser user);
         void mergeCfanJson(IUser user, CfanJson destination, CfanJson source);
     }
 }

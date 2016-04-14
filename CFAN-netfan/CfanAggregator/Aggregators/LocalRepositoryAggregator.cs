@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CFAN_netfan.CfanAggregator.LocalRepository;
 using CKAN;
 using CKAN.Factorio.Schema;
 
-namespace CFAN_netfan.CfanAggregator
+namespace CFAN_netfan.CfanAggregator.Aggregators
 {
     internal class LocalRepositoryAggregator : ICfanAggregator
     {
-        protected LocalRepositoryManager localManager;
+        protected ModDirectoryManager localManager;
 
-        public LocalRepositoryAggregator(LocalRepositoryManager localManager)
+        public LocalRepositoryAggregator(ModDirectoryManager localManager)
         {
             this.localManager = localManager;
         }
 
-        public virtual IList<CfanJson> getAllCfanJsons(IUser user)
+        public virtual IEnumerable<CfanJson> getAllCfanJsons(IUser user)
         {
             List<CfanJson> cfanJsons = new List<CfanJson>();
             cfanJsons.AddRange(getAllModsCfanJsons(user));
@@ -28,15 +27,18 @@ namespace CFAN_netfan.CfanAggregator
         protected IEnumerable<CfanJson> getAllMetaPacksCfanJsons(IUser user)
         {
             return
-                Directory.EnumerateFiles(this.localManager.repoPacksPath)
-                    .Select(p => this.localManager.generateCfanFromModPackJsonFile(user, p));
+                Directory.EnumerateFiles(this.localManager.RepoPacksDirectoryPath)
+                    .Select(p => this.localManager.generateCfanFromModPackJsonFile(user, p, new Dictionary<string, string>()));
         }
 
         protected IEnumerable<CfanJson> getAllModsCfanJsons(IUser user)
         {
             return
-                Directory.EnumerateFiles(this.localManager.repoModsPath)
-                    .Select(p => this.localManager.generateCfanFromZipFile(user, p));
+                Directory.EnumerateFiles(this.localManager.RepoModsDirectoryPath)
+                    .Select(p => this.localManager.generateCfanFromZipFile(user, p, new Dictionary<string, string>
+                    {
+                        ["x-source"] = typeof (LocalRepositoryAggregator).Name
+                    }));
         }
 
         public virtual void mergeCfanJson(IUser user, CfanJson destination, CfanJson source)

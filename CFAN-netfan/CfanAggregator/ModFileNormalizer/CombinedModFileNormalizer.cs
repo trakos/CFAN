@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter;
-using CFAN_netfan.CfanAggregator.FactorioModsCom.Schema;
-using CKAN;
-using CKAN.Factorio.Schema;
 
-namespace CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer
+namespace CFAN_netfan.CfanAggregator.ModFileNormalizer
 {
     class CombinedModFileNormalizer : IModFileNormalizer
     {

@@ -3,52 +3,82 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer;
+using CFAN_netfan.CfanAggregator.ModFileNormalizer;
 using CKAN;
 using CKAN.Factorio;
 using CKAN.Factorio.Schema;
+using CKAN.Factorio.Version;
 
-namespace CFAN_netfan.CfanAggregator.FactorioModsCom
+namespace CFAN_netfan.CfanAggregator
 {
-    class FmmMirrorManager
+    class ModDirectoryManager
     {
         protected string repoUrlPrefix;
         protected string repoLocalPath;
-        protected string repoFmmModsPath => Path.Combine(repoLocalPath, "fmm-mods");
-        protected string cacheFmmModsPath => Path.Combine(repoLocalPath, "fmm-cache");
-        protected string repoFmmModsUrl => repoUrlPrefix + "/fmm-mods/";
-        protected CombinedModFileNormalizer modNormalizer;
+        protected string subDirectoryName;
+
+        public string RepoModsDirectoryPath => Path.Combine(repoLocalPath, subDirectoryName);
+        public string RepoPacksDirectoryPath => Path.Combine(repoLocalPath, subDirectoryName + "-packs");
+
+        protected string RepoExternalUrl => repoUrlPrefix + "/" + subDirectoryName + "/";
+
+        protected IModFileNormalizer modNormalizer;
         protected NetFileCache cache;
 
-        public FmmMirrorManager(string repoUrlPrefix, string repoLocalPath, CombinedModFileNormalizer modNormalizer)
+        public ModDirectoryManager(string repoUrlPrefix, string repoLocalPath, string subDirectoryName, IModFileNormalizer modNormalizer, NetFileCache netFileCache)
         {
             this.repoUrlPrefix = repoUrlPrefix;
             this.repoLocalPath = repoLocalPath;
+            this.subDirectoryName = subDirectoryName;
             this.modNormalizer = modNormalizer;
-            Directory.CreateDirectory(cacheFmmModsPath);
-            Directory.CreateDirectory(repoFmmModsPath);
-            cache = new NetFileCache(cacheFmmModsPath);
+            this.cache = netFileCache;
+            Directory.CreateDirectory(RepoModsDirectoryPath);
         }
 
-        public CfanJson generateCfanFromZipFile(IUser user, string file)
+        public CfanJson generateCfanFromZipFile(IUser user, string file, Dictionary<string, string> aggregatorData)
         {
-            CfanJson cfanJson = CfanGenerator.createCfanJsonFromFile(file);
-            cfanJson.aggregatorData = new Dictionary<string, string>
+            if (Path.GetDirectoryName(file) != RepoModsDirectoryPath)
             {
-                ["x-source"] = typeof(FactorioModsComAggregator).Name
-            };
-            cfanJson.downloadUrls = new string[] { repoFmmModsUrl + Path.GetFileName(file) };
+                throw new Exception($"Unexpected file '{file}' not in mods directory!");
+            }
+            CfanJson cfanJson = CfanGenerator.createCfanJsonFromFile(file);
+            cfanJson.aggregatorData = aggregatorData;
+            cfanJson.downloadUrls = new string[] { RepoExternalUrl + Path.GetFileName(file) };
             return cfanJson;
         }
 
-        public string getCachedOrDownloadFmmFile(IUser user, string url, string expectedFilename)
+        public CfanJson generateCfanFromModPackJsonFile(IUser user, string file, Dictionary<string, string> aggregatorData)
         {
-            string cachePath = downloadOrGetCachedFile(user, url, expectedFilename);
+            if (Path.GetDirectoryName(file) != RepoPacksDirectoryPath)
+            {
+                throw new Exception($"Unexpected file '{file}' not in mods directory!");
+            }
+            if (Path.GetExtension(file) != ".json")
+            {
+                throw new Exception($"Unexpected file '{file}' in packs!");
+            }
+            string[] splitStrings = Path.GetFileNameWithoutExtension(file).Split(new[] { '-' }, 3);
+            string author = splitStrings[0];
+            string nameAndTitle = splitStrings[1];
+            ModVersion version = new ModVersion(splitStrings[2]);
+            string description = $"This is a meta-package that will install all mods from the modpack {nameAndTitle} by {author}.";
+            CfanJson cfanJson = CfanGenerator.createCfanJsonFromModListJson(file, nameAndTitle, nameAndTitle, version, author, description);
+            cfanJson.aggregatorData = aggregatorData;
+            return cfanJson;
+        }
+
+        public string getCachedOrDownloadFile(IUser user, string url, string expectedFilename)
+        {
+            string cachePath = getPathToCachedOrDownloadedFile(user, url, expectedFilename);
             string firstCharacters = head(cachePath, 100).TrimStart();
-            // the json string with error usually is from github
-            if (firstCharacters.StartsWith("<!DOCTYPE") || firstCharacters.StartsWith("{\"error\":"))
+            if (firstCharacters.StartsWith("<!DOCTYPE"))
             {
                 throw new HtmlInsteadOfModDownloadedKraken("Downloaded some kind of html.");
+            }
+            // the json string with error usually is from github
+            if (firstCharacters.StartsWith("{\"error\":"))
+            {
+                throw new HtmlInsteadOfModDownloadedKraken("Downloaded some kind of json error.");
             }
             string temporaryFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             File.Copy(cachePath, temporaryFile);
@@ -56,7 +86,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom
             // move to target place
             ModInfoJson modInfo = FactorioModParser.parseMod(temporaryFile);
             expectedFilename = CfanModule.createStandardFileName(modInfo.name, modInfo.version.ToString());
-            string fmmModFile = Path.Combine(repoFmmModsPath, expectedFilename) + ".zip";
+            string fmmModFile = Path.Combine(RepoModsDirectoryPath, expectedFilename) + ".zip";
             if (File.Exists(fmmModFile))
             {
                 File.Delete(fmmModFile);
@@ -64,6 +94,8 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom
             File.Move(temporaryFile, fmmModFile);
             return fmmModFile;
         }
+
+        const string DOWNLOAD_FILE_ERROR_TEXT = "placeholder for previous download failure";
 
         private string head(string path, int n)
         {
@@ -76,9 +108,8 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom
             return new string(c);
         }
 
-        const string DOWNLOAD_FILE_ERROR_TEXT = "placeholder for previous download failure";
 
-        private string downloadOrGetCachedFile(IUser user, string url, string filenameCacheDescription)
+        private string getPathToCachedOrDownloadedFile(IUser user, string url, string filenameCacheDescription)
         {
             string fullPath = cache.GetCachedFilename(new Uri(url));
             if (fullPath != null)

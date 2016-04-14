@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using CFAN_netfan.CfanAggregator;
-using CFAN_netfan.CfanAggregator.FactorioModsCom;
-using CFAN_netfan.CfanAggregator.FactorioModsCom.ModFileNormalizer;
-using CFAN_netfan.CfanAggregator.LocalRepository;
+using CFAN_netfan.CfanAggregator.Aggregators;
+using CFAN_netfan.CfanAggregator.Github;
+using CFAN_netfan.CfanAggregator.ModFileNormalizer;
 using CFAN_netfan.Compression;
 using CKAN;
 using CKAN.CmdLine;
@@ -17,6 +17,7 @@ namespace CFAN_netfan
     {
         private static string repoPath;
         private static string repoUrlPrefix;
+        private static string githubAccessToken;
         private static string outputPath => Path.Combine(repoPath, "cfans");
         private static string repositoryTarGz => Path.Combine(repoPath, "repository.tar.gz");
         private static string repositoryTemporaryTarGz => Path.Combine(repoPath, "repository_tmp.tar.gz");
@@ -28,18 +29,23 @@ namespace CFAN_netfan
             IUser user = new ConsoleUser(false);
             repoPath = args[0];
             repoUrlPrefix = args[1];
+            githubAccessToken = args[2];
+            Directory.CreateDirectory(Path.Combine(repoPath, "cache"));
+            NetFileCache netFileCache = new NetFileCache(Path.Combine(repoPath, "cache"));
             CombinedModFileNormalizer modFileNormalizer = new CombinedModFileNormalizer(new IModFileNormalizer[]
             {
                 new RarToZipNormalizer(), 
                 new SevenZipToZipNormalizer(),
                 new ModZipRootNormalizer()
             });
-            LocalRepositoryManager localRepositoryManager = new LocalRepositoryManager(repoUrlPrefix, repoPath);
-            FmmMirrorManager fmmMirrorManager = new FmmMirrorManager(repoUrlPrefix, repoPath, modFileNormalizer);
+            ModDirectoryManager manualModDirectoryManager = new ModDirectoryManager(repoUrlPrefix, repoPath, "mods", modFileNormalizer, netFileCache);
+            ModDirectoryManager fmmMirrorManager = new ModDirectoryManager(repoUrlPrefix, repoPath, "mods-fmm", modFileNormalizer, netFileCache);
+            ModDirectoryManager githubModsDirectoryManager = new ModDirectoryManager(repoUrlPrefix, repoPath, "mods-github", modFileNormalizer, netFileCache);
             CombinedCfanAggregator combinedAggregator = new CombinedCfanAggregator(new ICfanAggregator[]
             {
-                new LocalRepositoryAggregator(localRepositoryManager),
-                new FactorioModsComAggregator(localRepositoryManager, fmmMirrorManager), 
+                new LocalRepositoryAggregator(manualModDirectoryManager),
+                new FactorioModsComAggregator(manualModDirectoryManager, fmmMirrorManager), 
+                new GithubAggregator(githubModsDirectoryManager, new GithubRepositoriesDataProvider(), githubAccessToken),
             });
             combinedAggregator.getAllCfanJsons(user).ToList().ForEach(p => saveCfanJson(user, p));
             createFinalRepositoryTarGz(user);

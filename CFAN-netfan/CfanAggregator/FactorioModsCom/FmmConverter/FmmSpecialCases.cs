@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using CFAN_netfan.CfanAggregator.FactorioModsCom.Schema;
-using CFAN_netfan.CfanAggregator.LocalRepository;
 using CKAN;
 using CKAN.Factorio.Schema;
 
@@ -9,9 +8,9 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter
 {
     class FmmSpecialCases : IFmmConverter
     {
-        protected LocalRepositoryManager localManager;
+        protected ModDirectoryManager localManager;
 
-        public FmmSpecialCases(LocalRepositoryManager localManager)
+        public FmmSpecialCases(ModDirectoryManager localManager)
         {
             this.localManager = localManager;
         }
@@ -20,8 +19,10 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter
         {
             if (modJson.name == "5dim´s mod")
             {
-                CfanJson cfan = localManager.generateCfanFromModPackJsonFile(user, Path.Combine(localManager.repoPacksPath, "5Dim-5dim-0.0.0.json"));
-                cfan.aggregatorData["fmm-id"] = modJson.id.ToString();
+                CfanJson cfan = localManager.generateCfanFromModPackJsonFile(user, Path.Combine(localManager.RepoPacksDirectoryPath, "5Dim-5dim-0.0.0.json"), new Dictionary<string, string>()
+                {
+                    ["fmm-id"] = modJson.id.ToString()
+                });
                 return new CfanJson[] {cfan};
             }
             return null;
