@@ -30,7 +30,6 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
         public IEnumerable<CfanJson> getAllCfanJsons(IUser user)
         {
             List<CfanJson> cfans = new List<CfanJson>();
-            List<string> allUrls = new List<string>();
             for (int pageNumber = 1; pageNumber <= 15; pageNumber++)
             {
                 string uri = BASE_URI + pageNumber.ToString();
@@ -41,18 +40,8 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
                     var mods = JsonConvert.DeserializeObject<ModJson[]>(jsonString);
                     if (!mods.Any())
                     {
-                        string[] githubRepositories =
-                            allUrls.Where(p => true == p?.Contains("github"))
-                                .Select(p => p.Split('/')[3] + '/' + p.Split('/')[4])
-                                .Distinct()
-                                .OrderBy(p => p)
-                                .ToArray();
                         return cfans;
                     }
-                    allUrls.AddRange(mods.SelectMany(
-                        p =>
-                            p.releases.SelectMany(r => r.files.Select(f => f.url))
-                                .Concat(new string[] {p.url, p.homepage, p.contact})));
                     cfans.AddRange(mods.SelectMany(p => fmmConverter.generateCfanJsons(user, p)));
                 }
             }
