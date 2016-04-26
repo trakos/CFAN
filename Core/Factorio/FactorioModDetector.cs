@@ -22,7 +22,7 @@ namespace CKAN.Factorio
             ModInfoJson modInfo;
             foreach (var modDirectory in Directory.GetDirectories(directory))
             {
-                modInfo = FactorioModParser.parseMod(modDirectory);
+                modInfo = parsePotentialMod(modDirectory);
                 if (modInfo != null)
                 {
                     modInfosList[KSPPathUtils.NormalizePath(modDirectory)] = modInfo;
@@ -30,7 +30,7 @@ namespace CKAN.Factorio
             }
             foreach (var modFile in Directory.GetFiles(directory).Where(p => Path.GetFileName(p) != "mod-list.json"))
             {
-                modInfo = FactorioModParser.parseMod(modFile);
+                modInfo = parsePotentialMod(modFile);
                 if (modInfo != null)
                 {
                     modInfosList[KSPPathUtils.NormalizePath(modFile)] = modInfo;
