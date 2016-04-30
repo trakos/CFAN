@@ -206,7 +206,7 @@ namespace CKAN
             {
                 if (downloader == null)
                 {
-                    downloader = new NetAsyncDownloader(User);
+                    downloader = new NetAsyncModulesDownloader(User);
                 }
 
                 downloader.DownloadModules(ksp.Cache, downloads);

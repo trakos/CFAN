@@ -91,7 +91,7 @@ namespace CKAN
             m_TabController.SetTabLock(true);
 
 
-            var downloader = new NetAsyncDownloader(GUI.user);
+            var downloader = new NetAsyncModulesDownloader(GUI.user);
             cancelCallback = () =>
             {
                 downloader.CancelDownload();

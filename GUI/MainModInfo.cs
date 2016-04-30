@@ -264,7 +264,7 @@ namespace CKAN
             ResetProgress();
             ClearLog();
 
-            NetAsyncDownloader dowloader = new NetAsyncDownloader(m_User);
+            NetAsyncModulesDownloader dowloader = new NetAsyncModulesDownloader(m_User);
             
             dowloader.DownloadModules(CurrentInstance.Cache, new List<CfanModule> { module });
             e.Result = e.Argument;

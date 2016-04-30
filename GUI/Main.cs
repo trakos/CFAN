@@ -307,7 +307,10 @@ namespace CKAN
                         if (dialog.ShowDialog() == DialogResult.OK)
                         {
                             log.Info("Start cfan update");
-                            AutoUpdate.Instance.StartUpdateProcess(true);
+                            BackgroundWorker bw = new BackgroundWorker();
+                            bw.DoWork += (sender, args) => AutoUpdate.Instance.StartUpdateProcess(true, PleaseWait.User);
+                            bw.RunWorkerAsync();
+                            new PleaseWait().ShowDialog(this);
                         }
                     }
                 }
