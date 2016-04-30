@@ -277,7 +277,7 @@ It is advisable that you reinstall them in order to preserve consistency with th
                                 continue;
                             }
 
-                            log.DebugFormat("Reading CKAN data from {0}", filename);
+                            log.DebugFormat("Reading CFAN data from {0}", filename);
 
                             // Read each file into a buffer.
                             int buffer_size;
@@ -331,7 +331,7 @@ It is advisable that you reinstall them in order to preserve consistency with th
                         continue;
                     }
 
-                    log.DebugFormat("Reading CKAN data from {0}", filename);
+                    log.DebugFormat("Reading CFAN data from {0}", filename);
 
                     // Read each file into a string.
                     string metadata_json;

@@ -94,7 +94,7 @@ namespace CKAN
                         throw;
                     }
 
-                    string message = string.Format("Error trying to parse \"{0}\"{1}. Try to move it out of the folder and restart CKAN.", path, additionalErrorData);
+                    string message = string.Format("Error trying to parse \"{0}\"{1}. Try to move it out of the folder and restart CFAN.", path, additionalErrorData);
                     throw new Kraken(message);
                 }
             }

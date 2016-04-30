@@ -233,7 +233,7 @@ namespace CKAN
                 {
                     GUI.user.RaiseMessage(
                         "\nOh no! We tried to overwrite a file owned by another mod!\n" +
-                        "Please try a `ckan update` and try again.\n\n" +
+                        "Please try a `cfan update` and try again.\n\n" +
                         "If this problem re-occurs, then it maybe a packaging bug.\n" +
                         "Please report it at:\n\n" +
                         "https://github.com/KSP-CKAN/CKAN-meta/issues/new\n\n" +
@@ -252,9 +252,9 @@ namespace CKAN
                         "\n\nOh no!\n\n" +
                         "It looks like you're trying to install a mod which is already installed,\n" +
                         "or which conflicts with another mod which is already installed.\n\n" +
-                        "As a safety feature, the CKAN will *never* overwrite or alter a file\n" +
+                        "As a safety feature, the CFAN will *never* overwrite or alter a file\n" +
                         "that it did not install itself.\n\n" +
-                        "If you wish to install {0} via the CKAN,\n" +
+                        "If you wish to install {0} via the CFAN,\n" +
                         "then please manually uninstall the mod which owns:\n\n" +
                         "{1}\n\n" + "and try again.\n",
                         ex.installing_module, ex.filename

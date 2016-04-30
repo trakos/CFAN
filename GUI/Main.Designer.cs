@@ -1357,7 +1357,7 @@ namespace CKAN
             this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(878, 664);
             this.Name = "Main";
-            this.Text = "CKAN-GUI";
+            this.Text = "CFAN-GUI";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.menuStrip2.ResumeLayout(false);

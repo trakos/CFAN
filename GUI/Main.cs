@@ -356,7 +356,7 @@ namespace CKAN
                 {
                     identifier = identifier.Substring(2);
                 }
-                else if (identifier.StartsWith("ckan://"))
+                else if (identifier.StartsWith("cfan://"))
                 {
                     identifier = identifier.Substring(7);
                 }

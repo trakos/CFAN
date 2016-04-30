@@ -71,7 +71,7 @@ namespace CKAN.CmdLine
                 catch (ModNotInstalledKraken kraken)
                 {
                     user.RaiseMessage("I can't do that, {0} isn't installed.", kraken.mod);
-                    user.RaiseMessage("Try `ckan list` for a list of installed mods.");
+                    user.RaiseMessage("Try `cfan list` for a list of installed mods.");
                     return Exit.BADOPT;
                 }
             }

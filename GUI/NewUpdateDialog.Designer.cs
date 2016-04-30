@@ -107,7 +107,7 @@ namespace CKAN
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(354, 245);
             this.Name = "NewUpdateDialog";
-            this.Text = "A new version of CKAN is available";
+            this.Text = "A new version of CFAN is available";
             this.ResumeLayout(false);
             this.PerformLayout();
 

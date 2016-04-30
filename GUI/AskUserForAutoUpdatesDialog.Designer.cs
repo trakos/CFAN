@@ -41,7 +41,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(511, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Do you wish for CKAN to automatically check for updates on start-up? (Can be chan" +
+            this.label1.Text = "Do you wish for CFAN to automatically check for updates on start-up? (Can be chan" +
     "ged later from Settings)";
             // 
             // YesButton

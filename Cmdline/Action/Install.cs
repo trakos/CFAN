@@ -117,8 +117,8 @@ namespace CKAN.CmdLine
             catch (ModuleNotFoundKraken ex)
             {
                 user.RaiseMessage("Module {0} required, but not listed in index, or not available for your version of Factorio", ex.module);
-                user.RaiseMessage("If you're lucky, you can do a `ckan update` and try again.");
-                user.RaiseMessage("Try `ckan install --no-recommends` to skip installation of recommended modules");
+                user.RaiseMessage("If you're lucky, you can do a `cfan update` and try again.");
+                user.RaiseMessage("Try `cfan install --no-recommends` to skip installation of recommended modules");
                 return Exit.ERROR;
             }
             catch (BadMetadataKraken ex)
@@ -170,7 +170,7 @@ namespace CKAN.CmdLine
                 {
                     user.RaiseMessage(
                         "\nOh no! We tried to overwrite a file owned by another mod!\n"+
-                        "Please try a `ckan update` and try again.\n\n"+
+                        "Please try a `cfan update` and try again.\n\n"+
                         "If this problem re-occurs, then it maybe a packaging bug.\n"+
                         "Please report it at:\n\n" +
                         // @todo: add link here

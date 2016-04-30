@@ -112,7 +112,7 @@ namespace CKAN
             {
                 m_User.displayYesNo = YesNoDialog;
                 m_Configuration.RefreshOnStartupNoNag = true;
-                if (!m_User.displayYesNo("Would you like CKAN to refresh the modlist every time it is loaded? (You can always manually refresh using the button up top.)"))
+                if (!m_User.displayYesNo("Would you like CFAN to refresh the modlist every time it is loaded? (You can always manually refresh using the button up top.)"))
                 {
                     m_Configuration.RefreshOnStartup = false;
                 }
