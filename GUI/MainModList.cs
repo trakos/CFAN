@@ -141,6 +141,27 @@ namespace CKAN
             Util.Invoke(this, () => _UpdateModsList(repo_updated));
         }
 
+        private void CheckForConsistency()
+        {
+            Util.Invoke(this, _CheckForConsistency);
+        }
+
+        private void _CheckForConsistency()
+        {
+            IRegistryQuerier registry = RegistryManager.Instance(CurrentInstance).registry;
+            try
+            {
+                registry.CheckSanity();
+            }
+            catch (InconsistentKraken e)
+            {
+                m_User.displayError(
+                    "Installed mods has unmet dependencies. \"Apply changes\" button will be unavailable until you fix inconsistencies:\n{0}",
+                    new object[] { e.InconsistenciesPretty }
+                );
+            }
+        }
+
 
         private void _UpdateModsList(bool repo_updated)
         {

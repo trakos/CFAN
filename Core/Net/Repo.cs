@@ -91,8 +91,9 @@ namespace CKAN
                 UpdateRegistry(repository.Value.uri, registry_manager.registry, ksp, user, false);
             }
 
-            // Save our changes.
-            registry_manager.Save();
+            // Save our changes
+            // we're not sure where it's called from (and whether InconsistentKraken will be handled), and it shouldn't change consistency, so let's not check for it.
+            registry_manager.Save(false);
 
             // maybe we can move some preexisting modules to installed (i.e. they now may have corresponding version available)
             ksp.ScanGameData();

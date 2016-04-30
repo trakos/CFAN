@@ -551,34 +551,33 @@ namespace CKAN
         ///
         /// Throws an InconsistentKraken if not all files have been removed.
         /// </summary>
-        public void DeregisterModule(KSP ksp, string module)
+        public void DeregisterModule(KSP ksp, string module, bool noCheck = false)
         {
             SealionTransaction();
 
-            var inconsistencies = new List<string>();
-
-            var absolute_files = installed_modules[module].Files.Select(ksp.ToAbsoluteGameDataDir);
-            // Note, this checks to see if a *file* exists; it doesn't
-            // trigger on directories, which we allow to still be present
-            // (they may be shared by multiple mods.
-
-            foreach (var absolute_file in absolute_files.Where(File.Exists))
+            if (!noCheck)
             {
-                inconsistencies.Add(string.Format(
-                    "{0} is registered to {1} but has not been removed!",
-                    absolute_file, module));
-            }
+                // Note, this checks to see if a *file* exists; it doesn't
+                // trigger on directories, which we allow to still be present
+                // (they may be shared by multiple mods.
+                var inconsistencies = installed_modules[module]
+                    .Files
+                    .Select(ksp.ToAbsoluteGameDataDir)
+                    .Where(File.Exists)
+                    .Select(absoluteFile => $"{absoluteFile} is registered to {module} but has not been removed!")
+                    .ToList();
 
-            if (inconsistencies.Count > 0)
-            {
-                // Uh oh, what mess have we got ourselves into now, Inconsistency Kraken?
-                throw new InconsistentKraken(inconsistencies);
+                if (inconsistencies.Count > 0)
+                {
+                    // Uh oh, what mess have we got ourselves into now, Inconsistency Kraken?
+                    throw new InconsistentKraken(inconsistencies);
+                }
             }
 
             // Okay, all the files are gone. Let's clear our metadata.
-            foreach (string rel_file in installed_modules[module].Files)
+            foreach (string relFile in installed_modules[module].Files)
             {
-                installed_files.Remove(rel_file);
+                installed_files.Remove(relFile);
             }
 
             // Bye bye, module, it's been nice having you visit.

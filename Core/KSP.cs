@@ -472,7 +472,8 @@ namespace CKAN
             {
                 Registry.ClearPreexistingModules();
 
-                foreach (var detectedModule in FactorioModDetector.findAllModsInDirectory(Path.Combine(gamedatadir, "mods")))
+                var detectedModules = FactorioModDetector.findAllModsInDirectory(Path.Combine(gamedatadir, "mods"));
+                foreach (var detectedModule in detectedModules)
                 {
                     string detectedModulePath = detectedModule.Key;
                     ModInfoJson detectedModInfo = detectedModule.Value;
@@ -498,9 +499,35 @@ namespace CKAN
                     // we only register that this module exists, but we won't be able to do anything with it
                     Registry.RegisterPreexistingModule(this, detectedModulePath, detectedModInfo);
                 }
-                    
+
+                try
+                {
+                    Registry.CheckSanity();
+                }
+                catch (InconsistentKraken e)
+                {
+                    User.RaiseError("Autodetected mods has unmet dependencies, they won't be managed by CFAN until you fix inconsitencies.\n{0}", e.InconsistenciesPretty);
+
+                    var unmet = SanityChecker.FindUnmetDependencies(Registry.InstalledModules.Select(p => p.Module), Registry.InstalledPreexistingModules);
+                    do
+                    {
+                        unmet
+                            .Select(unmetDependencyKeyValue => unmetDependencyKeyValue.Value)
+                            .SelectMany(p => p.Select(modWithUnmetDependencies => detectedModules.FirstOrDefault(detectedModule => detectedModule.Value.name == modWithUnmetDependencies.identifier)))
+                            .Where(p => !p.Equals(default(KeyValuePair<string, ModInfoJson>)))
+                            .ToList()
+                            .ForEach(modWithUnmetDependencies =>
+                            {
+                                Registry.DeregisterModule(this, modWithUnmetDependencies.Value.name, true);
+                                Registry.RegisterPreexistingModule(this, modWithUnmetDependencies.Key, modWithUnmetDependencies.Value);
+                            });
+                        unmet = SanityChecker.FindUnmetDependencies(Registry.InstalledModules.Select(p => p.Module), Registry.InstalledPreexistingModules);
+                    } while (unmet.Any());
+                }
+
                 tx.Complete();
             }
+
             RegistryManager.Save();
         }
 

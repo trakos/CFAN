@@ -339,6 +339,7 @@ namespace CKAN
             ApplyToolButton.Enabled = false;
 
             CurrentInstanceUpdated();
+            CheckForConsistency();
 
             if (m_Configuration.RefreshOnStartup)
             {
