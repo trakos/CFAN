@@ -10,7 +10,7 @@ namespace Tests.Data
     /// </summary>
     public class DisposableKSP : IDisposable
     {
-        private readonly string good_ksp = TestData.good_ksp_dir();
+        private readonly string good_ksp = TestData.good_factorio_dir();
         private readonly string disposable_dir;
 
         public KSP KSP { get; private set; }
@@ -30,7 +30,7 @@ namespace Tests.Data
 
             if (registry_file != null)
             {
-                string registry_dir = Path.Combine(disposable_dir, "CKAN");
+                string registry_dir = Path.Combine(disposable_dir, "CFAN");
                 string registry_path = Path.Combine(registry_dir, "registry.json");
                 Directory.CreateDirectory(registry_dir);
                 File.Copy(registry_file, registry_path, true);
@@ -41,9 +41,9 @@ namespace Tests.Data
 
         public void Dispose()
         {
-            Directory.Delete(disposable_dir, true);
             KSP.Dispose();
             KSP = null; // In case .Dispose() was called manually.
+            Directory.Delete(disposable_dir, true);
         }
     }
 }

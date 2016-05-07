@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CKAN;
+using CKAN.Factorio.Relationships;
 using NUnit.Framework;
 using Tests.Core;
 using Tests.Data;
-using Version = CKAN.Version;
 
 namespace Tests.GUI
 {
@@ -17,12 +18,14 @@ namespace Tests.GUI
         {
             using (var tidy = new DisposableKSP())
             {
-                KSPManager manager = new KSPManager(new NullUser(), new FakeWin32Registry(tidy.KSP)){CurrentInstance = tidy.KSP};
-                var registry = Registry.Empty();
-                var ckan_mod = TestData.kOS_014_module();
-                registry.AddAvailable(ckan_mod);
-                var mod = new GUIMod(ckan_mod, registry, manager.CurrentInstance.Version());
-                Assert.False(mod.IsUpgradeChecked);
+                using (KSPManager manager = new KSPManager(new NullUser(), new FakeWin32Registry(tidy.KSP)){CurrentInstance = tidy.KSP})
+                {
+                    var registry = Registry.Empty();
+                    var ckan_mod = TestData.kOS_014_module();
+                    registry.AddAvailable(ckan_mod);
+                    var mod = new GUIMod(ckan_mod, registry, manager.CurrentInstance.Version());
+                    Assert.False(mod.IsUpgradeChecked);
+                }
             }
         }
         [Test]
@@ -31,8 +34,9 @@ namespace Tests.GUI
             using (var tidy = new DisposableKSP())
             {
                 var generatror = new RandomModuleGenerator(new Random(0451));
-                var old_version = generatror.GeneratorRandomModule(version: new Version("0.24"), ksp_version: tidy.KSP.Version());
-                var new_version = generatror.GeneratorRandomModule(version: new Version("0.25"), ksp_version: tidy.KSP.Version(),
+                var old_version = generatror.GeneratorRandomModule(version: new Version("0.24"),
+                    depends: new List<ModDependency> {new ModDependency($"base=={tidy.KSP.Version()}")});
+                var new_version = generatror.GeneratorRandomModule(version: new Version("0.25"), depends: new List<ModDependency> { new ModDependency($"base=={tidy.KSP.Version()}") },
                     identifier:old_version.identifier);
                 var registry = Registry.Empty();
                 registry.RegisterModule(old_version, Enumerable.Empty<string>(), null);

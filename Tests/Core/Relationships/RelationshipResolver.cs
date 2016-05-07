@@ -5,7 +5,12 @@ using CKAN;
 using NUnit.Framework;
 using Tests.Data;
 using System.IO;
-using Version = CKAN.Version;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Schema;
+using CKAN.Factorio.Version;
+using Tests.Core.Types;
+using Version = System.Version;
 
 namespace Tests.Core.Relationships
 {
@@ -31,35 +36,31 @@ namespace Tests.Core.Relationships
         {
             registry = CKAN.Registry.Empty();
             options = RelationshipResolver.DefaultOpts();
-            Assert.DoesNotThrow(() => new RelationshipResolver(new List<string>(),
+            Assert.DoesNotThrow(() => new RelationshipResolver(new List<CfanModuleIdAndVersion>(),
                 options,
                 registry,
                 null));
         }
 
-        [Test]
+        /*[Test]
         public void Constructor_WithConflictingModules()
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule();
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier}
+                new ModDependency(mod_a.identifier)
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
-            
-            Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
-                options,
-                registry,
-                null));
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
+            Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(modList, options, registry, null));
 
             options.procede_with_inconsistencies = true;
-            var resolver = new RelationshipResolver(list, options, registry, null);
+            var resolver = new RelationshipResolver(modList, options, registry, null);
 
             Assert.That(resolver.ConflictList.Any(s => Equals(s.Key, mod_a)));
             Assert.That(resolver.ConflictList.Any(s => Equals(s.Key, mod_b)));
@@ -73,17 +74,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule();
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, version=mod_a.version}
+                new ModDependency($"{mod_a.identifier}=={mod_a.modVersion}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -97,17 +99,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, min_version=new Version(conf_min)}
+                new ModDependency($"{mod_a.identifier}>={conf_min}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -121,17 +124,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, max_version=new Version(conf_max)}
+                new ModDependency($"{mod_a.identifier}<={conf_max}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -146,17 +150,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, min_version=new Version(conf_min), max_version=new Version(conf_max)}
+                new ModDependency($"{mod_a.identifier}>={conf_min}<={conf_max}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -170,17 +175,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, version=new Version(conf)}
+                new ModDependency($"{mod_a.identifier}=={conf}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.DoesNotThrow(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -193,17 +199,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, min_version=new Version(conf_min)}
+                new ModDependency($"{mod_a.identifier}>={conf_min}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.DoesNotThrow(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -216,17 +223,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, max_version=new Version(conf_max)}
+                new ModDependency($"{mod_a.identifier}<={conf_max}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.DoesNotThrow(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -240,17 +248,18 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule(version: new Version(ver));
-            var mod_b = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod_b = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier, min_version=new Version(conf_min), max_version=new Version(conf_max)}
+                new ModDependency($"{mod_a.identifier}>={conf_min}<={conf_max}")
             });
 
             list.Add(mod_a.identifier);
             list.Add(mod_b.identifier);
             AddToRegistry(mod_a, mod_b);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.DoesNotThrow(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -271,20 +280,21 @@ namespace Tests.Core.Relationships
             {
                 mod_a.identifier
             });
-            var mod_d = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var mod_d = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=mod_a.identifier}
+                new ModDependency($"{mod_a.identifier}")
             });
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             list.Add(mod_d.identifier);
             AddToRegistry(mod_b, mod_c, mod_d);
             Assert.Throws<TooManyModsProvideKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
 
-        }
+        }*/
 
         [Test]
         public void Constructor_WithMissingModules_Throws()
@@ -292,32 +302,36 @@ namespace Tests.Core.Relationships
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule();
             list.Add(mod_a.identifier);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
             Assert.Throws<ModuleNotFoundKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
 
         }
 
-        // Right now our RR always returns the modules it was provided. However
+        /*// Right now our RR always returns the modules it was provided. However
         // if we've already got the same version(s) installed, it should be able to
         // return a list *without* them. This isn't a hard error at the moment,
         // since ModuleInstaller.InstallList will ignore already installed mods, but
         // it would be nice to have. Discussed a little in GH #521.
-        [Test][Category("TODO")][Explicit]
+        [Test]
+        [Category("TODO")]
+        [Explicit]
         public void ModList_WithInstalledModules_DoesNotContainThem()
         {
             var list = new List<string>();
             var mod_a = generator.GeneratorRandomModule();
             list.Add(mod_a.identifier);
             AddToRegistry(mod_a);
-            registry.Installed().Add(mod_a.identifier, mod_a.version);
+            registry.Installed().Add(mod_a.identifier, mod_a.modVersion);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
             CollectionAssert.IsEmpty(relationship_resolver.ModList());
-        }
+        }*/
 
         [Test]
         public void ModList_WithInstalledModulesSugested_DoesNotContainThem()
@@ -325,39 +339,41 @@ namespace Tests.Core.Relationships
             options.with_all_suggests = true;
             var list = new List<string>();
             var sugested = generator.GeneratorRandomModule();
-            var sugester = generator.GeneratorRandomModule(sugests: new List<RelationshipDescriptor>
+            var sugester = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = sugested.identifier}
+                new ModDependency($"? {sugested.identifier}")
             });
 
             list.Add(sugester.identifier);
             AddToRegistry(sugester, sugested);
-            registry.Installed().Add(sugested.identifier, sugested.version);
+            registry.Installed().Add(sugested.identifier, sugested.modVersion);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.Contains(relationship_resolver.ModList(), sugested);
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            Assert.True(relationship_resolver.ModList().Any(p => p.ToString() == sugested.ToString()));
         }
 
-        [Test]
+        /*[Test]
         public void ModList_WithSugestedModulesThatWouldConflict_DoesNotContainThem()
         {
             options.with_all_suggests = true;
             var list = new List<string>();
             var sugested = generator.GeneratorRandomModule();
-            var mod = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var mod = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = sugested.identifier}
+                new ModDependency($"{sugested.identifier}")
             });
-            var sugester = generator.GeneratorRandomModule(sugests: new List<RelationshipDescriptor>
+            var sugester = generator.GeneratorRandomModule(sugests: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = sugested.identifier}
+                new ModDependency($"{sugested.identifier}")
             });
 
             list.Add(sugester.identifier);
             list.Add(mod.identifier);
             AddToRegistry(sugester, sugested, mod);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
             CollectionAssert.DoesNotContain(relationship_resolver.ModList(), sugested);
         }
 
@@ -366,13 +382,13 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var dependant = generator.GeneratorRandomModule();
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier}
+                new ModDependency($"{dependant.identifier}")
             });
-            var conflicts_with_dependant = generator.GeneratorRandomModule(conflicts: new List<RelationshipDescriptor>
+            var conflicts_with_dependant = generator.GeneratorRandomModule(conflicts: new List<ModDependency>
             {
-                new RelationshipDescriptor {name=dependant.identifier}
+                new ModDependency($"{dependant.identifier}")
             });
 
 
@@ -380,12 +396,13 @@ namespace Tests.Core.Relationships
             list.Add(conflicts_with_dependant.identifier);
             AddToRegistry(depender, dependant, conflicts_with_dependant);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
-        }
+        }*/
 
         [Test]
         public void Constructor_WithSuggests_HasSugestedInModlist()
@@ -393,16 +410,17 @@ namespace Tests.Core.Relationships
             options.with_all_suggests = true;
             var list = new List<string>();
             var sugested = generator.GeneratorRandomModule();
-            var sugester = generator.GeneratorRandomModule(sugests: new List<RelationshipDescriptor>
+            var sugester = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = sugested.identifier}
+                new ModDependency($"? {sugested.identifier}")
             });
 
             list.Add(sugester.identifier);
             AddToRegistry(sugester, sugested);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.Contains(relationship_resolver.ModList(), sugested);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            Assert.True(relationship_resolver.ModList().Any(p => p.ToString() == sugested.ToString()));
         }
 
         [Test]
@@ -411,28 +429,29 @@ namespace Tests.Core.Relationships
             options.with_all_suggests = true;
             var list = new List<string>();
             var sugested2 = generator.GeneratorRandomModule();
-            var sugested = generator.GeneratorRandomModule(sugests: new List<RelationshipDescriptor>
+            var sugested = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = sugested2.identifier}
+                new ModDependency($"? {sugested2.identifier}")
             });
-            var sugester = generator.GeneratorRandomModule(sugests: new List<RelationshipDescriptor>
+            var sugester = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = sugested.identifier}
+                new ModDependency($"? {sugested.identifier}")
             });
 
             list.Add(sugester.identifier);
             AddToRegistry(sugester, sugested, sugested2);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.Contains(relationship_resolver.ModList(), sugested2);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            Assert.True(relationship_resolver.ModList().Any(p => p.ToString() == sugested2.ToString()));
 
             options.with_all_suggests = false;
 
-            relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.DoesNotContain(relationship_resolver.ModList(), sugested2);
+            relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            Assert.False(relationship_resolver.ModList().Any(p => p.ToString() == sugested2.ToString()));
         }
 
-        [Test]
+        /*[Test]
         public void Constructor_ProvidesSatisfyDependencies()
         {
             var list = new List<string>();
@@ -441,21 +460,22 @@ namespace Tests.Core.Relationships
             {
                 mod_a.identifier
             });
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = mod_a.identifier}
+                new ModDependency($"{mod_a.identifier}")
             });
             list.Add(depender.identifier);
             AddToRegistry(mod_b, depender);
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
 
-            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CkanModule>
+            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CfanModule>
             {
                 mod_b,
                 depender
             });
 
-        }
+        }*/
 
 
         [Test]
@@ -463,15 +483,16 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var dependant = generator.GeneratorRandomModule();
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier}
+                new ModDependency($"{dependant.identifier}")
             });
             list.Add(depender.identifier);
             registry.AddAvailable(depender);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p, new ModVersion("1.0")));
             Assert.Throws<ModuleNotFoundKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -482,21 +503,22 @@ namespace Tests.Core.Relationships
         [Category("Version")]
         [TestCase("1.0", "2.0")]
         [TestCase("1.0", "0.2")]
-        [TestCase("0", "0.2")]
-        [TestCase("1.0", "0")]
+        [TestCase("0.0", "0.2")]
+        [TestCase("1.0", "0.0")]
         public void Constructor_WithMissingDependantsVersion_Throws(string ver, string dep)
         {
             var list = new List<string>();
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, version = new Version(dep)}
+                new ModDependency($"{dependant.identifier}=={dep}")
             });
-            list.Add(depender.identifier);            
+            list.Add(depender.identifier);
             AddToRegistry(depender, dependant);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
             Assert.Throws<ModuleNotFoundKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -510,21 +532,22 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, min_version = new Version(dep_min)}
+                new ModDependency($"{dependant.identifier}>={dep_min}")
             });
-            list.Add(depender.identifier);            
+            list.Add(depender.identifier);
             AddToRegistry(depender, dependant);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
             Assert.Throws<ModuleNotFoundKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
             list.Add(dependant.identifier);
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -538,16 +561,17 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, max_version = new Version(dep_max)}
+                new ModDependency($"{dependant.identifier}<={dep_max}")
             });
             list.Add(depender.identifier);
             list.Add(dependant.identifier);
             AddToRegistry(depender, dependant);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -562,19 +586,17 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {
-                    name = dependant.identifier,
-                    min_version = new Version(dep_min),
-                    max_version = new Version(dep_max)}
+                new ModDependency($"{dependant.identifier}>={dep_min}<={dep_max}")
             });
             list.Add(depender.identifier);
             list.Add(dependant.identifier);
             AddToRegistry(depender, dependant);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
             Assert.Throws<InconsistentKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -591,21 +613,22 @@ namespace Tests.Core.Relationships
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
             var other_dependant = generator.GeneratorRandomModule(identifier: dependant.identifier, version: new Version(other));
 
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, version = new Version(dep)}
+                new ModDependency($"{dependant.identifier}=={dep}")
             });
 
-            list.Add(depender.identifier);            
+            list.Add(depender.identifier);
             AddToRegistry(depender, dependant, other_dependant);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CkanModule>
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CfanModule>
             {
                 dependant,
                 depender
             });
-            
+
         }
 
         [Test]
@@ -619,15 +642,16 @@ namespace Tests.Core.Relationships
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
             var other_dependant = generator.GeneratorRandomModule(identifier: dependant.identifier, version: new Version(other));
 
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, min_version = new Version(dep_min)}
+                new ModDependency($"{dependant.identifier}>={dep_min}")
             });
             list.Add(depender.identifier);
             AddToRegistry(depender, dependant, other_dependant);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CkanModule>
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CfanModule>
             {
                 dependant,
                 depender
@@ -646,15 +670,16 @@ namespace Tests.Core.Relationships
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
             var other_dependant = generator.GeneratorRandomModule(identifier: dependant.identifier, version: new Version(other));
 
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, max_version = new Version(dep_max)}
+                new ModDependency($"{dependant.identifier}<={dep_max}")
             });
             list.Add(depender.identifier);
             AddToRegistry(depender, dependant, other_dependant);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CkanModule>
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CfanModule>
             {
                 dependant,
                 depender
@@ -673,15 +698,16 @@ namespace Tests.Core.Relationships
             var dependant = generator.GeneratorRandomModule(version: new Version(ver));
             var other_dependant = generator.GeneratorRandomModule(identifier: dependant.identifier, version: new Version(other));
 
-            var depender = generator.GeneratorRandomModule(depends: new List<RelationshipDescriptor>
+            var depender = generator.GeneratorRandomModule(depends: new List<ModDependency>
             {
-                new RelationshipDescriptor {name = dependant.identifier, min_version = new Version(dep_min), max_version = new Version(dep_max)}
+                new ModDependency($"{dependant.identifier}>={dep_min}<={dep_max}")
             });
             list.Add(depender.identifier);
             AddToRegistry(depender, dependant, other_dependant);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
-            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CkanModule>
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
+            CollectionAssert.AreEquivalent(relationship_resolver.ModList(), new List<CfanModule>
             {
                 dependant,
                 depender
@@ -693,14 +719,14 @@ namespace Tests.Core.Relationships
         public void Constructor_WithRegistryThatHasRequiredModuleRemoved_Throws()
         {
             var list = new List<string>();
-            var mod = generator.GeneratorRandomModule();
-            mod.ksp_version = new KSPVersion("0.10");
+            var mod = generator.GeneratorRandomModule(depends: new List<ModDependency> { new ModDependency("base==0.10")});
             list.Add(mod.identifier);
             registry.AddAvailable(mod);
             registry.RemoveAvailable(mod);
 
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
             Assert.Throws<ModuleNotFoundKraken>(() => new RelationshipResolver(
-                list,
+                modList,
                 options,
                 registry,
                 null));
@@ -715,24 +741,26 @@ namespace Tests.Core.Relationships
             list.Add(mod.identifier);
             registry.AddAvailable(mod);
             AddToRegistry(mod);
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
 
             var mod_not_in_resolver_list = generator.GeneratorRandomModule();
-            CollectionAssert.DoesNotContain(relationship_resolver.ModList(),mod_not_in_resolver_list);            
+            CollectionAssert.DoesNotContain(relationship_resolver.ModList(), mod_not_in_resolver_list);
             Assert.Throws<ArgumentException>(() => relationship_resolver.ReasonFor(mod_not_in_resolver_list));
-            
+
         }
 
         [Test]
         public void ReasonFor_WithUserAddedMods_GivesReasonUserAdded()
         {
             var list = new List<string>();
-            var mod = generator.GeneratorRandomModule();                        
+            var mod = generator.GeneratorRandomModule();
             list.Add(mod.identifier);
             registry.AddAvailable(mod);
             AddToRegistry(mod);
 
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
             var reason = relationship_resolver.ReasonFor(mod);
             Assert.That(reason, Is.AssignableTo<SelectionReason.UserRequested>());
         }
@@ -742,39 +770,51 @@ namespace Tests.Core.Relationships
         {
             var list = new List<string>();
             var sugested = generator.GeneratorRandomModule();
-            var mod =
-                generator.GeneratorRandomModule(sugests:
-                    new List<RelationshipDescriptor> {new RelationshipDescriptor {name = sugested.identifier}});
-            list.Add(mod.identifier);            
+            var mod = generator.GeneratorRandomModule(
+                depends: new List<ModDependency>
+                {
+                    new ModDependency($"? {sugested.identifier}")
+                }
+            );
+            list.Add(mod.identifier);
             AddToRegistry(mod, sugested);
 
             options.with_all_suggests = true;
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
             var reason = relationship_resolver.ReasonFor(sugested);
 
             Assert.That(reason, Is.AssignableTo<SelectionReason.Suggested>());
             Assert.That(reason.Parent, Is.EqualTo(mod));
         }
 
-        [Test]
+        /*[Test]
         public void ReasonFor_WithTreeOfMods_GivesCorrectParents()
         {
-            var list = new List<string>();            
+            var list = new List<string>();
             var sugested = generator.GeneratorRandomModule();
             var recommendedA = generator.GeneratorRandomModule();
             var recommendedB = generator.GeneratorRandomModule();
-            var mod = generator.GeneratorRandomModule(sugests: new List<RelationshipDescriptor> { new RelationshipDescriptor { name = sugested.identifier}});
+            var mod = generator.GeneratorRandomModule(
+                depends: new List<ModDependency>
+                {
+                    new ModDependency("? " + sugested.identifier)
+                },
+                recommends: new List<ModDependency>
+                {
+                    new ModDependency(recommendedA.identifier),
+                    new ModDependency(recommendedB.identifier)
+                }
+            );
             list.Add(mod.identifier);
-            sugested.recommends = new List<RelationshipDescriptor>
-            { new RelationshipDescriptor {name=recommendedA.identifier},
-              new RelationshipDescriptor { name = recommendedB.identifier}};
 
-            AddToRegistry(mod, sugested,recommendedA,recommendedB);
+            AddToRegistry(mod, sugested, recommendedA, recommendedB);
 
 
             options.with_all_suggests = true;
             options.with_recommends = true;
-            var relationship_resolver = new RelationshipResolver(list, options, registry, null);
+            var modList = list.Select(p => new CfanModuleIdAndVersion(p));
+            var relationship_resolver = new RelationshipResolver(modList, options, registry, null);
             var reason = relationship_resolver.ReasonFor(recommendedA);
             Assert.That(reason, Is.AssignableTo<SelectionReason.Recommended>());
             Assert.That(reason.Parent, Is.EqualTo(sugested));
@@ -782,7 +822,7 @@ namespace Tests.Core.Relationships
             reason = relationship_resolver.ReasonFor(recommendedB);
             Assert.That(reason, Is.AssignableTo<SelectionReason.Recommended>());
             Assert.That(reason.Parent, Is.EqualTo(sugested));
-        }
+        }*/
 
         // The whole point of autodetected mods is they can participate in relationships.
         // This makes sure they can (at least for dependencies). It may overlap with other
@@ -790,25 +830,31 @@ namespace Tests.Core.Relationships
         [Test]
         public void AutodetectedCanSatisfyRelationships()
         {
-            using (var ksp = new DisposableKSP ())
+            using (var ksp = new DisposableKSP())
             {
-                registry.RegisterDll(ksp.KSP, Path.Combine(ksp.KSP.GameData(), "ModuleManager.dll"));
+                registry.RegisterPreexistingModule(ksp.KSP, Path.Combine(ksp.KSP.GameData(), "ModuleManager.dll"), new ModInfoJson()
+                {
+                    name = "ModuleManager",
+                    version = new ModVersion("0.2.3")
+                });
 
-                var depends = new List<CKAN.RelationshipDescriptor>();
-                depends.Add(new CKAN.RelationshipDescriptor { name = "ModuleManager" });
+                var depends = new List<ModDependency>()
+                {
+                    new ModDependency("ModuleManager")
+                };
 
-                CkanModule mod = generator.GeneratorRandomModule(depends: depends);
+                CfanModule mod = generator.GeneratorRandomModule(depends: depends);
 
                 new RelationshipResolver(
-                    new CKAN.CkanModule[] { mod },
+                    new CfanModule[] { mod },
                     RelationshipResolver.DefaultOpts(),
                     registry,
-                    new KSPVersion("1.0.0")
+                    new FactorioVersion("1.0.0")
                 );
             }
         }
 
-        private void AddToRegistry(params CkanModule[] modules)
+        private void AddToRegistry(params CfanModule[] modules)
         {
             foreach (var module in modules)
             {

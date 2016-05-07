@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CKAN;
+using CKAN.Factorio;
 using log4net;
 using NUnit.Framework;
 using Tests.Data;
@@ -32,7 +33,7 @@ namespace Tests.Core.Net
             registry = ksp.KSP.Registry;
 
             registry.ClearAvailable();
-            registry.ClearDlls();
+            registry.ClearPreexistingModules();
             registry.Installed().Clear();
 
             // Make sure we have a registry we can use.
@@ -65,9 +66,9 @@ namespace Tests.Core.Net
 
             // We know kOS is in the TestKAN data, and hosted in KS. Let's get it.
 
-            var modules = new List<CkanModule>();
+            var modules = new List<CfanModule>();
 
-            CkanModule kOS = registry.LatestAvailable("kOS", null);
+            CfanModule kOS = registry.LatestAvailable("kOS", null);
             Assert.IsNotNull(kOS);
 
             modules.Add(kOS);
@@ -94,10 +95,10 @@ namespace Tests.Core.Net
         [Explicit]
         public void MultiDownload()
         {
-            var modules = new List<CkanModule>();
+            var modules = new List<CfanModule>();
 
-            CkanModule kOS = registry.LatestAvailable("kOS", null);
-            CkanModule quick_revert = registry.LatestAvailable("QuickRevert", null);
+            CfanModule kOS = registry.LatestAvailable("kOS", null);
+            CfanModule quick_revert = registry.LatestAvailable("QuickRevert", null);
 
             modules.Add(kOS);
             modules.Add(quick_revert);
@@ -117,7 +118,7 @@ namespace Tests.Core.Net
         [Explicit]
         public void RandSdownload()
         {
-            var modules = new List<CkanModule>();
+            var modules = new List<CfanModule>();
 
             var rAndS = TestData.RandSCapsuleDyneModule();
 

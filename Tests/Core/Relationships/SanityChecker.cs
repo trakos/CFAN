@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CKAN;
+using CKAN.Factorio;
 using NUnit.Framework;
 using Tests.Data;
 
@@ -26,13 +27,13 @@ namespace Tests.Core.Relationships
             registry.ClearPreexistingModules();
             registry.Installed().Clear();
 
-            Repo.UpdateRegistry(TestData.TestKANZip(), registry, ksp.KSP, new NullUser());
+            Repo.UpdateRegistry(TestData.TestKANTarGz(), registry, ksp.KSP, new NullUser());
         }
 
         [Test]
         public void Empty()
         {
-            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(new List<CkanModule>()));
+            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(new List<CfanModule>()));
         }
 
         [Test]
@@ -45,46 +46,46 @@ namespace Tests.Core.Relationships
         public void DogeCoin()
         {
             // Test with a module that depends and conflicts with nothing.
-            var mods = new List<CkanModule> {registry.LatestAvailable("DogeCoinFlag",null)};
+            var mods = new List<CfanModule> {registry.LatestAvailable("PersonalRoboportFix", null)};
 
-            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods), "DogeCoinFlag");
+            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods), "PersonalRoboportFix");
         }
 
         [Test]
         public void CustomBiomes()
         {
-            var mods = new List<CkanModule> {registry.LatestAvailable("CustomBiomes", null)};
+            var mods = new List<CfanModule> {registry.LatestAvailable("5dim_ores", null)};
 
-            Assert.IsFalse(CKAN.SanityChecker.IsConsistent(mods), "CustomBiomes without data");
+            Assert.IsFalse(CKAN.SanityChecker.IsConsistent(mods), "5dim_ores without boblibrary");
 
-            mods.Add(registry.LatestAvailable("CustomBiomesKerbal",null));
-            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods), "CustomBiomes with stock data");
+            mods.Add(registry.LatestAvailable("boblibrary", null));
+            Assert.IsFalse(CKAN.SanityChecker.IsConsistent(mods), "5dim_ores with boblibrary");
 
-            mods.Add(registry.LatestAvailable("CustomBiomesRSS",null));
-            Assert.IsFalse(CKAN.SanityChecker.IsConsistent(mods), "CustomBiomes with conflicting data");
+            mods.Add(registry.LatestAvailable("5dim_core", null));
+            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods), "5dim_ores with boblibrary and 5dim_core");
         }
 
         [Test]
         public void CustomBiomesWithDlls()
         {
-            var mods = new List<CkanModule>();
-            var dlls = new List<string> {"CustomBiomes"};
+            var mods = new List<CfanModule>();
+            var dlls = new List<string> { "5dim_ores" };
 
-            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods, dlls), "CustomBiomes dll by itself");
+            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods, dlls), "5dim_ores without boblibrary");
 
             // This would actually be a terrible thing for users to have, but it tests the
             // relationship we want.
-            mods.Add(registry.LatestAvailable("CustomBiomesKerbal",null));
-            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods, dlls), "CustomBiomes DLL, with config added");
+            mods.Add(registry.LatestAvailable("boblibrary", null));
+            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods, dlls), "5dim_ores with boblibrary");
 
-            mods.Add(registry.LatestAvailable("CustomBiomesRSS",null));
-            Assert.IsFalse(CKAN.SanityChecker.IsConsistent(mods, dlls), "CustomBiomes with conflicting data");
+            mods.Add(registry.LatestAvailable("5dim_core", null));
+            Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods, dlls), "5dim_ores with boblibrary and 5dim_core");
         }
 
-        [Test]
+        /*[Test]
         public void ConflictWithDll()
         {
-            var mods = new List<CkanModule> { registry.LatestAvailable("SRL",null) };
+            var mods = new List<CfanModule> { registry.LatestAvailable("SRL",null) };
             var dlls = new List<string> { "QuickRevert" };
 
             Assert.IsTrue(CKAN.SanityChecker.IsConsistent(mods), "SRL can be installed by itself");
@@ -94,7 +95,7 @@ namespace Tests.Core.Relationships
         [Test]
         public void ModulesToProvides()
         {
-            var mods = new List<CkanModule>
+            var mods = new List<CfanModule>
             {
                 registry.LatestAvailable("CustomBiomes",null),
                 registry.LatestAvailable("CustomBiomesKerbal",null),
@@ -107,62 +108,63 @@ namespace Tests.Core.Relationships
             Assert.Contains("CustomBiomesKerbal", provides.Keys);
             Assert.Contains("DogeCoinFlag", provides.Keys);
             Assert.AreEqual(4, provides.Keys.Count);
-        }
+        }*/
 
         [Test]
         public void FindUnmetDependencies()
         {
-            var mods = new List<CkanModule>();
+            var mods = new List<CfanModule>();
             var dlls = Enumerable.Empty<string>();
             Assert.IsEmpty(CKAN.SanityChecker.FindUnmetDependencies(mods, dlls), "Empty list");
 
-            mods.Add(registry.LatestAvailable("DogeCoinFlag",null));
-            Assert.IsEmpty(CKAN.SanityChecker.FindUnmetDependencies(mods, dlls), "DogeCoinFlag");
+            mods.Add(registry.LatestAvailable("PersonalRoboportFix", null));
+            Assert.IsEmpty(CKAN.SanityChecker.FindUnmetDependencies(mods, dlls), "PersonalRoboportFix");
 
-            mods.Add(registry.LatestAvailable("CustomBiomes",null));
-            Assert.Contains("CustomBiomesData", CKAN.SanityChecker.FindUnmetDependencies(mods, dlls).Keys, "Missing CustomBiomesData");
+            mods.Add(registry.LatestAvailable("5dim_ores", null));
+            Assert.Contains("boblibrary", CKAN.SanityChecker.FindUnmetDependencies(mods, dlls).Keys, "Missing boblibrary");
+            Assert.Contains("5dim_core", CKAN.SanityChecker.FindUnmetDependencies(mods, dlls).Keys, "Missing 5dim_core");
 
-            mods.Add(registry.LatestAvailable("CustomBiomesKerbal",null));
-            Assert.IsEmpty(CKAN.SanityChecker.FindUnmetDependencies(mods, dlls), "CBD+CBK");
+            mods.Add(registry.LatestAvailable("5dim_core", null));
+            mods.Add(registry.LatestAvailable("boblibrary", null));
+            Assert.IsEmpty(CKAN.SanityChecker.FindUnmetDependencies(mods, dlls));
 
-            mods.RemoveAll(x => x.identifier == "CustomBiomes");
-            Assert.AreEqual(2, mods.Count, "Checking removed CustomBiomes");
+            mods.RemoveAll(x => x.identifier == "boblibrary");
+            Assert.AreEqual(3, mods.Count, "Checking removed boblibrary");
 
-            Assert.Contains("CustomBiomes", CKAN.SanityChecker.FindUnmetDependencies(mods, dlls).Keys, "Missing CustomBiomes");
+            Assert.Contains("boblibrary", CKAN.SanityChecker.FindUnmetDependencies(mods, dlls).Keys, "Missing boblibrary");
         }
 
         [Test]
         public void ReverseDepends()
         {
-            var mods = new List<CkanModule>
+            var mods = new List<CfanModule>
             {
-                registry.LatestAvailable("CustomBiomes",null),
-                registry.LatestAvailable("CustomBiomesKerbal",null),
-                registry.LatestAvailable("DogeCoinFlag",null)
+                registry.LatestAvailable("bobores",null),
+                registry.LatestAvailable("boblibrary",null),
+                registry.LatestAvailable("PersonalRoboportFix",null)
             };
 
             // Make sure some of our expectations regarding dependencies are correct.
-            Assert.Contains("CustomBiomes", registry.LatestAvailable("CustomBiomesKerbal",null).depends.Select(x => x.name).ToList());
-            Assert.Contains("CustomBiomesData", registry.LatestAvailable("CustomBiomes",null).depends.Select(x => x.name).ToList());
+            Assert.Contains("boblibrary", registry.LatestAvailable("bobores", null).depends.Select(x => x.modName).ToList());
 
-            // Removing DCF should only remove itself.
-            var to_remove = new List<string> {"DogeCoinFlag"};
-            TestDepends(to_remove, mods, null, to_remove, "DogeCoin Removal");
+            // Removing PRF should only remove itself.
+            var to_remove = new List<string> { "PersonalRoboportFix" };
+            TestDepends(to_remove, mods, null, to_remove, "PersonalRoboportFix Removal");
 
-            // Removing CB should remove its data, and vice-versa.
+            // Removing CB should remove its data/*, and vice-versa.*/
             to_remove.Clear();
-            to_remove.Add("CustomBiomes");
-            var expected = new List<string> {"CustomBiomes", "CustomBiomesKerbal"};
-            TestDepends(to_remove, mods, null, expected, "CustomBiomes removed");
+            to_remove.Add("boblibrary");
+            var expected = new List<string> { "bobores", "boblibrary" };
+            TestDepends(to_remove, mods, null, expected, "boblibrary removed");
 
-            // We expect the same result removing CBK
+            /*// We expect the same result removing CBK
             to_remove.Clear();
             to_remove.Add("CustomBiomesKerbal");
-            TestDepends(to_remove, mods, null, expected, "CustomBiomesKerbal removed");
+            TestDepends(to_remove, mods, null, expected, "CustomBiomesKerbal removed");*/
 
             // And we expect the same result if we try to remove both.
-            to_remove.Add("CustomBiomes");
-            TestDepends(to_remove, mods, null, expected, "CustomBiomesKerbal and data removed");
+            to_remove.Add("bobores");
+            TestDepends(to_remove, mods, null, expected, "bobores and boblibrary removed");
 
             // Finally, if we try to remove nothing, we shold get back the empty set.
             expected.Clear();
@@ -171,7 +173,7 @@ namespace Tests.Core.Relationships
 
         }
 
-        private static void TestDepends(List<string> to_remove, List<CkanModule> mods, List<string> dlls, List<string> expected, string message)
+        private static void TestDepends(List<string> to_remove, List<CfanModule> mods, List<string> dlls, List<string> expected, string message)
         {
             dlls = dlls ?? new List<string>();
 

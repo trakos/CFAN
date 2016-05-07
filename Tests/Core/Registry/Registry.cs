@@ -1,5 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.Transactions;
 using CKAN;
+using CKAN.Factorio;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Version;
 using NUnit.Framework;
 using Tests.Data;
 
@@ -8,10 +13,10 @@ namespace Tests.Core.Registry
     [TestFixture]
     public class Registry
     {
-        private static readonly CkanModule module = TestData.kOS_014_module();
+        private static readonly CfanModule module = new RandomModuleGenerator(new Random()).GeneratorRandomModule();
         private static readonly string identifier = module.identifier;
-        private static readonly KSPVersion v0_24_2 = new KSPVersion("0.24.2");
-        private static readonly KSPVersion v0_25_0 = new KSPVersion("0.25.0");
+        private static readonly FactorioVersion v0_24_2 = new FactorioVersion("0.11.22");
+        private static readonly FactorioVersion v0_25_0 = new FactorioVersion("0.13.0");
 
         private CKAN.Registry registry;
 
@@ -52,7 +57,7 @@ namespace Tests.Core.Registry
             Assert.IsNotNull(registry.LatestAvailable(identifier, v0_24_2));
 
             // Remove it, and make sure it's gone.
-            registry.RemoveAvailable(identifier, module.version);
+            registry.RemoveAvailable(identifier, module.modVersion);
 
             Assert.IsNull(registry.LatestAvailable(identifier, v0_24_2));
         }
@@ -73,19 +78,19 @@ namespace Tests.Core.Registry
         [Test]
         public void LatestAvailable()
         {
-
+            var module = new RandomModuleGenerator(new Random()).GeneratorRandomModule(depends: new List<ModDependency>() { new ModDependency($"base=={v0_24_2}")});
             registry.AddAvailable(module);
 
             // Make sure it's there for 0.24.2
-            Assert.AreEqual(module.ToString(), registry.LatestAvailable(identifier, v0_24_2).ToString());
+            Assert.AreEqual(module.ToString(), registry.LatestAvailable(module.identifier, v0_24_2).ToString());
 
             // But not for 0.25.0
-            Assert.IsNull(registry.LatestAvailable(identifier, v0_25_0));
+            Assert.IsNull(registry.LatestAvailable(module.identifier, v0_25_0));
 
             // And that we fail if we ask for something we don't know.
             Assert.Throws<ModuleNotFoundKraken>(delegate
             {
-                registry.LatestAvailable("ToTheMun", v0_24_2);
+                registry.LatestAvailable("PocketBots", v0_24_2);
             });
         }
 

@@ -1,4 +1,5 @@
 ﻿using CKAN;
+using CKAN.Factorio;
 using NUnit.Framework;
 using Tests.Data;
 
@@ -35,11 +36,11 @@ namespace Tests.Core.Registry
         [Test]
         public void LatestAvailable()
         {
-            CkanModule module =
-                registry.LatestAvailable("AGExt", temp_ksp.KSP.Version());
+            CfanModule module =
+                registry.LatestAvailable("FARL", temp_ksp.KSP.Version());
 
-            Assert.AreEqual("AGExt", module.identifier);
-            Assert.AreEqual("1.24a", module.version.ToString());
+            Assert.AreEqual("FARL", module.identifier);
+            Assert.AreEqual("0.5.24", module.modVersion.ToString());
         }
     }
 }

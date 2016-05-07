@@ -63,9 +63,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Data\CKAN-meta-badkan.zip" />
-    <None Include="Data\CKAN-meta-testkan.tar.gz" />
-    <None Include="Data\CKAN-meta-testkan.zip" />
     <None Include="Data\data\DogeCoinFlag-1.01-corrupt.zip" />
     <None Include="Data\data\DogeCoinFlag-1.01.zip" />
     <None Include="Data\data\DogeCoinFlag-extra-files.zip" />
@@ -80,11 +77,7 @@
     <None Include="Data\data\README.md" />
     <None Include="Data\data\registry.json" />
     <None Include="Data\DogeCoinFlag-1.01-corrupt.zip" />
-    <None Include="Data\DogeCoinFlag-1.01.zip" />
-    <None Include="Data\DogeCoinFlag-extra-files.zip" />
-    <None Include="Data\DogeCoinFlag-multiple-vrefs.netkan" />
-    <None Include="Data\DogeCoinFlag-no-vrefs.netkan" />
-    <None Include="Data\DogeCoinFlag-single-vref.netkan" />
+    <None Include="Data\empty_assets.json" />
     <None Include="Data\FileIdentifier\test_ascii.tmp" />
     <None Include="Data\FileIdentifier\test_tar.tar" />
     <None Include="Data\FileIdentifier\test_tar.tmp" />
@@ -92,22 +85,14 @@
     <None Include="Data\FileIdentifier\test_targz.tmp" />
     <None Include="Data\FileIdentifier\test_zip.tmp" />
     <None Include="Data\FileIdentifier\test_zip.zip" />
-    <None Include="Data\Firespitter-6.3.5.ckan" />
-    <None Include="Data\gh221.zip" />
-    <None Include="Data\ksp-avc-one-line.version" />
-    <None Include="Data\ksp-avc.version" />
     <None Include="Data\KSP\KSP-0.25\GameData\README.md" />
     <None Include="Data\KS\CustomAsteroids.json" />
     <None Include="Data\KS\README.md" />
     <None Include="Data\lib\CkanTests.pm" />
-    <None Include="Data\ModuleManager-2.5.1.ckan" />
-    <None Include="Data\ModuleManager-2.5.1.zip" />
     <None Include="Data\README.md" />
-    <None Include="Data\registry.json" />
     <None Include="Data\test-sln.sh" />
     <None Include="packages.config" />
     <None Include="Tests.v2.ncrunchproject" />
-    <None Include="Data\CKAN-meta-badkan.tar.gz" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Cache.cs" />
@@ -127,8 +112,6 @@
     <Compile Include="Core\Relationships\SanityChecker.cs" />
     <Compile Include="Core\Types\KSPVersion.cs" />
     <Compile Include="Core\Types\License.cs" />
-    <Compile Include="Core\Types\Module.cs" />
-    <Compile Include="Core\Types\ModuleInstallDescriptorTests.cs" />
     <Compile Include="Core\Types\ReleaseStatus.cs" />
     <Compile Include="Core\Types\Version.cs" />
     <Compile Include="Data\DisposableKSP.cs" />
@@ -137,35 +120,8 @@
     <Compile Include="GUI\Configuration.cs" />
     <Compile Include="GUI\GUIMod.cs" />
     <Compile Include="GUI\MainModList.cs" />
-    <Compile Include="NetKAN\AVC.cs" />
-    <Compile Include="NetKAN\Extensions\JObjectExtensionsTests.cs" />
-    <Compile Include="NetKAN\Extensions\VersionExtensionsTests.cs" />
-    <Compile Include="NetKAN\JenkinsTests.cs" />
-    <Compile Include="NetKAN\SDMod.cs" />
-    <Compile Include="NetKAN\MainClass.cs" />
-    <Compile Include="NetKAN\Services\FileServiceTests.cs" />
-    <Compile Include="NetKAN\Services\ModuleServiceTests.cs" />
-    <Compile Include="NetKAN\Sources\Github\GithubApiTests.cs" />
-    <Compile Include="NetKAN\Sources\Spacedock\SpacedockApiTests.cs" />
-    <Compile Include="NetKAN\Transformers\AvcTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\DownloadSizeTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\GeneratedByTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\GithubTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\HttpTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\InternalCkanTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\SpacedockTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\MetaNetkanTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\StripNetkanMetadataTransformerTests.cs" />
-    <Compile Include="NetKAN\Transformers\VersionEditTransformerTests.cs" />
-    <Compile Include="NetKAN\Validators\CkanValidatorTests.cs" />
-    <Compile Include="NetKAN\Validators\HasIdentifierValidatorTests.cs" />
-    <Compile Include="NetKAN\Validators\InstallsFilesValidatorTests.cs" />
-    <Compile Include="NetKAN\Validators\IsCkanModuleValidatorTests.cs" />
-    <Compile Include="NetKAN\Validators\MatchingIdentifiersValidatorTests.cs" />
-    <Compile Include="NetKAN\Validators\NetkanValidatorTests.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Core\Types\RelationshipDescriptor.cs" />
-    <Compile Include="NetKAN\NetkanOverride.cs" />
     <Compile Include="Core\Net\AutoUpdate.cs" />
     <Compile Include="Core\Types\GameComparator.cs" />
   </ItemGroup>
@@ -180,6 +136,7 @@
     <Content Include="Data\KSP\bad-KSP\readme.txt" />
     <Content Include="Data\KSP\KSP-0.25\readme.txt" />
     <Content Include="Data\KSP\missing-gamedata\readme.txt" />
+    <None Include="Data\assets.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\CKAN-core.csproj">

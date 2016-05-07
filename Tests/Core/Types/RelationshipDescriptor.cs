@@ -1,4 +1,7 @@
 ﻿using CKAN;
+using CKAN.Factorio.Relationships;
+using CKAN.Factorio.Schema;
+using CKAN.Factorio.Version;
 using NUnit.Framework;
 using Tests.Data;
 
@@ -8,71 +11,53 @@ namespace Tests.Core.Types
     public class RelationshipDescriptor
     {
 
-        CKAN.Version autodetected = new CKAN.DllVersion();
+        AbstractVersion autodetected = new AutodetectedVersion("");
 
         [Test]
-        [TestCase("0.23","0.23", true)]
-        [TestCase("wibble","wibble",true)]
-        [TestCase("0.23", "0.23.1", false)]
-        [TestCase("wibble","wobble", false)]
-        public void VersionWithinBounds_ExactFalse(string version, string other_version, bool expected)
+        [TestCase("asd==0.23", "asd", "0.23", true)]
+        [TestCase("wibble", "wibble", "1.0", true)]
+        [TestCase("asd==0.23", "asd", "0.23.1", false)]
+        [TestCase("wibble", "wobble", "1.0", false)]
+        public void VersionWithinBounds_ExactFalse(string modDependencyString, string modName, string versionName, bool expected)
         {
-            var rd = new CKAN.RelationshipDescriptor { version = new CKAN.Version(version) };
-            Assert.AreEqual(expected, rd.version_within_bounds(new CKAN.Version(other_version)));
+            var modDependency = new ModDependency(modDependencyString);
+            Assert.AreEqual(expected, modDependency.isSatisfiedBy(modName, new ModVersion(versionName)));
         }
 
         [Test]
-        [TestCase("0.20","0.23","0.21", true)]
-        [TestCase("0.20","0.23","0.20", true)]
-        [TestCase("0.20","0.23","0.23", true)]
-        public void VersionWithinBounds_MinMax(string min, string max, string compare_to, bool expected)
+        [TestCase("0.20", "0.23", "0.21", true)]
+        [TestCase("0.20", "0.23", "0.20", true)]
+        [TestCase("0.20", "0.23", "0.23", true)]
+        public void VersionWithinBounds_MinMax(string min, string max, string compareTo, bool expected)
         {
-            var rd = new CKAN.RelationshipDescriptor
-            {
-                min_version = new CKAN.Version(min),
-                max_version = new CKAN.Version(max)
-            };
+            string modName = "someModName";
+            var modDependency = new ModDependency($"{modName}>={min}<={max}");
+            var version = new ModVersion(compareTo);
 
-            Assert.AreEqual(expected, rd.version_within_bounds(new CKAN.Version(compare_to)));
+            Assert.AreEqual(expected, modDependency.isSatisfiedBy(modName, version));
         }
 
         [Test]
         [TestCase("0.23")]
         public void VersionWithinBounds_vs_AutoDetectedMod(string version)
         {
-            var rd = new CKAN.RelationshipDescriptor { version = new CKAN.Version(version) };
+            string modName = "someModName";
+            var modDependency = new ModDependency($"{modName}>=5.6.0");
+            var autodetected = new AutodetectedVersion("1.0");
 
-            Assert.True(rd.version_within_bounds(autodetected));
+            Assert.False(modDependency.isSatisfiedBy(modName, autodetected));
         }
 
         [Test]
-        [TestCase("0.20","0.23")]
+        [TestCase("0.20", "0.23")]
         public void VersionWithinBounds_MinMax_vs_AutoDetectedMod(string min, string max)
         {
-            var rd = new CKAN.RelationshipDescriptor
-            {
-                min_version = new CKAN.Version(min),
-                max_version = new CKAN.Version(max)
-            };
-            
-            Assert.True(rd.version_within_bounds(autodetected));
+            string modName = "someModName";
+            var modDependency = new ModDependency($"{modName}>={min}<={max}");
+            var autodetected = new AutodetectedVersion("0.0.1");
+
+            Assert.False(modDependency.isSatisfiedBy(modName, autodetected));
         }
-
-        [Test]
-        [TestCase("wibble")]
-        public void VersionWithinBounds_Null(string version)
-        {
-            var rd = new CKAN.RelationshipDescriptor();
-
-            Assert.True(rd.version_within_bounds(new CKAN.Version(version)));
-        }
-
-        [Test]
-        public void VersionWithinBounds_AllNull()
-        {
-            var rd = new CKAN.RelationshipDescriptor();
-
-            Assert.True(rd.version_within_bounds(null));        }
     }
 }
 

@@ -1,25 +1,26 @@
 ﻿using System;
+using System.IO;
 using CKAN;
 using NUnit.Framework;
 using System.Net;
+using Newtonsoft.Json.Linq;
+using Tests.Data;
 
 namespace Tests.Core.AutoUpdate
 {
     [TestFixture]
     public class AutoUpdate
     {
-        // pjf's repo has no releases, so tests on this URL should fail
-        private readonly Uri test_ckan_release = new Uri("https://api.github.com/repos/pjf/CKAN/releases/latest");
-
         [Test]
-        [Category("Online")]
-        // We expect a kraken when looking at a URL with no releases.
+        // We expect a kraken when looking at a json with no releases.
         public void FetchCkanUrl()
         {
             Assert.Throws<CKAN.Kraken>(delegate
-                {
-                    Fetch(test_ckan_release);
-                }
+            {
+                string jsonText = File.ReadAllText(TestData.GithubEmptyAssetsJsonFilePath());
+                JObject jObject = JObject.Parse(jsonText);
+                CKAN.AutoUpdate.Instance.RetrieveUrl(jObject, "cfan.exe");
+            }
             );
         }
 
@@ -50,11 +51,6 @@ namespace Tests.Core.AutoUpdate
                 CKAN.AutoUpdate.Instance.ExtractReleaseNotes(body),
                 comment
             );
-        }
-
-        private void Fetch(Uri url)
-        {
-            CKAN.AutoUpdate.Instance.RetrieveUrl(CKAN.AutoUpdate.Instance.MakeRequest(url));
         }
     }
 }

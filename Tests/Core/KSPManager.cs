@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using CKAN;
 using NUnit.Framework;
 using Tests.Data;
@@ -10,6 +11,7 @@ namespace Tests.Core
     [TestFixture] public class KSPManagerTests
     {
         private DisposableKSP tidy;
+        private DisposableKSP tidy2;
         private const string nameInReg = "testing";
         private FakeWin32Registry win32_reg;
         KSPManager manager;
@@ -18,6 +20,7 @@ namespace Tests.Core
         public void SetUp()
         {
             tidy = new DisposableKSP();
+            tidy2 = new DisposableKSP();
             win32_reg = GetTestWin32Reg(nameInReg);
             manager = new KSPManager(new NullUser(), win32_reg);
         }
@@ -25,7 +28,13 @@ namespace Tests.Core
         [TearDown]
         public void TearDown()
         {
+            manager.Dispose();
+            manager = null;
+            win32_reg = null;
+            tidy.KSP.Dispose();
+            tidy2.KSP.Dispose();
             tidy.Dispose();
+            tidy2.Dispose();
         }
 
         [Test]
@@ -61,8 +70,10 @@ namespace Tests.Core
         [Test]
         public void RemoveInstance_HasInstanceReturnsFalse()
         {
+            var instance = manager.Instances[nameInReg];
             manager.RemoveInstance(nameInReg);
             Assert.False(manager.HasInstance(nameInReg));
+            instance.Dispose();
         }
 
         [Test]
@@ -98,13 +109,10 @@ namespace Tests.Core
         [Test]
         public void AddInstance_ManagarHasInstance()
         {
-            using (var tidy2 = new DisposableKSP())
-            {
-                const string newInstance = "tidy2";
-                Assert.That(manager.HasInstance(newInstance), Is.False);
-                manager.AddInstance(newInstance, tidy2.KSP);
-                Assert.That(manager.HasInstance(newInstance),Is.True);
-            }
+            const string newInstance = "tidy2";
+            Assert.That(manager.HasInstance(newInstance), Is.False);
+            manager.AddInstance(newInstance, tidy2.KSP);
+            Assert.That(manager.HasInstance(newInstance),Is.True);
         }
 
         [Test]
@@ -116,14 +124,13 @@ namespace Tests.Core
         [Test]
         public void GetPreferredInstance_WithEmptyAutoStartAndMultipleInstances_ReturnsNull()
         {
-            using (var tidy2 = new DisposableKSP())
+            win32_reg.Instances.Add(new Tuple<string, string>("tidy2",tidy2.KSP.GameDir()));
+            manager.LoadInstancesFromRegistry();
+            manager.ClearAutoStart();
+            using (var instance = manager.GetPreferredInstance())
             {
-                win32_reg.Instances.Add(new Tuple<string, string>("tidy2",tidy2.KSP.GameDir()));
-                manager.LoadInstancesFromRegistry();
-                manager.ClearAutoStart();
-                Assert.That(manager.GetPreferredInstance(), Is.Null);
+                Assert.That(instance, Is.Null);
             }
-
         }
 
         [Test]
@@ -142,8 +149,7 @@ namespace Tests.Core
         [Test] //37a33
         public void Ctor_InvalidAutoStart_DoesNotThrow()
         {
-            Assert.DoesNotThrow(() => new KSPManager(new NullUser(),new FakeWin32Registry(tidy.KSP, "invalid")
-                ));
+            Assert.DoesNotThrow(() => new KSPManager(new NullUser(), new FakeWin32Registry(tidy.KSP, "invalid")).Dispose());
         }
 
 
