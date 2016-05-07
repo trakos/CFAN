@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using CKAN.Factorio;
 using CKAN.Factorio.Relationships;
 using CKAN.Factorio.Version;
@@ -115,6 +116,23 @@ namespace CKAN
             }
         }
 
+        private static List<CfanModule> getModulesFromRegistry(
+            IEnumerable<CfanModuleIdAndVersion> module_names, IRegistryQuerier registry, FactorioVersion kspversion)
+        {
+            return module_names.Select(
+                    p =>
+                    {
+                        var mod = p.version != null
+                            ? registry.GetModuleByVersion(p.identifier, p.version)
+                            : registry.LatestAvailable(p.identifier, kspversion);
+                        if (mod == null)
+                        {
+                            throw new ModuleNotFoundKraken(p.identifier, p.version?.ToString(), "Module not found.");
+                        }
+                        return mod;
+                    }).ToList();
+        }
+
         /// <summary>
         /// Attempts to convert the module_names to ckan modules via  CkanModule.FromIDandVersion and then calls RelationshipResolver.ctor(IEnumerable{CkanModule}, Registry, KSPVersion)"/>
         /// </summary>
@@ -123,7 +141,7 @@ namespace CKAN
         /// <param name="registry"></param>
         /// <param name="kspversion"></param>
         public RelationshipResolver(IEnumerable<CfanModuleIdAndVersion> module_names, RelationshipResolverOptions options, IRegistryQuerier registry, FactorioVersion kspversion) :
-                this(module_names.Select(p => p.version != null ? registry.GetModuleByVersion(p.identifier, p.version) : registry.LatestAvailable(p.identifier, kspversion)).ToList(),
+                this(getModulesFromRegistry(module_names, registry, kspversion),
                     options,
                     registry,
                     kspversion)
@@ -172,7 +190,7 @@ namespace CKAN
             // virtual packages.
             foreach (var module in ckan_modules)
             {
-                log.DebugFormat("Preparing to resolve relationships for {0} {1}", module.identifier, module.modVersion);
+                log?.DebugFormat("Preparing to resolve relationships for {0} {1}", module.identifier, module.modVersion);
 
                 //Need to check against installed mods and those to install.
                 var mods = modlist.Values.Concat(installed_modules).Where(listed_mod => listed_mod.ConflictsWith(module));

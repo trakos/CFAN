@@ -119,8 +119,8 @@ namespace CKAN
         /// the <see cref="CKAN.KSP"/> was occupying.</remarks>
         public void Dispose()
         {
-            if (Cache != null)
-                Cache.Dispose();
+            Cache?.Dispose();
+            Cache = null;
         }
 
         #endregion

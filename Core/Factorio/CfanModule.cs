@@ -9,7 +9,7 @@ using CKAN.Factorio.Version;
 
 namespace CKAN.Factorio
 {
-    public class CfanModule
+    public class CfanModule : IEquatable<CfanModule>
     {
         protected internal CfanJson cfanJson;
 
@@ -79,6 +79,11 @@ namespace CKAN.Factorio
         {
             ModDependency baseGame = cfanJson.modInfo.dependencies.FirstOrDefault(p => p.modName == "base");
             return baseGame?.maxVersion != null ? new FactorioVersion(baseGame.maxVersion.ToString()) : null;
+        }
+
+        public bool Equals(CfanModule other)
+        {
+            return other.ToString() == ToString();
         }
 
         public override string ToString()

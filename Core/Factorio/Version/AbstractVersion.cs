@@ -20,6 +20,16 @@ namespace CKAN.Factorio.Version
             return CompareTo(other) > 0;
         }
 
+        public bool IsLessThan(AbstractVersion other)
+        {
+            return CompareTo(other) < 0;
+        }
+
+        public bool IsEqualTo(AbstractVersion other)
+        {
+            return Equals(other);
+        }
+
         public bool Equals(AbstractVersion other)
         {
             if ((object) other == null)

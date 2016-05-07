@@ -10,7 +10,7 @@ namespace CKAN
     /// <summary>
     /// Manage multiple KSP installs.
     /// </summary>
-    public class KSPManager
+    public class KSPManager : IDisposable
     {
         public IUser User { get; set; }
         public IWin32Registry Win32Registry { get; set; }
@@ -197,6 +197,7 @@ namespace CKAN
         /// </summary>
         public void RemoveInstance(string name)
         {
+            instances[name].Dispose();
             instances.Remove(name);
             Win32Registry.SetRegistryToInstances(instances, AutoStartInstance);
         }
@@ -264,6 +265,11 @@ namespace CKAN
         {
             log.Debug("Loading Factorio instances from registry");
 
+            foreach (KeyValuePair<string, KSP> keyValuePair in instances)
+            {
+                keyValuePair.Value.Dispose();
+            }
+
             instances.Clear();
 
             foreach (Tuple<string, string> instance in Win32Registry.GetInstances())
@@ -296,6 +302,15 @@ namespace CKAN
                 log.WarnFormat("Auto-start instance was invalid: {0}", e.Message);
                 AutoStartInstance = null;
             }
+        }
+
+        public void Dispose()
+        {
+            foreach (var ksp in Instances.Values)
+            {
+                ksp.Dispose();
+            }
+            Instances.Clear();
         }
     }
 

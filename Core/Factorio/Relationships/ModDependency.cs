@@ -31,14 +31,6 @@ namespace CKAN.Factorio.Relationships
             }
             isOptional = match.Groups["isOptional"].Success;
             modName = match.Groups["modName"].Value;
-            if (countTruth(
-                match.Groups["minVersion"].Success,
-                match.Groups["maxVersion"].Success,
-                match.Groups["exactVersion"].Success
-                ) > 1)
-            {
-                throw new ArgumentException($"Invalid mod requirement string: '{modRequirementString}'", nameof(modRequirementString));
-            }
             if (match.Groups["minVersion"].Success)
             {
                 if (!modRequirementString.Contains(">="))
