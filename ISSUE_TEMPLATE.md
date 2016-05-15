@@ -1,8 +1,6 @@
 Thanks for wanting to bring an issue to our attention!
 
-Before you open a ticket, please do a quick search of the existing issues to see if it's already been brought up.
-
-**CKAN Version:** 
+**CFAN Version:**
 
 **Operating System:** 
 
@@ -10,4 +8,4 @@ Before you open a ticket, please do a quick search of the existing issues to see
 
 **How to recreate this issue:** 
 
-**CKAN error codes (if applicable):** 
+**CFAN error codes (if applicable):**

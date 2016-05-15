@@ -1,12 +1,12 @@
-You can use the CKAN and its associated files under the MIT license,
+You can use the CFAN and its associated files under the MIT license,
 reproduced below. This includes the right to sublicense under compatible
 licenses, including (but not limited to) creative commons, GPL, and LGPL
 licenses.
 
 ---
 
-Copyright the Comprehensive Kerbal Archive Network (CKAN) Authors.
-https://github.com/KSP-CKAN/CKAN/graphs/contributors
+Copyright the Comprehensive Kerbal Archive Network (CKAN) Authors and the Cool Factorio Archive Network (CFAN).
+https://github.com/trakos/CFAN/graphs/contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
