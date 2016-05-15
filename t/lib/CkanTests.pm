@@ -6,7 +6,7 @@ use FindBin qw($Bin);
 
 =method cmdline
 
-Returns the C<ckan.exe> command executable, or throws an
+Returns the C<cfan.exe> command executable, or throws an
 exception if not found.
 
 =cut
@@ -14,7 +14,7 @@ exception if not found.
 sub cmdline {
     # This isn't the best way to locate our executable, but until
     # we have tests in sub-dirs, it should work.
-    my $cmdline = "$Bin/../ckan.exe";
+    my $cmdline = "$Bin/../build/cfan.exe";
     -x $cmdline or die "Cannot find $cmdline";
     return $cmdline;
 }

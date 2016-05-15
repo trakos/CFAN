@@ -8,14 +8,14 @@ build: FORCE
 	bin/build
 
 clean:
-	rm -rf AutoUpdate/bin AutoUpdate/obj \
-	       Cmdline/bin    Cmdline/obj \
-	       Core/bin       Core/obj \
-	       GUI/bin        GUI/obj \
-	       Netkan/bin     Netkan/obj \
-	       Tests/bin      Tests/obj \
-	       ckan.exe       ckan.exe.mdb \
-	       netkan.exe     netkan.exe.mdb
+	rm -rf AutoUpdate/bin  AutoUpdate/obj \
+	       Cmdline/bin     Cmdline/obj \
+	       Core/bin        Core/obj \
+	       GUI/bin         GUI/obj \
+	       CFAN-netfan/bin CFAN-netfan/obj \
+	       Tests/bin       Tests/obj \
+	       cfan.exe        cfan.exe.mdb \
+	       netfan.exe      netfan.exe.mdb
 
 test: build
 	nunit-console --exclude=FlakyNetwork build/Tests/bin/Debug/CKAN.Tests.dll

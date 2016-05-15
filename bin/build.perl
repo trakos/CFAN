@@ -16,12 +16,12 @@ use Fcntl qw(SEEK_SET);
 
 my $REPACK  = "Core/packages/ILRepack.1.25.0/tools/ILRepack.exe";
 my $TARGET  = "Debug";      # Even our releases contain debugging info
-my $OUTNAME = "cfan.exe";   # Or just `ckan` if we want to be unixy
+my $OUTNAME = "cfan.exe";
 my $BUILD   = "$Bin/../build";
-my @SOURCE  = map { "$Bin/../$_"} qw(Core Cmdline GUI CFAN-Netfan Tests AutoUpdate CKAN CKAN.sln);
+my @SOURCE  = map { "$Bin/../$_"} qw(Core Cmdline GUI CFAN-netfan Tests AutoUpdate CKAN CKAN.sln);
 my $METACLASS = "Core/Meta.cs";
 
-my @PROJECTS = qw(Cmdline Core GUI CFAN-Netfan);
+my @PROJECTS = qw(Core Cmdline GUI CFAN-netfan Tests);
 
 my @BUILD_OPTS = is_stable() ? "/p:DefineConstants=STABLE" : ();
 
@@ -35,6 +35,14 @@ mkdir($BUILD);
 foreach my $file (@SOURCE) {
     copy($file, $BUILD . "/" . basename($file));
 }
+
+# Remove any old build artifacts
+foreach my $project (@PROJECTS) {
+    -d "$project" or die "Can't find project $project in build dir";
+    remove_tree(File::Spec->catdir($BUILD, "$project/bin"));
+    remove_tree(File::Spec->catdir($BUILD, "$project/obj"));
+}
+
 
 # Change to our build directory
 chdir($BUILD);
@@ -54,16 +62,9 @@ else {
     warn "No recent tag found, making development build.\n";
 }
 
-
-# Remove any old build artifacts
-foreach my $project (@PROJECTS) {
-    -d "$project" or die "Can't find project $project in build dir";
-    remove_tree(File::Spec->catdir($BUILD, "$project/bin"));
-    remove_tree(File::Spec->catdir($BUILD, "$project/obj"));
-}
-
 # And build..
-system("cmd", "/C", "xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/cfan.ico", "CKAN.sln");
+say("xbuild /property:Configuration=$TARGET @BUILD_OPTS /property:win32icon=../GUI/cfan.ico CKAN.sln");
+system("xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/cfan.ico", "CKAN.sln");
 
 say "\n\n=== Repacking ===\n\n";
 
@@ -104,9 +105,9 @@ system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
     "mono",
     $REPACK,
     "--out:build/cfan_headless.exe",
-    "--lib:build/CmdLine/bin/$TARGET",
-    "build/CmdLine/bin/$TARGET/cfan_headless.exe",
-    glob("build/CmdLine/bin/$TARGET/*.dll")
+    "--lib:build/Cmdline/bin/$TARGET",
+    "build/Cmdline/bin/$TARGET/cfan_headless.exe",
+    glob("build/Cmdline/bin/$TARGET/*.dll")
 );
 
 system([0,1], qq{@cmd | grep -v "Duplicate Win32 resource"});
@@ -170,12 +171,12 @@ sub set_build {
 }
 
 sub is_stable {
-    return 1;
     my $branch = eval { capturex(qw(git rev-parse --abbrev-ref HEAD)) };
 
     return 0 if not $branch;    # If git fails, we're not stable. See #546.
 
     return $branch =~ m{
+        ^master$|
         (\b|_)stable(\b|_)|   # Contains stable as a word (underscores ok)
         v\d+\.\d*[02468]$     # Ends with vx.y, where y is even.
     }x;

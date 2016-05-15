@@ -27,3 +27,5 @@ netkan.exe
 quotes.txt.dat
 CFAN-netfan/bin/
 CFAN-netfan/obj/
+.idea
+*.iml

@@ -34,11 +34,11 @@ namespace Tests.Core
             }
 
             // We should always be in the form v0.xx (pre-release series),
-            // or vx.x.x (released). We also permit a (-RC\d+) extension for
+            // or x.x.x (released). We also permit a (-RC\d+) extension for
             // release candidates, and -PRE\d for pre-releases.
 
             Assert.IsTrue(
-                Regex.IsMatch(version.ToString(), @"^v(?:0.\d+|\d+\.\d+\.\d+(?:-(?:RC|PRE)\d+)?)$"),
+                Regex.IsMatch(version.ToString(), @"^(?:0.\d+|\d+\.\d+\.\d+(?:-(?:RC|PRE)\d+)?)$"),
                 version.ToString());
         }
     }

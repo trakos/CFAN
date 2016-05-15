@@ -18,7 +18,7 @@ my $GIT_TAG = eval { capture("git describe --long --tags") };
 
 my $version;
 
-lives_ok { $version = capturex($CMDLINE, "version") } "ckan version execute";
+lives_ok { $version = capturex("mono", $CMDLINE, "version") } "cfan version execute";
 
 SKIP: {
     unless ($GIT_TAG) { skip "Development build", 1; }
