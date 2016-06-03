@@ -48,7 +48,7 @@ Contributions are welcome:
 lists things that need doing, or are being worked upon. Feel free to
 add to this!
 
-* You can share your ideas at CFAN topic on [forums.factorio.com][7]
+* You can share your ideas at CFAN topic on [forums.factorio.com][6]
 
 * If you found mods missing from or outdated in CFAN, you can post an [issue][5].
 
