@@ -86,6 +86,8 @@ namespace CFAN_netfan.CfanAggregator
             // move to target place
             ModInfoJson modInfo = FactorioModParser.parseMod(temporaryFile);
             expectedFilename = CfanModule.createStandardFileName(modInfo.name, modInfo.version.ToString());
+            // normalize again, this time with real filename (in order to fix directory name in zip file)
+            modNormalizer.normalizeModFile(temporaryFile, expectedFilename);
             string fmmModFile = Path.Combine(RepoModsDirectoryPath, expectedFilename) + ".zip";
             if (File.Exists(fmmModFile))
             {
