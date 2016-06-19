@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CFAN_netfan.CfanAggregator.Aggregators;
@@ -54,6 +55,11 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter
                     catch (NetfanDownloadKraken e)
                     {
                         user.RaiseError($"Couldn't download {modJson.name}: {e.Message}");
+                        continue;
+                    }
+                    catch (Exception e)
+                    {
+                        user.RaiseError($"Couldn't handle {modJson.name}: {e.Message}");
                         continue;
                     }
                     yield return fmmManager.generateCfanFromZipFile(user, downloadedFilePath, new Dictionary<string, string>
