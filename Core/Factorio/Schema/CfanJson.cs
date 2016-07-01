@@ -56,5 +56,11 @@ namespace CKAN.Factorio.Schema
             META = 3,
             SCENARIO = 4
         }
+
+        public static bool requiresFactorioComAuthorization(CfanJson cfanJson)
+        {
+            return cfanJson.aggregatorData.ContainsKey("requires-factorio-token") &&
+                   cfanJson.aggregatorData["requires-factorio-token"] == "1";
+        }
     }
 }

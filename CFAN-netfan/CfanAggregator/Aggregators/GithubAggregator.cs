@@ -32,8 +32,15 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
             foreach (var repo in allRepos.Select(p => p.Split('/')).Select(p => new { owner = p[0], name = p[1]}))
             {
                 var releases = client.Repository.Release.GetAll(repo.owner, repo.name).Result;
+                int count = 0;
                 foreach (Release release in releases)
                 {
+                    if (count > 0 && repo.name != "DyTech")
+                    {
+                        // return only newest one to speed up things
+                        // DyTech has different mods in different releases, so exclude it from this shortcut
+                        break;
+                    }
                     if (!release.Assets.Any())
                     {
                         user.RaiseError($"No assets for {repo.owner}/{repo.name}:{release.TagName}");
@@ -61,6 +68,7 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
                         user.RaiseError($"Couldn't download {repo.owner}/{repo.name}:{release.TagName}: {e.Message}");
                         continue;
                     }
+                    count++;
                     yield return modDirectoryManager.generateCfanFromZipFile(user, downloadedFilePath, new Dictionary<string, string>
                     {
                         ["x-source"] = typeof(FactorioModsComAggregator).Name,

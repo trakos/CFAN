@@ -33,6 +33,7 @@ namespace CKAN.Factorio
         public IEnumerable<ModDependency> supports => new ModDependency[0];
         public string title => cfanJson.modInfo.title;
         public string @abstract => cfanJson.modInfo.description?.Split('.').FirstOrDefault() ?? "";
+        public bool requireFactorioComAuth => CfanJson.requiresFactorioComAuthorization(cfanJson);
         public string release_status => null;
 
         public CfanModule(CfanJson cfanJson)

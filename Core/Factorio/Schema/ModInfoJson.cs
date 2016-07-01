@@ -17,6 +17,8 @@ namespace CKAN.Factorio.Schema
         [JsonProperty(Required = Required.Always)]
         public ModVersion version;
 
+        public FactorioVersion factorio_version;
+
         [JsonProperty(Required = Required.Always)]
         public string title;
 
