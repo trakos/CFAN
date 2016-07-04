@@ -18,10 +18,10 @@ my $REPACK  = "Core/packages/ILRepack.1.25.0/tools/ILRepack.exe";
 my $TARGET  = "Debug";      # Even our releases contain debugging info
 my $OUTNAME = "cfan.exe";
 my $BUILD   = "$Bin/../build";
-my @SOURCE  = map { "$Bin/../$_"} qw(Core Cmdline GUI CFAN-netfan Tests AutoUpdate CKAN CKAN.sln);
+my @SOURCE  = map { "$Bin/../$_"} qw(Core Cmdline GUI CFAN-netfan Tests AutoUpdate CKAN CFAN-factorio-token-fetcher CKAN.sln);
 my $METACLASS = "Core/Meta.cs";
 
-my @PROJECTS = qw(Core Cmdline GUI CFAN-netfan Tests);
+my @PROJECTS = qw(Core Cmdline GUI CFAN-netfan Tests CFAN-factorio-token-fetcher);
 
 my @BUILD_OPTS = is_stable() ? "/p:DefineConstants=STABLE" : ();
 
@@ -64,7 +64,11 @@ else {
 
 # And build..
 say("xbuild /property:Configuration=$TARGET @BUILD_OPTS /property:win32icon=../GUI/cfan.ico CKAN.sln");
-system("xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/cfan.ico", "CKAN.sln");
+if ($^O eq "MSWin32") {
+	system("cmd", "/C", "xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/cfan.ico", "CKAN.sln");
+} else {
+	system("xbuild", "/property:Configuration=$TARGET", @BUILD_OPTS, "/property:win32icon=../GUI/cfan.ico", "CKAN.sln");
+}
 
 say "\n\n=== Repacking ===\n\n";
 
