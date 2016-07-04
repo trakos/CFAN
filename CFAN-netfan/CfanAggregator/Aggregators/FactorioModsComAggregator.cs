@@ -14,7 +14,7 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
 {
     class FactorioModsComAggregator : ICfanAggregator
     {
-        const string BASE_URI = "https://api.factoriomods.com/mods?page=";
+        const string BASE_URI = "http://api.factoriomods.com/mods?page=";
         
         protected IFmmConverter fmmConverter;
 
