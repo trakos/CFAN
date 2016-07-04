@@ -59,7 +59,8 @@ namespace CKAN.Factorio.Schema
 
         public static bool requiresFactorioComAuthorization(CfanJson cfanJson)
         {
-            return cfanJson.aggregatorData.ContainsKey("requires-factorio-token") &&
+            return cfanJson.aggregatorData != null &&
+                   cfanJson.aggregatorData.ContainsKey("requires-factorio-token") &&
                    cfanJson.aggregatorData["requires-factorio-token"] == "1";
         }
     }

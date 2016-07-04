@@ -24,7 +24,7 @@ namespace CKAN.Factorio
         public string description => cfanJson.modInfo.description;
         public CfanJson.CfanModType kind => cfanJson.type;
         public long download_size => cfanJson.downloadSize;
-        public string homepage => cfanJson.modInfo.homepage;
+        public string homepage => cfanJson.aggregatorData != null && cfanJson.aggregatorData.ContainsKey("factorio-com-source") ? cfanJson.aggregatorData["factorio-com-source"] : cfanJson.modInfo.homepage;
         public string contact => cfanJson.modInfo.contact;
         public string standardFileName => createStandardFileName(identifier, modVersion.ToString());
         public IEnumerable<ModDependency> recommends => cfanJson.recommends;
@@ -34,7 +34,12 @@ namespace CKAN.Factorio
         public string title => cfanJson.modInfo.title;
         public string @abstract => cfanJson.modInfo.description?.Split('.').FirstOrDefault() ?? "";
         public bool requireFactorioComAuth => CfanJson.requiresFactorioComAuthorization(cfanJson);
+        public bool isFromFactorioCom => cfanJson.aggregatorData != null && cfanJson.aggregatorData.ContainsKey("factorio-com-id");
         public string release_status => null;
+        public ModDependency BaseGameDependency
+            =>
+                cfanJson.modInfo.dependencies.FirstOrDefault(p => p.modName == "base") ??
+                createDefaultBaseGameDependency();
 
         public CfanModule(CfanJson cfanJson)
         {
@@ -59,15 +64,20 @@ namespace CKAN.Factorio
             }
         }
 
+        public ModDependency createDefaultBaseGameDependency()
+        {
+            return new ModDependency("base < 0.13");
+        }
+
         public bool IsCompatibleKSP(FactorioVersion kspVersion)
         {
-            ModDependency baseGame = cfanJson.modInfo.dependencies.FirstOrDefault(p => p.modName == "base");
+            ModDependency baseGame = BaseGameDependency;
             return baseGame == null || baseGame.isSatisfiedBy("base", kspVersion);
         }
 
         public FactorioVersion getMinFactorioVersion()
         {
-            ModDependency baseGame = cfanJson.modInfo.dependencies.FirstOrDefault(p => p.modName == "base");
+            ModDependency baseGame = BaseGameDependency;
             return baseGame?.minVersion != null ? new FactorioVersion(baseGame.minVersion.ToString()) : null;
         }
 
@@ -78,8 +88,8 @@ namespace CKAN.Factorio
 
         public AbstractVersion HighestCompatibleKSP()
         {
-            ModDependency baseGame = cfanJson.modInfo.dependencies.FirstOrDefault(p => p.modName == "base");
-            return baseGame?.maxVersion != null ? new FactorioVersion(baseGame.maxVersion.ToString()) : null;
+            ModDependency baseGame = BaseGameDependency;
+            return baseGame != null ? new FactorioVersion(baseGame.calculateMaxVersion().ToString()) : null;
         }
 
         public bool Equals(CfanModule other)

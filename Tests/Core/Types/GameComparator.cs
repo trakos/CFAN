@@ -12,7 +12,7 @@ namespace Tests.Core.Types
     [TestFixture]
     public class GameComparator
     {
-        private static readonly FactorioVersion GameVersion = new FactorioVersion("1.0.4");
+        private static readonly FactorioVersion GameVersion = new FactorioVersion("0.12.5");
         private static readonly RandomModuleGenerator RandomModuleGenerator = new RandomModuleGenerator(new Random());
         CfanModule gameMod;
 
@@ -23,7 +23,7 @@ namespace Tests.Core.Types
         public void TotallyCompatible(Type type, bool expected)
         {
             var comparator = (CKAN.IGameComparator) Activator.CreateInstance(type);
-            gameMod = RandomModuleGenerator.GeneratorRandomModule(depends: new List<ModDependency> {new ModDependency("base==1.0.4")});
+            gameMod = RandomModuleGenerator.GeneratorRandomModule(depends: new List<ModDependency> {new ModDependency("base==0.12.5")});
 
             // Now test!
             Assert.AreEqual(expected, comparator.Compatible(GameVersion, gameMod));
@@ -36,7 +36,7 @@ namespace Tests.Core.Types
         public void GenerallySafeStrict(Type type, bool expected)
         {
             var comparator = (CKAN.IGameComparator) Activator.CreateInstance(type);
-            gameMod = RandomModuleGenerator.GeneratorRandomModule(depends: new List<ModDependency> { new ModDependency("base==1.0.3") });
+            gameMod = RandomModuleGenerator.GeneratorRandomModule(depends: new List<ModDependency> { new ModDependency("base==0.12.4") });
 
             // Now test!
             Assert.AreEqual(expected, comparator.Compatible(GameVersion, gameMod));
@@ -49,7 +49,7 @@ namespace Tests.Core.Types
         public void Incompatible(Type type, bool expected)
         {
             var comparator = (CKAN.IGameComparator) Activator.CreateInstance(type);
-            gameMod = RandomModuleGenerator.GeneratorRandomModule(depends: new List<ModDependency> { new ModDependency("base") });
+            gameMod = RandomModuleGenerator.GeneratorRandomModule(depends: new List<ModDependency> { new ModDependency("something") });
 
             // The mod without any version restriction is compatible with everything
             Assert.AreEqual(expected, comparator.Compatible(GameVersion, gameMod));

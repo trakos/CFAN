@@ -26,14 +26,35 @@ namespace CKAN
         
         private List<CfanModule> modules;
         private readonly NetAsyncDownloader downloader;
+        private FactorioAuthData factorioAuthData;
 
         /// <summary>
         /// Returns a perfectly boring NetAsyncModulesDownloader.
         /// </summary>
-        public NetAsyncModulesDownloader(IUser user)
+        public NetAsyncModulesDownloader(IUser user, FactorioAuthData factorioAuthData = null)
         {
             modules = new List<CfanModule>();
             downloader = new NetAsyncDownloader(user);
+            this.factorioAuthData = factorioAuthData;
+        }
+
+        protected Uri prepareDownloadUri(CfanModule cfanModule)
+        {
+            if (!cfanModule.cfanJson.downloadUrls.Any())
+            {
+                return null;
+            }
+            if (!cfanModule.requireFactorioComAuth)
+            {
+                return cfanModule.download;
+            }
+            if (factorioAuthData == null)
+            {
+                throw new FactorioComAuthorizationRequiredKraken($"Downloading '{cfanModule.title}' requires being logged in to factorio. Try downloading any mod in in-game mod portal integration first.");
+            }
+            string url = cfanModule.cfanJson.downloadUrls.First() +
+                         $"?username={Uri.EscapeDataString(factorioAuthData.username)}&token={Uri.EscapeDataString(factorioAuthData.accessToken)}";
+            return new Uri(url);
         }
 
 
@@ -49,7 +70,7 @@ namespace CKAN
             // one that has a unique download path.
             Dictionary<Uri, CfanModule> unique_downloads = modules.Where(module => module.download != null)
                 .GroupBy(module => module.download)
-                .ToDictionary(p => p.First().download, p => p.First());
+                .ToDictionary(p => prepareDownloadUri(p.First()), p => p.First());
 
             this.modules.AddRange(unique_downloads.Values);
 
@@ -103,7 +124,8 @@ namespace CKAN
 
                         try
                         {
-                            cache.Store(urls[i], filenames[i], modules[i].standardFileName);
+                            // store in cache without query params
+                            cache.Store(new Uri(urls[i].GetLeftPart(UriPartial.Path)), filenames[i], modules[i].standardFileName);
                         }
                         catch (FileNotFoundException e)
                         {
@@ -136,3 +158,4 @@ namespace CKAN
         }
     }
 }
+

@@ -37,6 +37,7 @@ namespace CKAN
         }
 
         /// <param name="identifier">The module to keep track of</param>
+        /// <param name="requireFactorioComAuth"></param>
         public AvailableModule(string identifier)
         {
             this.identifier = identifier;
@@ -74,8 +75,14 @@ namespace CKAN
         /// <param name="ksp_version">If not null only consider mods which match this ksp version.</param>
         /// <param name="relationship">If not null only consider mods which satisfy the RelationshipDescriptor.</param>
         /// <returns></returns>
-        public CfanModule Latest(FactorioVersion ksp_version = null, ModDependency relationship =null)
-        {            
+        public CfanModule Latest(FactorioVersion ksp_version = null, ModDependency relationship = null, bool hasFactorioAuth = false)
+        {
+            IDictionary<ModVersion, CfanJson> module_version = this.module_version;
+            if (!hasFactorioAuth)
+            {
+                module_version = module_version.Where(p => !CfanJson.requiresFactorioComAuthorization(p.Value)).ToDictionary(p => p.Key, p => p.Value);
+            }
+            
             var available_versions = new List<ModVersion>(module_version.Keys);
             CfanJson module;
             log.DebugFormat("Our dictionary has {0} keys", module_version.Keys.Count);

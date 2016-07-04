@@ -401,4 +401,12 @@ namespace CKAN
             return createReasonString(givenString);
         }
     }
+
+    public class FactorioComAuthorizationRequiredKraken : Kraken
+    {
+        public FactorioComAuthorizationRequiredKraken(string reason = null, Exception inner_exception = null)
+            : base(reason, inner_exception)
+        {
+        }
+    }
 }

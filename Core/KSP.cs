@@ -460,6 +460,28 @@ namespace CKAN
             }
         }
 
+        public bool hasFactorioAuthData()
+        {
+            return tryGetFactorioAuthData() != null;
+        }
+
+        public FactorioAuthData getFactorioAuthData()
+        {
+            return FactorioAuthData.parseConfig(gamedatadir);
+        }
+
+        public FactorioAuthData tryGetFactorioAuthData()
+        {
+            try
+            {
+                return FactorioAuthData.parseConfig(gamedatadir);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// Clears the registry of DLL data, and refreshes it by scanning GameData.
         /// This operates as a transaction.
@@ -645,6 +667,16 @@ namespace CKAN
 
             Tuple<string, string> foundLocation = possibleLocations.FirstOrDefault(possibleLocation => File.Exists(possibleLocation.Item2));
             return foundLocation != null ? foundLocation.Item1 : "";
+        }
+
+        public bool lacksFactorioAuthData()
+        {
+            return !hasFactorioAuthData() && Version() >= new FactorioVersion("0.13");
+        }
+
+        public string getFactorioAuthDataPath()
+        {
+            return FactorioAuthData.getConfigPath(gamedatadir);
         }
     }
 }

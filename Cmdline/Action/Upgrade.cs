@@ -108,12 +108,12 @@ namespace CKAN.CmdLine
                         }
                     }
 
-                    ModuleInstaller.GetInstance(ksp, User).Upgrade(to_upgrade, new NetAsyncModulesDownloader(User));
+                    ModuleInstaller.GetInstance(ksp, User).Upgrade(to_upgrade, new NetAsyncModulesDownloader(User, ksp.tryGetFactorioAuthData()));
                 }
                 else
                 {
                     // TODO: These instances all need to go.
-                    ModuleInstaller.GetInstance(ksp, User).Upgrade(options.modules, new NetAsyncModulesDownloader(User));
+                    ModuleInstaller.GetInstance(ksp, User).Upgrade(options.modules, new NetAsyncModulesDownloader(User, ksp.tryGetFactorioAuthData()));
                 }
             }
             catch (ModuleNotFoundKraken kraken)

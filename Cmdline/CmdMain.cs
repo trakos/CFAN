@@ -150,9 +150,14 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
                     user.RaiseMessage("Use 'cfan factorio help' for assistance on setting this.");
                     return Exit.ERROR;
                 }
-                else
+                log.InfoFormat("Using Factorio install at {0} with data dir set to {1}", ksp.GameDir(), ksp.GameData());
+
+                if (ksp.lacksFactorioAuthData())
                 {
-                    log.InfoFormat("Using Factorio install at {0} with data dir set to {1}", ksp.GameDir(), ksp.GameData());
+                    user.RaiseError(
+                        "Your config file located in {0} does not contain Factorio authorization data. Mods from official factorio.com mod portal will not be shown.\n\rYou can fix it by using in-game mod portal once. For headless you can copy values of service-username and service-token from other factorio install.",
+                        new object[] {ksp.getFactorioAuthDataPath()}
+                        );
                 }
             }
 

@@ -61,13 +61,32 @@ namespace CKAN.Factorio.Relationships
             }
         }
 
+        public ModDependency(ModVersion minVersion, ModVersion maxVersion, string modName, bool isOptional)
+        {
+            this.minVersion = minVersion;
+            this.maxVersion = maxVersion;
+            this.modName = modName;
+            this.isOptional = isOptional;
+        }
+
+        public ModVersion calculateMaxVersion()
+        {
+            if (modName == "base" && maxVersion == null)
+            {
+                // we assume that mods without no game version specified are only valid for versions below 0.13
+                return minVersion == null ? ModVersion.maxWithTheSameMinor(new ModVersion("0.12")) : ModVersion.maxWithTheSameMinor(minVersion);
+            }
+            return maxVersion;
+        }
+
         public bool isSatisfiedBy(string name, AbstractVersion modVersion)
         {
             if (name != modName)
             {
                 return isOptional;
             }
-            return (minVersion == null || modVersion >= minVersion) && (maxVersion == null || modVersion <= maxVersion);
+            var calculatedMaxVersion = calculateMaxVersion();
+            return (minVersion == null || modVersion >= minVersion) && (calculatedMaxVersion == null || modVersion <= calculatedMaxVersion);
         }
 
         public bool isSatisfiedBy(Dictionary<string, AbstractVersion> modVersions)
@@ -92,21 +111,18 @@ namespace CKAN.Factorio.Relationships
                 modRequirementStringBuilder.Append(" == ");
                 modRequirementStringBuilder.Append(minVersion);
             }
-            else if (minVersion != null && maxVersion == null)
+            else
             {
-                modRequirementStringBuilder.Append(" >= ");
-                modRequirementStringBuilder.Append(minVersion);
-            }
-            else if (maxVersion != null && minVersion == null)
-            {
-                modRequirementStringBuilder.Append(" <= ");
-                modRequirementStringBuilder.Append(maxVersion);
-            }
-            // both are set, and are not equals
-            else if (maxVersion != null && minVersion != null)
-            {
-                // @todo: added as an afterthought, prolly gonna cause havoc
-                throw new Exception("Unsupported version dependency combination");
+                if (minVersion != null)
+                {
+                    modRequirementStringBuilder.Append(" >= ");
+                    modRequirementStringBuilder.Append(minVersion);
+                }
+                if (maxVersion != null)
+                {
+                    modRequirementStringBuilder.Append(" <= ");
+                    modRequirementStringBuilder.Append(maxVersion);
+                }
             }
             return modRequirementStringBuilder.ToString();
         }

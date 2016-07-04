@@ -40,7 +40,7 @@ namespace Tests.Core.Net
             CKAN.Repo.UpdateRegistry(TestData.TestKANZip(), registry, ksp.KSP, new NullUser());
 
             // Ready our downloader.
-            async = new CKAN.NetAsyncModulesDownloader(new NullUser());
+            async = new CKAN.NetAsyncModulesDownloader(new NullUser(), ksp.KSP.tryGetFactorioAuthData());
 
             // General shortcuts
             cache = ksp.KSP.Cache;
