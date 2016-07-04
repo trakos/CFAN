@@ -1,4 +1,7 @@
+
+
 # The Cool Factorio Archive Network (CFAN)
+[![Build Status](https://travis-ci.org/trakos/CFAN.svg?branch=master)](https://travis-ci.org/trakos/CFAN)
 
 ### Click here to install: [CFAN-wiki#Installing CFAN](https://github.com/trakos/CFAN/wiki/Installing-CFAN)
 
