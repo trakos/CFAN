@@ -62,7 +62,7 @@ namespace CFAN_netfan.CfanAggregator.Github
             "Starholme/factorio-Steam",
             "Suprcheese/Logistics-Railway",
             "TheAIBot/Pipe-Manager",
-            //"TheAIBot/WaiTex",
+            "TheAIBot/WaiTex",
             "thebaconz/Advanced-Weaponry",
             "UberWaffe/ScienceCostTweaker",
             "YPetremann/better-vehicle-control",

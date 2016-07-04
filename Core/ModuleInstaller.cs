@@ -206,7 +206,7 @@ namespace CKAN
             {
                 if (downloader == null)
                 {
-                    downloader = new NetAsyncModulesDownloader(User);
+                    downloader = new NetAsyncModulesDownloader(User, ksp.tryGetFactorioAuthData());
                 }
 
                 downloader.DownloadModules(ksp.Cache, downloads);

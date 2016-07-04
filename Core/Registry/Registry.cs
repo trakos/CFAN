@@ -42,6 +42,7 @@ namespace CKAN
         [JsonProperty] private Dictionary<string, AutodetectedModule> installed_preexisting_modules; // name => mod info
         [JsonProperty] private Dictionary<string, InstalledModule> installed_modules;
         [JsonProperty] private Dictionary<string, string> installed_files; // filename => module
+        [JsonProperty] private FactorioAuthData factorioAuthData;
 
         [JsonIgnore] private string transaction_backup;
 
@@ -71,7 +72,7 @@ namespace CKAN
         {
             get { return installed_preexisting_modules.Keys; }
         }
-
+        
         #region Registry Upgrades
 
         [OnDeserialized]
@@ -80,6 +81,7 @@ namespace CKAN
             // Our context is our KSP install.
             KSP ksp = (KSP) context.Context;
             registry_version = LATEST_REGISTRY_VERSION;
+            factorioAuthData = ksp?.tryGetFactorioAuthData();
         }
 
         /// <summary>
@@ -117,7 +119,8 @@ namespace CKAN
             Dictionary<string, AutodetectedModule> installed_preexisting_modules,
             Dictionary<string, AvailableModule> available_modules,
             Dictionary<string, string> installed_files,
-            SortedDictionary<string, Repository> repositories
+            SortedDictionary<string, Repository> repositories,
+            FactorioAuthData factorioAuthData
             )
         {
             // Is there a better way of writing constructors than this? Srsly?
@@ -126,6 +129,7 @@ namespace CKAN
             this.available_modules = available_modules;
             this.installed_files = installed_files;
             this.repositories = repositories;
+            this.factorioAuthData = factorioAuthData;
             registry_version = LATEST_REGISTRY_VERSION;
         }
 
@@ -137,14 +141,15 @@ namespace CKAN
         {
         }
 
-        public static Registry Empty()
+        public static Registry Empty(FactorioAuthData factorioAuthData = null)
         {
             return new Registry(
                 new Dictionary<string, InstalledModule>(),
                 new Dictionary<string, AutodetectedModule>(),
                 new Dictionary<string, AvailableModule>(),
                 new Dictionary<string, string>(),
-                new SortedDictionary<string, Repository>()
+                new SortedDictionary<string, Repository>(),
+                factorioAuthData
                 );
         }
 
@@ -377,7 +382,9 @@ namespace CKAN
 
             return candidates.Select(candidate => new {candidate, available = LatestAvailable(candidate, ksp_version)})
                 .Where(p => p.available == null)
-                .Select(p => LatestAvailable(p.candidate, null)).ToList();
+                .Select(p => LatestAvailable(p.candidate, null))
+                .Where(p => p != null)
+                .ToList();
         }
 
 
@@ -398,7 +405,7 @@ namespace CKAN
 
             try
             {
-                return available_modules[module].Latest(ksp_version,relationship_descriptor);
+                return available_modules[module].Latest(ksp_version, relationship_descriptor, factorioAuthData != null);
             }
             catch (KeyNotFoundException)
             {

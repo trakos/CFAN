@@ -7,7 +7,13 @@ namespace CKAN.Factorio.Version
     [JsonConverter(typeof(JsonSimpleStringConverter))]
     public class ModVersion : NonEmptyVersion
     {
+        private AbstractVersion maxVersion;
+
         public ModVersion(string versionString) : base(versionString)
+        {
+        }
+
+        public ModVersion(AbstractVersion version) : base(version.ToString())
         {
         }
 
@@ -30,11 +36,11 @@ namespace CKAN.Factorio.Version
         // that's silly, but should work
         public static ModVersion decrement(ModVersion minVersion)
         {
-            if (minVersion.version.Build == 0)
+            if (minVersion.version.Build <= 0)
             {
                 return
                     new ModVersion(
-                        new System.Version(minVersion.version.Major, minVersion.version.Minor)
+                        new System.Version(minVersion.version.Major, minVersion.version.Minor - 1, int.MaxValue)
                             .ToString()
                         );
             }
@@ -61,6 +67,23 @@ namespace CKAN.Factorio.Version
             return
                 new ModVersion(
                     new System.Version(minVersion.version.Major, minVersion.version.Minor, int.MaxValue)
+                        .ToString()
+                    );
+        }
+
+        // that's silly, but should work
+        public static bool isMaxWithTheSameMinor(ModVersion minVersion)
+        {
+            return minVersion.ToString() ==
+                   ModVersion.maxWithTheSameMinor(minVersion).ToString();
+        }
+
+        // that's silly, but should work
+        public static ModVersion incrementMinorVersion(ModVersion minVersion)
+        {
+            return
+                new ModVersion(
+                    new System.Version(minVersion.version.Major, minVersion.version.Minor + 1, 0)
                         .ToString()
                     );
         }

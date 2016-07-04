@@ -60,7 +60,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CfanAggregator\Aggregators\FactorioComAggregator.cs" />
     <Compile Include="CfanAggregator\Aggregators\GithubAggregator.cs" />
+    <Compile Include="CfanAggregator\FactorioCom\FactorioComDownloader.cs" />
+    <Compile Include="CfanAggregator\FactorioCom\Schema\ModJson.cs" />
+    <Compile Include="CfanAggregator\FactorioCom\Schema\ModMediaFileJson.cs" />
+    <Compile Include="CfanAggregator\FactorioCom\Schema\ModReleaseJson.cs" />
+    <Compile Include="CfanAggregator\FactorioCom\Schema\ModsPageJson.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmDownloader.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmIgnorer.cs" />
     <Compile Include="CfanAggregator\FactorioModsCom\FmmConverter\FmmSpecialCases.cs" />

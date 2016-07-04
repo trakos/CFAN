@@ -35,7 +35,7 @@ namespace Tests.Core.Net
             CKAN.Repo.UpdateRegistry(TestData.TestKANTarGz(), registry, ksp.KSP, new NullUser());
 
             // Test we've got an expected module.
-            CfanModule far = registry.LatestAvailable("FARL", new FactorioVersion("0.25.0"));
+            CfanModule far = registry.LatestAvailable("FARL", new FactorioVersion("0.12.99"));
 
             Assert.AreEqual("0.5.25", far.modVersion.ToString());
         }
@@ -46,7 +46,7 @@ namespace Tests.Core.Net
             CKAN.Repo.UpdateRegistry(TestData.TestKANZip(), registry, ksp.KSP, new NullUser());
 
             // Test we've got an expected module.
-            CfanModule far = registry.LatestAvailable("FARL", new FactorioVersion("0.25.0"));
+            CfanModule far = registry.LatestAvailable("FARL", new FactorioVersion("0.12.99"));
 
             Assert.AreEqual("0.5.25", far.modVersion.ToString());
         }

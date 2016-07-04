@@ -59,6 +59,7 @@
     <Compile Include="Factorio\CfanGenerator.cs" />
     <Compile Include="Factorio\CfanModule.cs" />
     <Compile Include="Factorio\CfanModuleIdAndVersion.cs" />
+    <Compile Include="Factorio\FactorioAuthData.cs" />
     <Compile Include="Factorio\FactorioModDetector.cs" />
     <Compile Include="Factorio\FactorioModParser.cs" />
     <Compile Include="Factorio\Relationships\ModDependency.cs" />

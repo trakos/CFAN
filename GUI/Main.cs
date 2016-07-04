@@ -278,6 +278,14 @@ namespace CKAN
             Location = m_Configuration.WindowLoc;
             Size = m_Configuration.WindowSize;
 
+            if (CurrentInstance.lacksFactorioAuthData())
+            {
+                m_User.RaiseError(
+                    "Your config file located in {0} does not contain Factorio authorization data. Mods from official factorio.com mod portal will not be shown.\n\rYou can fix it by using in-game mod portal once. For headless you can copy values of service-username and service-token from other factorio install.",
+                    new object[] {CurrentInstance.getFactorioAuthDataPath()}
+                    );
+            }
+
             if (!m_Configuration.CheckForUpdatesOnLaunchNoNag)
             {
                 log.Debug("Asking user if they wish for autoupdates");

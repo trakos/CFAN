@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
 using System.Text;
 using CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter;
 using CFAN_netfan.CfanAggregator.FactorioModsCom.Schema;
@@ -13,7 +14,7 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
 {
     class FactorioModsComAggregator : ICfanAggregator
     {
-        const string BASE_URI = "http://api.factoriomods.com/mods?page=";
+        const string BASE_URI = "https://api.factoriomods.com/mods?page=";
         
         protected IFmmConverter fmmConverter;
 

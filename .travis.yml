@@ -42,3 +42,4 @@ deploy:
     on:
       repo: trakos/CFAN
       condition: $(mono --version | perl -ne'/version (\S+)/ and print $1') = 4.2.1
+      all_branches: true

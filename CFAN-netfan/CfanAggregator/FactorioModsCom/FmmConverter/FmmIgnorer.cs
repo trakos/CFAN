@@ -20,6 +20,7 @@ namespace CFAN_netfan.CfanAggregator.FactorioModsCom.FmmConverter
             "marathon",
             "More_Power_Factorio", "Power lines will now spawn between electricity using items", // scam
             "sleaf-Tower-Defense", // scenario with zip in rar
+            "WaiTex" // handled by github
         };
 
         public IEnumerable<CfanJson> generateCfanJsons(IUser user, ModJson modJson)

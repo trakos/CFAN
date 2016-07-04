@@ -64,9 +64,11 @@ namespace CKAN
             AbstractVersion latest_version = null;
             var ksp_version = mod.getMinFactorioVersion();
 
+            CfanModule latest_available = null;
+
             try
             {
-                var latest_available = registry.LatestAvailable(mod.identifier, current_ksp_version);
+                latest_available = registry.LatestAvailable(mod.identifier, current_ksp_version);
                 if (latest_available != null)
                     latest_version = latest_available.modVersion;
             }
@@ -95,12 +97,19 @@ namespace CKAN
                 
             }
 
+            var showInfoFrom = latest_available ?? latest_available_for_any_ksp;
+
             // If there's known information for this mod in any form, calculate the highest compatible
             // KSP.
-            if (latest_available_for_any_ksp != null)
+            if (showInfoFrom != null)
             {
-                var minVersion = latest_available_for_any_ksp.getMinFactorioVersion();
-                var maxVersion = latest_available_for_any_ksp.HighestCompatibleKSP();
+                string minVersion = showInfoFrom.getMinFactorioVersion()?.ToString();
+                string maxVersion = showInfoFrom.HighestCompatibleKSP()?.ToString();
+                if (maxVersion != null && ModVersion.isMaxWithTheSameMinor(new ModVersion(maxVersion)))
+                {
+                    maxVersion = maxVersion.Replace(int.MaxValue.ToString(), "x");
+                }
+
                 if (minVersion != null && maxVersion != null)
                 {
                     KSPCompatibility = minVersion.ToString() + " - " + maxVersion.ToString();
@@ -121,10 +130,10 @@ namespace CKAN
 
                 // If the mod we have installed is *not* the mod we have installed, or we don't know
                 // what we have installed, indicate that an upgrade would be needed.
-                if (installed_version == null || !latest_available_for_any_ksp.modVersion.Equals(installed_version))
+                if (installed_version == null || !showInfoFrom.modVersion.Equals(installed_version))
                 {
                     KSPCompatibilityLong = string.Format("{0} (using mod version {1})",
-                        KSPCompatibility, latest_available_for_any_ksp.modVersion);
+                        KSPCompatibility, showInfoFrom.modVersion);
                 }
             }
             else

@@ -120,7 +120,7 @@ namespace CKAN
 
         private void Create()
         {
-            registry = Registry.Empty();
+            registry = Registry.Empty(ksp.tryGetFactorioAuthData());
             log.DebugFormat("Creating new CFAN registry at {0}", path);
             Save();
         }

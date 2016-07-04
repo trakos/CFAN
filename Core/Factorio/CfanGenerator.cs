@@ -57,13 +57,18 @@ namespace CKAN.Factorio
             {
                 throw new Exception($"Couldn't parse info.json from '{directoryOrZipFile}'!");
             }
+            return createCfanJsonFromModInfoJson(modInfo, new System.IO.FileInfo(directoryOrZipFile).Length);
+        }
+
+        public static CfanJson createCfanJsonFromModInfoJson(ModInfoJson modInfo, long downloadSize)
+        {
             return new CfanJson
             {
                 modInfo = modInfo,
                 aggregatorData = new Dictionary<string, string>(),
                 authors = modInfo.author.Split(',').Select(p => p.Trim()).ToArray(),
                 categories = new string[0],
-                downloadSize = new System.IO.FileInfo(directoryOrZipFile).Length,
+                downloadSize = downloadSize,
                 downloadUrls = new string[0],
                 releasedAt = null,
                 suggests = new ModDependency[0],
