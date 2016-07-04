@@ -11,6 +11,7 @@
 - [Click here to go to the CFAN releases](https://github.com/trakos/CFAN/releases)
 
 ## What's the CFAN?
+![CFAN mod manager for Factorio](http://cfan.trakos.pl/windows1.png "CFAN mod manager for Factorio")
 
 The CFAN is a metadata respository and associated tools to allow you to find, install, and manage mods for Factorio. It provides strong assurances that mods are installed in the way prescribed by their metadata files, for the correct version of Kerbal Space Program, alongside their dependencies, and without any conflicting mods.
 
