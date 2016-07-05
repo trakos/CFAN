@@ -13,13 +13,13 @@
 ## What's the CFAN?
 ![CFAN mod manager for Factorio](http://cfan.trakos.pl/windows1.png "CFAN mod manager for Factorio")
 
-The CFAN is a metadata respository and associated tools to allow you to find, install, and manage mods for Factorio. It provides strong assurances that mods are installed in the way prescribed by their metadata files, for the correct version of Kerbal Space Program, alongside their dependencies, and without any conflicting mods.
+The CFAN is a metadata respository and associated tools to allow you to find, install, and manage mods for Factorio. It provides strong assurances that mods are installed in the way prescribed by their metadata files, for the correct version of Factorio, alongside their dependencies, and without any conflicting mods.
 
 CFAN is great for players _and_ for authors:
 - players can find new content and install it with just a few clicks;
 - modders don't have to worry about misinstall problems or outdated versions;
 
-The CKAN, whick CFAN is fork of, has been inspired by the solid and proven metadata formats from both the Debian project and the CPAN, each of which manages tens of thousands of packages.
+The CKAN, which CFAN is fork of, has been inspired by the solid and proven metadata formats from both the Debian project and the CPAN, each of which manages tens of thousands of packages.
 
 ## What's the status of the CFAN?
 
@@ -38,7 +38,7 @@ CFAN can download, install and update mods in just a few clicks. See the [User g
 
 If you are an author, the easiest way to make sure your mod has current version on CFAN is to upload it to [factoriomods.com](http://www.factoriomods.com/).
 
-Check out the page about [adding a mod to the CKAN][3] on the wiki
+Check out the page about [adding a mod to the CFAN][3] on the wiki
 
 ## Helping the development
 
