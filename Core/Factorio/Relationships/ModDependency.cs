@@ -24,7 +24,7 @@ namespace CKAN.Factorio.Relationships
 
         public ModDependency(string modRequirementString)
         {
-            var match = Regex.Match(modRequirementString, @"^(?<isOptional>\? )?(?<modName>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-])(?<minVersion> ?>=? ?[0-9\.]+)?(?<maxVersion> ?<=? ?[0-9\.]+)?(?<exactVersion> ?== ?[0-9\.]+)?$");
+            var match = Regex.Match(modRequirementString, @"^(?<isOptional>\? +)?(?<modName>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-])(?<minVersion> *>=? *[0-9\.]+)?(?<maxVersion> *<=? *[0-9\.]+)?(?<exactVersion> *== *[0-9\.]+)?$");
             if (!match.Success)
             {
                 throw new ArgumentException($"Invalid mod requirement string: '{modRequirementString}'", nameof(modRequirementString));
