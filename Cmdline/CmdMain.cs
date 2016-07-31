@@ -155,7 +155,7 @@ This is a bad idea and there is absolutely no good reason to do it. Please run C
                 if (ksp.lacksFactorioAuthData())
                 {
                     user.RaiseError(
-                        "Your config file located in {0} does not contain Factorio authorization data. Mods from official factorio.com mod portal will not be shown.\n\rYou can fix it by using in-game mod portal once. For headless you can copy values of service-username and service-token from other factorio install.",
+                        "Your config file located in {0} does not contain Factorio authorization data. Mods from official factorio.com mod portal will not be shown.\n\rYou can fix it by using in-game mod portal once. For headless you can copy values of service-username and service-token from your regular Factorio install.",
                         new object[] {ksp.getFactorioAuthDataPath()}
                         );
                 }

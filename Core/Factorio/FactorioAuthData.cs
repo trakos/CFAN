@@ -21,7 +21,7 @@ namespace CKAN.Factorio
             }
             string json = File.ReadAllText(configPath);
             dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-            if (null == data["service-token"] || null == data["service-username"])
+            if (String.IsNullOrEmpty((string)data["service-token"]) || String.IsNullOrEmpty((string)data["service-username"]))
             {
                 throw new NotFactorioDataDirectoryKraken("You have to be logged in Factorio to downloads mods from its mod portal; try checking for updates from in-game first");
             }

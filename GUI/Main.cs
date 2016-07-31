@@ -281,7 +281,7 @@ namespace CKAN
             if (CurrentInstance.lacksFactorioAuthData())
             {
                 m_User.RaiseError(
-                    "Your config file located in {0} does not contain Factorio authorization data. Mods from official factorio.com mod portal will not be shown.\n\rYou can fix it by using in-game mod portal once. For headless you can copy values of service-username and service-token from other factorio install.",
+                    "Your config file located in {0} does not contain Factorio authorization data. Mods from official factorio.com mod portal will not be shown.\n\rYou can fix it by launching Factorio, entering in-game mod manager (mods -> install mods), quitting the game and restarting CFAN.",
                     new object[] {CurrentInstance.getFactorioAuthDataPath()}
                     );
             }
