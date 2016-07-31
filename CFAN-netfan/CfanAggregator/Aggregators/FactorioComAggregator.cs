@@ -9,6 +9,7 @@ using CFAN_netfan.CfanAggregator.FactorioCom.Schema;
 using CKAN;
 using CKAN.Factorio.Schema;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace CFAN_netfan.CfanAggregator.Aggregators
 {
@@ -18,15 +19,17 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
         const string FIRST_PAGE = "/api/mods";
 
         protected FactorioComDownloader downloader;
+        protected List<ModsPageJson> prefetchedModsPages;
 
         public FactorioComAggregator()
         {
             this.downloader = new FactorioComDownloader();
+            prefetchedModsPages = fetchAllModsInfo();
         }
 
-        public IEnumerable<CfanJson> getAllCfanJsons(IUser user)
+        public List<ModsPageJson> fetchAllModsInfo()
         {
-            List<CfanJson> cfans = new List<CfanJson>();
+            List<ModsPageJson> modsPages = new List<ModsPageJson>();
             string nextPageUrl = BASE_URI + FIRST_PAGE;
             for (int pageNumber = 1; pageNumber <= 30; pageNumber++)
             {
@@ -40,20 +43,31 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
                     }
                     catch (Exception e)
                     {
-                        throw new Kraken("Couldn't fetch mods list from mods.factorio.com", e);
+                        throw new Kraken($"Couldn't fetch page {pageNumber} of mods list from mods.factorio.com", e);
                     }
                     var modsPage = JsonConvert.DeserializeObject<ModsPageJson>(jsonString);
-                    cfans.AddRange(modsPage.results.SelectMany(p => downloader.generateCfanJsons(user, p)));
+                    modsPages.Add(modsPage);
 
                     if (string.IsNullOrEmpty(modsPage.pagination.links.next))
                     {
-                        return cfans;
+                        return modsPages;
                     }
                     nextPageUrl = modsPage.pagination.links.next;
+                    Thread.Sleep(500);
                 }
             }
 
             throw new Exception("Expected less than 30 pages.");
+        }
+
+        public IEnumerable<CfanJson> getAllCfanJsons(IUser user)
+        {
+            List<CfanJson> cfans = new List<CfanJson>();
+            foreach (var modsPage in prefetchedModsPages)
+            {
+                cfans.AddRange(modsPage.results.SelectMany(p => downloader.generateCfanJsons(user, p)));
+            }
+            return cfans;
         }
 
         public void mergeCfanJson(IUser user, CfanJson destination, CfanJson source)
