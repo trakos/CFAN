@@ -28,6 +28,7 @@ namespace CKAN.Factorio.Schema
         public string contact;
         public string homepage;
         public string description;
+        [JsonConverter(typeof(JsonSingleOrArraySimpleStringConverter<ModDependency>))]
         public ModDependency[] dependencies;
 
         [OnDeserialized]

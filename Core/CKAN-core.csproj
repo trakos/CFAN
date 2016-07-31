@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Converters\JsonEnumDescriptionConverter.cs" />
+    <Compile Include="Converters\JsonSingleOrArraySimpleStringConverter.cs" />
     <Compile Include="Exporters\CfanExporter.cs" />
     <Compile Include="Exporters\BbCodeExporter.cs" />
     <Compile Include="Exporters\DelimeterSeperatedValueExporter.cs" />
