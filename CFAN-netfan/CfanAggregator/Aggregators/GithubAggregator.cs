@@ -31,7 +31,16 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
             string[] allRepos = githubRepositoriesDataProvider.GithubRepositories;
             foreach (var repo in allRepos.Select(p => p.Split('/')).Select(p => new { owner = p[0], name = p[1]}))
             {
-                var releases = client.Repository.Release.GetAll(repo.owner, repo.name).Result;
+                IReadOnlyList<Release> releases;
+                try
+                {
+                    releases = client.Repository.Release.GetAll(repo.owner, repo.name).Result;
+                }
+                catch (Exception e)
+                {
+                    user.RaiseError($"Couldn't fetch releases for {repo.owner}/{repo.name}: {e.Message}");
+                    continue;
+                }
                 int count = 0;
                 foreach (Release release in releases)
                 {
@@ -82,6 +91,5 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
         {
             destination.aggregatorData["github-repo"] = source.aggregatorData["github-repo"];
         }
-
     }
 }
