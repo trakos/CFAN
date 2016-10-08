@@ -31,7 +31,7 @@ namespace CKAN.Factorio
                 {
                     name = name,
                     title = title,
-                    author = author,
+                    author = new List<string>() {author},
                     version = version,
                     description = description,
                     dependencies = new ModDependency[0]
@@ -66,7 +66,7 @@ namespace CKAN.Factorio
             {
                 modInfo = modInfo,
                 aggregatorData = new Dictionary<string, string>(),
-                authors = modInfo.author.Split(',').Select(p => p.Trim()).ToArray(),
+                authors = modInfo.author.ToArray(),
                 categories = new string[0],
                 downloadSize = downloadSize,
                 downloadUrls = new string[0],

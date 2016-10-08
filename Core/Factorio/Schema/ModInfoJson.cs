@@ -23,7 +23,8 @@ namespace CKAN.Factorio.Schema
         public string title;
 
         [JsonProperty(Required = Required.Always)]
-        public string author;
+        [JsonConverter(typeof(JsonSingleOrArrayConverter<string>))]
+        public List<string> author;
 
         public string contact;
         public string homepage;
