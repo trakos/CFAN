@@ -31,7 +31,7 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
         {
             List<ModsPageJson> modsPages = new List<ModsPageJson>();
             string nextPageUrl = BASE_URI + FIRST_PAGE;
-            for (int pageNumber = 1; pageNumber <= 30; pageNumber++)
+            for (int pageNumber = 1; pageNumber <= 1000; pageNumber++)
             {
                 using (WebClient wc = new WebClient())
                 {
@@ -57,7 +57,7 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
                 }
             }
 
-            throw new Exception("Expected less than 30 pages.");
+            throw new Exception("Expected less than 1000 pages.");
         }
 
         public IEnumerable<CfanJson> getAllCfanJsons(IUser user)
