@@ -24,7 +24,7 @@ namespace CKAN.Factorio.Relationships
 
         public ModDependency(string modRequirementString)
         {
-            var match = Regex.Match(modRequirementString, @"^(?<isOptional>\? ?)?(?<modName>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-])(?<minVersion> *>=? *[0-9\.]+)?(?<maxVersion> *<=? *[0-9\.]+)?(?<exactVersion> *==? *[0-9\.]+)?$");
+            var match = Regex.Match(modRequirementString, @"^(?<isOptional>\? ?)?(?<modName>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-])(?<notEqualVersion> *!= *[0-9\.]+)?(?<minVersion> *>=? *[0-9\.]+)?(?<maxVersion> *<=? *[0-9\.]+)?(?<exactVersion> *==? *[0-9\.]+)?$");
             if (!match.Success)
             {
                 throw new ArgumentException($"Invalid mod requirement string: '{modRequirementString}'", nameof(modRequirementString));
@@ -58,6 +58,12 @@ namespace CKAN.Factorio.Relationships
             if (match.Groups["exactVersion"].Success)
             {
                 minVersion = maxVersion = new ModVersion(match.Groups["exactVersion"].Value.Replace("=", "").Trim());
+            }
+            // @todo: it should allow versions lower than this, but it's not implemented yet
+            if (match.Groups["notEqualVersion"].Success)
+            {
+                minVersion = new ModVersion(match.Groups["notEqualVersion"].Value.Replace("!=", "").Trim());
+                minVersion = ModVersion.increment(minVersion);
             }
         }
 
