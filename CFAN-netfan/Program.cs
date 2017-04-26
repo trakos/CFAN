@@ -44,12 +44,10 @@ namespace CFAN_netfan
                 new ModZipRootNormalizer()
             });
             ModDirectoryManager manualModDirectoryManager = new ModDirectoryManager(repoUrlPrefix, repoPath, "mods", modFileNormalizer, netFileCache);
-            ModDirectoryManager fmmMirrorManager = new ModDirectoryManager(repoUrlPrefix, repoPath, "mods-fmm", modFileNormalizer, netFileCache);
             ModDirectoryManager githubModsDirectoryManager = new ModDirectoryManager(repoUrlPrefix, repoPath, "mods-github", modFileNormalizer, netFileCache);
             CombinedCfanAggregator combinedAggregator = new CombinedCfanAggregator(new ICfanAggregator[]
             {
                 new LocalRepositoryAggregator(manualModDirectoryManager),
-                new FactorioModsComAggregator(manualModDirectoryManager, fmmMirrorManager),
                 new GithubAggregator(githubModsDirectoryManager, new GithubRepositoriesDataProvider(), githubAccessToken),
                 new FactorioComAggregator(),
             });
