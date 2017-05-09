@@ -38,6 +38,15 @@ namespace CKAN.Factorio.Version
         {
             if (minVersion.version.Build <= 0)
             {
+                if (minVersion.version.Minor <= 0)
+                {
+                    if (minVersion.version.Major <= 0)
+                    {
+                        // @todo: check whether this can break something
+                        return new ModVersion(new System.Version(0, 0, 0).ToString());
+                    }
+                    return new ModVersion(new System.Version(minVersion.version.Major - 1, int.MaxValue, int.MaxValue).ToString());
+                }
                 return
                     new ModVersion(
                         new System.Version(minVersion.version.Major, minVersion.version.Minor - 1, int.MaxValue)
