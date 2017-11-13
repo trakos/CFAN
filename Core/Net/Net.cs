@@ -17,6 +17,8 @@ namespace CKAN
 
     public class Net
     {
+        const int TIMEOUT_SECONDS = 20;
+
         public static string UserAgentString = "Mozilla/4.0 (compatible; CFAN)";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof (Net));
@@ -69,6 +71,7 @@ namespace CKAN
                         var headers = new CurlSlist();
                         additionalHeaders?.ToList().ForEach(p => headers.Append($"{p.Key}: {p.Value}"));
                         curl.HttpHeader = headers;
+                        curl.SetOpt(CurlOption.Timeout, TIMEOUT_SECONDS);
 
                         CurlCode result = curl.Perform();
                         if (result != CurlCode.Ok)
@@ -206,10 +209,20 @@ namespace CKAN
 
         private static WebClient MakeDefaultHttpClient()
         {
-            var client = new WebClient();
+            var client = new ImpatientWebClient();
             client.Headers.Add("User-Agent", UserAgentString);
 
             return client;
+        }
+
+        private class ImpatientWebClient : WebClient
+        {
+            protected override WebRequest GetWebRequest(Uri uri)
+            {
+                WebRequest w = base.GetWebRequest(uri);
+                w.Timeout = (int)TimeSpan.FromSeconds(TIMEOUT_SECONDS).TotalMilliseconds;
+                return w;
+            }
         }
     }
 }
