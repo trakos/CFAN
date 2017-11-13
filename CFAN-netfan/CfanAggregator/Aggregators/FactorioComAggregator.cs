@@ -53,7 +53,7 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
                         return modsPages;
                     }
                     nextPageUrl = modsPage.pagination.links.next;
-                    Thread.Sleep(500);
+                    Thread.Sleep(100);
                 }
             }
 
