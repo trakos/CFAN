@@ -16,6 +16,7 @@ namespace CKAN.Factorio.Relationships
         public ModVersion maxVersion { get; protected set; }
         public string modName { get; protected set; }
         public bool isOptional { get; protected set; }
+        public bool isConflict { get; protected set; }
 
         private static int countTruth(params bool[] booleans)
         {
@@ -24,11 +25,12 @@ namespace CKAN.Factorio.Relationships
 
         public ModDependency(string modRequirementString)
         {
-            var match = Regex.Match(modRequirementString, @"^(?<isOptional>\? ?)?(?<modName>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-])(?<notEqualVersion> *!= *[0-9\.]+)?(?<minVersion> *>=? *[0-9\.]+)?(?<maxVersion> *<=? *[0-9\.]+)?(?<exactVersion> *==? *[0-9\.]+)?$");
+            var match = Regex.Match(modRequirementString, @"^(?<isOptional>\? ?)?(?<isConflict>! ?)?(?<modName>[a-zA-Z0-9_-][a-zA-Z0-9_ -\.]+[a-zA-Z0-9_-])(?<notEqualVersion> *!= *[0-9\.]+)?(?<minVersion> *>=? *[0-9\.]+)?(?<maxVersion> *<=? *[0-9\.]+)?(?<exactVersion> *==? *[0-9\.]+)?$");
             if (!match.Success)
             {
                 throw new ArgumentException($"Invalid mod requirement string: '{modRequirementString}'", nameof(modRequirementString));
             }
+            isConflict = match.Groups["isConflict"].Success;
             isOptional = match.Groups["isOptional"].Success;
             modName = match.Groups["modName"].Value;
             if (match.Groups["minVersion"].Success)
@@ -67,12 +69,13 @@ namespace CKAN.Factorio.Relationships
             }
         }
 
-        public ModDependency(ModVersion minVersion, ModVersion maxVersion, string modName, bool isOptional)
+        public ModDependency(ModVersion minVersion, ModVersion maxVersion, string modName, bool isOptional, bool isConflict = false)
         {
             this.minVersion = minVersion;
             this.maxVersion = maxVersion;
             this.modName = modName;
             this.isOptional = isOptional;
+            this.isConflict = isConflict;
         }
 
         public ModVersion calculateMaxVersion()
@@ -92,7 +95,8 @@ namespace CKAN.Factorio.Relationships
                 return isOptional;
             }
             var calculatedMaxVersion = calculateMaxVersion();
-            return (minVersion == null || modVersion >= minVersion) && (calculatedMaxVersion == null || modVersion <= calculatedMaxVersion);
+            bool ret = (minVersion == null || modVersion >= minVersion) && (calculatedMaxVersion == null || modVersion <= calculatedMaxVersion);
+            return isConflict ? !ret : ret;
         }
 
         public bool isSatisfiedBy(Dictionary<string, AbstractVersion> modVersions)
@@ -101,12 +105,17 @@ namespace CKAN.Factorio.Relationships
             {
                 return isOptional;
             }
-            return isSatisfiedBy(modName, modVersions[modName]);
+            bool ret = isSatisfiedBy(modName, modVersions[modName]);
+            return isConflict ? !ret : ret;
         }
 
         public override string ToString()
         {
             StringBuilder modRequirementStringBuilder = new StringBuilder();
+            if (isConflict)
+            {
+                modRequirementStringBuilder.Append("! ");
+            }
             if (isOptional)
             {
                 modRequirementStringBuilder.Append("? ");

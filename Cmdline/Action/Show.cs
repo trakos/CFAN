@@ -207,6 +207,7 @@ namespace CKAN.CmdLine
             StringBuilder sb = new StringBuilder();
             sb.Append(dep.modName);
             if (dep.isOptional) sb.Append(" (only if installed)");
+            if (dep.isConflict) sb.Append(" (conflict)");
             if (dep.minVersion != null) sb.Append(", min: " + dep.minVersion);
             if (dep.maxVersion != null) sb.Append(", max: " + dep.maxVersion);
             return sb.ToString();

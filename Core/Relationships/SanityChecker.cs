@@ -176,7 +176,7 @@ namespace CKAN
 
                 // If it does have dependencies, but we can't find anything that provides them,
                 // add them to our unmet list.
-                foreach (ModDependency dep in mod.depends.Where(dep => !dep.isOptional && !provided.Contains(dep.modName) && !modules.ToArray().Any(p => p.identifier == dep.modName)))
+                foreach (ModDependency dep in mod.depends.Where(dep => !dep.isConflict && !dep.isOptional && !provided.Contains(dep.modName) && !modules.ToArray().Any(p => p.identifier == dep.modName)))
                 {
                     if (!unmet.ContainsKey(dep.modName))
                     {

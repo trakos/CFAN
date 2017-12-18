@@ -19,7 +19,7 @@ namespace CKAN.Factorio
         // @todo: support for mirrors?
         public Uri download => cfanJson.downloadUrls.Any() ? new Uri(cfanJson.downloadUrls.First()) : null;
         public IEnumerable<string> providesNames => new string[0];
-        public IEnumerable<ModDependency> depends => cfanJson.modInfo.dependencies.Where(p => p.modName != "base" && !p.isOptional);
+        public IEnumerable<ModDependency> depends => cfanJson.modInfo.dependencies.Where(p => p.modName != "base" && !p.isOptional && !p.isConflict);
         public string[] authors => cfanJson.authors;
         public string description => cfanJson.modInfo.description;
         public CfanJson.CfanModType kind => cfanJson.type;
@@ -29,7 +29,7 @@ namespace CKAN.Factorio
         public string standardFileName => createStandardFileName(identifier, modVersion.ToString());
         public IEnumerable<ModDependency> recommends => cfanJson.recommends;
         public IEnumerable<ModDependency> suggests => cfanJson.modInfo.dependencies.Where(p => p.modName != "base" && p.isOptional);
-        public IEnumerable<ModDependency> conflicts => cfanJson.suggests;
+        public IEnumerable<ModDependency> conflicts => cfanJson.modInfo.dependencies.Where(p => p.modName != "base" && p.isConflict);
         public IEnumerable<ModDependency> supports => new ModDependency[0];
         public string title => cfanJson.modInfo.title;
         public string @abstract => cfanJson.modInfo.description?.Split('.').FirstOrDefault() ?? "";
