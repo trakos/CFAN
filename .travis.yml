@@ -19,6 +19,7 @@ install:
 script:
   - bin/build
   - nunit-console --exclude=FlakyNetwork build/Tests/bin/Debug/CKAN.Tests.dll
+  - chmod ugo+x build/*.exe
   - prove # Run all the tests in t/
 deploy:
   -
@@ -35,11 +36,3 @@ deploy:
       repo: trakos/CFAN
       tags: true
       condition: $(mono --version | perl -ne'/version (\S+)/ and print $1') = 4.2.1
-  -
-    provider: script
-    script: bin/webdav_deploy.sh
-    skip_cleanup: true
-    on:
-      repo: trakos/CFAN
-      condition: $(mono --version | perl -ne'/version (\S+)/ and print $1') = 4.2.1
-      all_branches: true
