@@ -241,7 +241,7 @@ namespace CKAN
 
         private bool Equals(GUIMod other)
         {
-            return Equals(Name, other.Name);
+            return Equals(Identifier, other.Identifier);
         }
 
         public override bool Equals(object obj)
