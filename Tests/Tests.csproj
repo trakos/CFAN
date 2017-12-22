@@ -120,6 +120,7 @@
     <Compile Include="GUI\Configuration.cs" />
     <Compile Include="GUI\GUIMod.cs" />
     <Compile Include="GUI\MainModList.cs" />
+    <Compile Include="Netfan\CfanAgreggator\FactorioCom.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Core\Types\RelationshipDescriptor.cs" />
     <Compile Include="Core\Net\AutoUpdate.cs" />
@@ -139,6 +140,10 @@
     <None Include="Data\assets.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CFAN-netfan\CFAN-netfan.csproj">
+      <Project>{90049112-557e-44fd-ad14-c058ec2f84a3}</Project>
+      <Name>CFAN-netfan</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Core\CKAN-core.csproj">
       <Project>{3B9AEA22-FA3B-4E43-9283-EABDD81CF271}</Project>
       <Name>CKAN-core</Name>

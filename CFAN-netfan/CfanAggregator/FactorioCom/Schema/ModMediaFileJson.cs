@@ -1,6 +1,6 @@
 ﻿namespace CFAN_netfan.CfanAggregator.FactorioCom.Schema
 {
-    class ModMediaFileJson
+    public class ModMediaFileJson
     {
         public uint id;
         public uint width;

@@ -5,7 +5,7 @@ using Newtonsoft.Json.Converters;
 
 namespace CFAN_netfan.CfanAggregator.FactorioCom.Schema
 {
-    class ModReleaseJson
+    public class ModReleaseJson
     {
         [JsonProperty(ItemConverterType = typeof(IsoDateTimeConverter))]
         public uint id;

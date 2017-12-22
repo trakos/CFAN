@@ -10,7 +10,6 @@ namespace CFAN_netfan.CfanAggregator.Github
     {
         public string[] GithubRepositories => new[]
         {
-            "Anoyomouse/Warehousing",
             "bgirard/FactorioMod-Marathon",
             "Cheata/0craft",
             "Cheata/bulldozer",

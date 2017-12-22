@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace CFAN_netfan.CfanAggregator.Aggregators
 {
-    class FactorioComAggregator : ICfanAggregator
+    public class FactorioComAggregator : ICfanAggregator
     {
         public const string BASE_URI = "https://mods.factorio.com";
         const string FIRST_PAGE = "/api/mods";

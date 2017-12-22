@@ -2,7 +2,7 @@
 
 namespace CFAN_netfan.CfanAggregator.FactorioCom.Schema
 {
-    class ModsPageJson
+    public class ModsPageJson
     {
         [JsonProperty(Required = Required.Always)]
         public PaginationJson pagination;

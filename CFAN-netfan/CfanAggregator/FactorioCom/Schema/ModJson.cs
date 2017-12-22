@@ -5,7 +5,7 @@ using Newtonsoft.Json.Converters;
 
 namespace CFAN_netfan.CfanAggregator.FactorioCom.Schema
 {
-    class ModJson
+    public class ModJson
     {
         [JsonProperty(ItemConverterType = typeof(IsoDateTimeConverter))]
         public string license_url;

@@ -11,7 +11,7 @@ using CKAN.Factorio.Version;
 
 namespace CFAN_netfan.CfanAggregator.FactorioCom
 {
-    class FactorioComDownloader
+    public class FactorioComDownloader
     {
         public IEnumerable<CfanJson> generateCfanJsons(IUser user, ModJson modJson)
         {
@@ -49,9 +49,9 @@ namespace CFAN_netfan.CfanAggregator.FactorioCom
             {
                 throw new Exception("Mod " + modInfoJson.name + " has empty factorio_version field.");
             }
-            ModVersion minVersion = baseGameRequirement?.minVersion ?? ModVersion.minWithTheSameMinor(new ModVersion(modInfoJson.factorio_version));
-            ModVersion maxVersion = baseGameRequirement?.maxVersion ?? ModVersion.maxWithTheSameMinor(new ModVersion(modInfoJson.factorio_version));
-            var newBaseDependency = new ModDependency(minVersion, maxVersion, "base", baseGameRequirement?.isOptional ?? false);
+            ModVersion minVersion = ModVersion.minWithTheSameMinor(new ModVersion(modInfoJson.factorio_version));
+            ModVersion maxVersion =  ModVersion.maxWithTheSameMinor(new ModVersion(modInfoJson.factorio_version));
+            var newBaseDependency = new ModDependency(minVersion, maxVersion, "base", false);
 
             // add new or substitute existing base dependency 
             var newDependencies = modInfoJson.dependencies.Where(p => p != baseGameRequirement).ToList();
