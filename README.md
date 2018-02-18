@@ -17,6 +17,8 @@
 
 The CFAN is a metadata respository and associated tools to allow you to find, install, and manage mods for Factorio. It provides strong assurances that mods are installed in the way prescribed by their metadata files, for the correct version of Factorio, alongside their dependencies, and without any conflicting mods.
 
+Unfortunately, currently factorio's API doesn't return dependencies field. CFAN stopped automatically installing dependencies.
+
 CFAN is great for players _and_ for authors:
 - players can find new content and install it with just a few clicks;
 - modders don't have to worry about misinstall problems or outdated versions;
@@ -25,7 +27,7 @@ The CKAN, which CFAN is fork of, has been inspired by the solid and proven metad
 
 ## What's the status of the CFAN?
 
-Due to changes in mods API, mods list is currently not updated.
+The CFAN is currently under [active development][1].
 I very much welcome contributions, discussions, and especially pull-requests.
 
 ## The CFAN spec

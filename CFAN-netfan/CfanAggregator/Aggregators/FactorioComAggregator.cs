@@ -27,6 +27,8 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
             prefetchedModsPages = fetchAllModsInfo();
         }
 
+        const int RETRY_COUNT = 3;
+
         public List<ModsPageJson> fetchAllModsInfo()
         {
             List<ModsPageJson> modsPages = new List<ModsPageJson>();
@@ -36,16 +38,32 @@ namespace CFAN_netfan.CfanAggregator.Aggregators
                 using (WebClient wc = new WebClient())
                 {
                     wc.Encoding = Encoding.UTF8;
-                    string jsonString;
+                    string jsonString = null;
+                    int retryCounter = 0;
+                    while (jsonString == null)
+                    {
+                        try
+                        {
+                            jsonString = wc.DownloadString(nextPageUrl);
+                        }
+                        catch (Exception e)
+                        {
+                            retryCounter++;
+                            if (retryCounter > RETRY_COUNT)
+                            {
+                                throw new Kraken($"Couldn't fetch page {nextPageUrl} of mods list from mods.factorio.com {retryCounter} times", e);
+                            }
+                        }
+                    }
+                    ModsPageJson modsPage;
                     try
                     {
-                        jsonString = wc.DownloadString(nextPageUrl);
+                         modsPage = JsonConvert.DeserializeObject<ModsPageJson>(jsonString);
                     }
                     catch (Exception e)
                     {
-                        throw new Kraken($"Couldn't fetch page {pageNumber} of mods list from mods.factorio.com", e);
+                        throw new Kraken($"Couldn't json convert page {nextPageUrl} of mods list from mods.factorio.com", e);
                     }
-                    var modsPage = JsonConvert.DeserializeObject<ModsPageJson>(jsonString);
                     modsPages.Add(modsPage);
 
                     if (string.IsNullOrEmpty(modsPage.pagination.links.next))

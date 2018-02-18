@@ -63,6 +63,7 @@
     <Compile Include="CfanAggregator\Aggregators\FactorioComAggregator.cs" />
     <Compile Include="CfanAggregator\Aggregators\GithubAggregator.cs" />
     <Compile Include="CfanAggregator\FactorioCom\FactorioComDownloader.cs" />
+    <Compile Include="CfanAggregator\FactorioCom\Schema\LatestModReleaseJson.cs" />
     <Compile Include="CfanAggregator\FactorioCom\Schema\ModJson.cs" />
     <Compile Include="CfanAggregator\FactorioCom\Schema\ModMediaFileJson.cs" />
     <Compile Include="CfanAggregator\FactorioCom\Schema\ModReleaseJson.cs" />

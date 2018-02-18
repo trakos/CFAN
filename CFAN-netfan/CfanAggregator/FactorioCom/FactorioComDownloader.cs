@@ -19,16 +19,28 @@ namespace CFAN_netfan.CfanAggregator.FactorioCom
             return cfanJson == null ? new CfanJson[0] : new[] { cfanJson };
         }
 
-        protected CfanJson getCfanJson(IUser user, ModJson modJson, ModReleaseJson modReleaseJson)
+        protected CfanJson getCfanJson(IUser user, ModJson modJson, LatestModReleaseJson latestModReleaseJson)
         {
-            if (string.IsNullOrEmpty(modReleaseJson.download_url))
+            if (string.IsNullOrEmpty(latestModReleaseJson.download_url))
             {
                 user.RaiseError($"Mod {modJson.name} does not have download url, omitting");
                 return null;
             }
-            fixBaseGameVersionRequirement(modReleaseJson.info_json);
-            var cfanJson = CfanGenerator.createCfanJsonFromModInfoJson(modReleaseJson.info_json, modReleaseJson.file_size);
-            cfanJson.downloadUrls = new[] { FactorioComAggregator.BASE_URI + modReleaseJson.download_url};
+            ModInfoJson infoJson = new ModInfoJson
+            {
+                factorio_version = latestModReleaseJson.info_json.factorio_version,
+                author = new List<string> { modJson.owner },
+                name = modJson.name,
+                title = modJson.title,
+                homepage = modJson.homepage,
+                contact = modJson.github_path,
+                version = new ModVersion(latestModReleaseJson.version),
+                description = modJson.summary,
+                dependencies = new ModDependency[] { }
+            };
+            fixBaseGameVersionRequirement(infoJson);
+            var cfanJson = CfanGenerator.createCfanJsonFromModInfoJson(infoJson, 0);
+            cfanJson.downloadUrls = new[] { FactorioComAggregator.BASE_URI + latestModReleaseJson.download_url};
             cfanJson.aggregatorData = new Dictionary<string, string>
             {
                 ["x-source"] = typeof (FactorioComAggregator).Name,
@@ -36,8 +48,8 @@ namespace CFAN_netfan.CfanAggregator.FactorioCom
                 ["factorio-com-source"] = FactorioComAggregator.BASE_URI + "/mods/" + modJson.owner + "/" + modJson.name,
                 ["requires-factorio-token"] = "1"
             };
-            cfanJson.tags = modJson.tags.Select(p => p.name).ToArray();
-            cfanJson.categories = modJson.tags.Select(p => p.name).ToArray();
+            cfanJson.tags = new string[] { };
+            cfanJson.categories = new string[] { };
             return cfanJson;
         }
 
