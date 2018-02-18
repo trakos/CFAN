@@ -25,7 +25,7 @@ The CKAN, which CFAN is fork of, has been inspired by the solid and proven metad
 
 ## What's the status of the CFAN?
 
-The CFAN is currently under [active development][1].
+Due to changes in mods API, mods list is currently not updated.
 I very much welcome contributions, discussions, and especially pull-requests.
 
 ## The CFAN spec
