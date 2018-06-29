@@ -16,6 +16,7 @@ using CKAN.Types;
 using log4net;
 using Timer = System.Windows.Forms.Timer;
 using CKAN.CmdLine;
+using System.Net;
 
 namespace CKAN
 {
@@ -275,6 +276,7 @@ namespace CKAN
 
         protected override void OnLoad(EventArgs e)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
             Location = m_Configuration.WindowLoc;
             Size = m_Configuration.WindowSize;
 
