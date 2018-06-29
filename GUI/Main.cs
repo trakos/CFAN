@@ -274,9 +274,37 @@ namespace CKAN
 
         public static Main Instance { get; private set; }
 
+        static protected void enableTls2IfPossible()
+        {
+            Boolean platformSupportsTls12 = false;
+            foreach (SecurityProtocolType protocol in Enum.GetValues(typeof(SecurityProtocolType)))
+            {
+                if (protocol.GetHashCode() == 3072)
+                {
+                    platformSupportsTls12 = true;
+                }
+            }
+
+            log.Debug("Is Tls12 enabled: " + ServicePointManager.SecurityProtocol.HasFlag((SecurityProtocolType)3072));
+
+            // enable Tls12, if possible
+            if (!ServicePointManager.SecurityProtocol.HasFlag((SecurityProtocolType)3072))
+            {
+                if (platformSupportsTls12)
+                {
+                    log.Debug("Platform supports Tls12, but it is not enabled. Enabling it now.");
+                    ServicePointManager.SecurityProtocol |= (SecurityProtocolType)3072;
+                }
+                else
+                {
+                    log.Debug("Platform does not support Tls12.");
+                }
+            }
+        }
+
         protected override void OnLoad(EventArgs e)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            enableTls2IfPossible();
             Location = m_Configuration.WindowLoc;
             Size = m_Configuration.WindowSize;
 
