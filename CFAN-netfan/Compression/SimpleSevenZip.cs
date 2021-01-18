@@ -1,5 +1,5 @@
-﻿using SharpCompress.Archive;
-using SharpCompress.Archive.SevenZip;
+﻿using SharpCompress.Archives;
+using SharpCompress.Archives.SevenZip;
 
 namespace CFAN_netfan.Compression
 {

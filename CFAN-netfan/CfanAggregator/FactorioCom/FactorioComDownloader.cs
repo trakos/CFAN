@@ -15,6 +15,10 @@ namespace CFAN_netfan.CfanAggregator.FactorioCom
     {
         public IEnumerable<CfanJson> generateCfanJsons(IUser user, ModJson modJson)
         {
+            if (modJson.latest_release == null)
+            {
+                return new CfanJson[0];
+            }
             CfanJson cfanJson = getCfanJson(user, modJson, modJson.latest_release);
             return cfanJson == null ? new CfanJson[0] : new[] { cfanJson };
         }

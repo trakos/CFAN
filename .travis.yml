@@ -1,21 +1,19 @@
 language: csharp
 mono:
   - latest
-  - 4.2.1
+  - 5.12.0
 cache:
   - apt
 env:
   global:
-    - secure: Kvx8WFKF8TnLeaJryJPajfQcIPdWu0sPpx06iuZWIPaql/WUTTd5BjgsiyWAk3V0hF/kgwy6SbI6QBhFpIWl9LwbJiua/pCwIhTZy68BZBqFtVil39adaezNa9HY0G2jp0aHFmFNZfMmVjSUcrIpXqykeTtdBz9cpmVR0VtntdRgY0lYJvBLUxNLoNZXsQURWYousq/kTgq7KSBawCEpFz1uXim5EWXPhPpXd7ogO5lReBmBJ2/0awi+6EheKjFrnUDFR/A5P8OQMpVWuZ8zv2wP1BJ/eqcNnO+RhvBnEZqp3bsinT8JMP16WjQh5SIp2VJhiMCYev/DwrmbO645tJpSm3phWZ7f9E9NOTUPL2frGjHBGKVOyb59yxoIRwGdd45qXTyRDJ3d6o5gDW4evp3M7AD9DO+bldgm6XnyQFJgS6/cl3HMV3WRCBDOsUxm+ws+OF8+slyX9seST3GYPOxz/z9iiMlEQA6vnXEbPsZntqGCRn4PNIM3lnpuqmhboSSbjino90DRnncvPAI+GzAu25f4l+mY+ycfV4E3A1mDp5GRlKl6wNiKVI3VNznRSGjcEcOVFMgVNvfkIY8nIGUAUQMiouZNnjmSXufu/X/a4gVweSe09ezoNmW5YrhYSi9YJBVceFDgXgxjco/248SGcc64KXs4fx94A+hjcXU=
-    - secure: b7SSnXSB9GhfYOF4x98GeDnFOREpJUuYjAlildHASA+Zeel7RMDskUD7akid6i4iPqnZi72WMbk7LXeZwmtY0a3F39K/1/0YS50JqNQRBX791yn425k1wTGL+hvLclVJLjfrvjy5KJr01TPwzffkC7xnHF/Vtw2ok3MpunpgrCCXhKS1dFEI8WhOyPLNyCcrHWM5OiZ9gOG+NmNEwAJ5VnOcFmBJSJJnubYH7tfg4+LA0OcMKi4umuYvNESa0qaoKM+LLaHm1YiITKHHR1nht90PXyx5pU2UNE6xovmVQngGNtfaeVcwUYav8DwAg9WvQqvHy4zC6X1kBgMF+pbIIDtU3uxgc66fWHCnrZ6bA0w8VBdu6pZJc6hywQOTOrlUPyaotqo+odo6Tddo3DdTCWtBMgnLTniWMcRA0LZgeoEJqyXJJHd3S1paBz66I3Lo5hLWyrK539cAbwimkYNbdgXpsZeKaIc0vYuJjzhT01Dn6F64kpDe/UHhbokNjadphd1/kmyZnAgKyhnaxLqGVodqIU9YY/59vnu/bvX8vP0KiiGh/Es7P7EfkOkjgg2m1qVb1rVJHmxQF0KSTmzhjbmnWqa28wmX+fv8mZaZ2+k/tHCbW0zPd08U8PLgiSRz9Jt6prunCOYJeVV0EGALGTZravMqW+pQ5jY8bGf03oU=
-# These commands simulate having a graphical display, which is needed
-# for our GUI tests.
+    - secure: RyCIbzmci/2RbYx8aDvbabQWsqyBILUsXPYQ/GSjBS2qkwj7xAfd65jGERJWVTplXzq81WXIq1TQiJgN+5L+XriCcBrYyJ5rlDdE9AMPg0iPbIWLBo7jikUGzB3W4M33Xzr4zmIJ2kxpGycWrWjIXA5RHQH0/BBS1qnV6QkBjabmN5IiRuOrem2r5909lT5Cr2dAvbW9pLhe04LgwjUcM+11U6iJhqgDHVSABp3/qfe1wkZSdIDvpGG5CGGZyDtfd1QgUl5u8hKgZk6nn0Goh4fX3/j0y+MigrfJ5hKPD30t/4jC/w40PvRnTRY13KR6x7cWEEinQjwlOy5pnWxjtnHJSaTRQez2V4JlXSTx71P82eV+5IWu6L83TE49FHjBvp5TQiSppEl39ie5GSk568A4GS3pp52xHlm1uAkCXrgspbZuV2HmFl38dC2CkMnBUJdxfZkFl5BcBdH9IjrHYfkP71WfcRzcwSNDyAM0aRmcbhYNRmrrHN4/gUR0nFgj6Qnt7m1xjo14BnCCRjKcm3zali7ltvCR2FrEDp4oDQsebwY9WNXiHALEoMPfEVFlYdr+pTI3d6J7Tb2qtpc+Jl98Acg5VNj1EwFNquBJBRrjZ4QtKrMutXLsSgVAxfNV0+K86hIZEqwTASNiacMTC6VD0JOElwvvMGDe+eAivoI=
+    - secure: BFnSKrZnCsaV6bc/Lp/IVrMclSL/Heikf+QH2YbChdMX66NcQFbSJxpWSMDsBpXa0er7j2gZeqDUFtwMwQJ07JVNhj/vIwXv56AgDRg7LGO8TBGVqTrRKmr+9MnFUnOBGP2juXsBjqP5DFWvH+BMwy7jV0m6ua95P5O9QjTWrq/LI5uwMMlUXOoXKFbicEaCpeOHcRD+nIhgyO0fe+uChryDidCi/Ng2O+6VOAS1TetiI0cIrnlDhlUubZKHli6BOVDgch65/xOKZt7qkuIThEJZAfQByq14CnkT2NpGhqEFHeWyT3N571jpnVxlPHrjXK4EEzCE9ZgUZOpkNIqmTpG77huZNO6NjO7MP8CvF9Z5sTVmpM197zl7SxLbMSBO1Yy8z3JbXJtY+2Y9GzUBH36j3vESYsZ2x3attB/1V75xkH3DOy4fyKZptw3UkPvaKlIWjmLj4CW+6IPdWraEltJDRsRGcMrnwZfufjV4IW82L6ay+rQd1zWp7kBVZE+yLoPzopIDs5A6C8Iq8EFtOBp5sRnUfWRatlzIAePlRjO0nv1JDeu5PDni/kvIXNI91oHeozJbnOkgfSNJe1hWPaZActZYhwTDbiS4YqFefko50U0f+9cpDnC0RD0NymKSmogQNeIGVft4Xo9FiagSewYT0ZpgQkyv2Fdqv1UvT6g=
+services:
+  - xvfb
 before_install:
   - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
 install:
   - sudo apt-get install mono-devel nunit-console libtest-most-perl libipc-system-simple-perl
-  - mozroots --import --ask-remove
 script:
   - bin/build
   - nunit-console --exclude=FlakyNetwork build/Tests/bin/Debug/CKAN.Tests.dll
@@ -35,4 +33,12 @@ deploy:
     on:
       repo: trakos/CFAN
       tags: true
-      condition: $(mono --version | perl -ne'/version (\S+)/ and print $1') = 4.2.1
+      condition: $(mono --version | perl -ne'/version (\S+)/ and print $1' | head -c 6) = 5.12.0
+  - 
+    provider: script
+    script: bin/webdav_deploy.sh
+    skip_cleanup: true
+    on:
+      repo: trakos/CFAN
+      condition: $(mono --version | perl -ne'/version (\S+)/ and print $1' | head -c 6) = 5.12.0
+      all_branches: true

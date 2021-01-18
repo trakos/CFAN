@@ -26,7 +26,6 @@ namespace CFAN_netfan.CfanAggregator.FactorioCom.Schema
         public DateTime? created_at;
         public ModMediaFileJson first_media_file;
         public uint id;
-        [JsonProperty(Required = Required.Always)]
         public LatestModReleaseJson latest_release;
 
         public class ModTagJson

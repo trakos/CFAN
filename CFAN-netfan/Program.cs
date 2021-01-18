@@ -98,6 +98,7 @@ namespace CFAN_netfan
             string outputPath = v2 ? Program.outputVersion2Path : Program.outputPath;
             string repositoryTarGz = v2 ? Program.repositoryVersion2TarGz : Program.repositoryTarGz;
 
+            Directory.CreateDirectory(outputPath);
             File.Delete(repositoryTemporaryTarGz);
             SimpleTarGz.CreateTar(repositoryTemporaryTarGz, outputPath);
             File.Delete(repositoryTarGz);

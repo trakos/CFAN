@@ -33,6 +33,7 @@ namespace CFAN_netfan.CfanAggregator
             this.modNormalizer = modNormalizer;
             this.cache = netFileCache;
             Directory.CreateDirectory(RepoModsDirectoryPath);
+            Directory.CreateDirectory(RepoPacksDirectoryPath);
         }
 
         public CfanJson generateCfanFromZipFile(IUser user, string file, Dictionary<string, string> aggregatorData)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 echo "Creating directory..."
-curl -X MKCOL -u $WEBDAV_CREDENTIALS "$WEBDAV_URL/$TRAVIS_BUILD_NUMBER"
+curl -X MKCOL -u $WEBDAV_CREDENTIALS "$WEBDAV_URL/$TRAVIS_BUILD_NUMBER/"
 echo "Uploading cfan.exe..."
 curl -X PUT -u $WEBDAV_CREDENTIALS "$WEBDAV_URL/$TRAVIS_BUILD_NUMBER/cfan.exe" -T build/cfan.exe
 echo "Uploading cfan_headless.exe..."
